@@ -1,0 +1,795 @@
+<!-- ===================================================================== -->
+<!-- CUTE & RELAXING RUN ALL AGENTS MODAL (DEVGUARDIAN AI)                 -->
+<!-- Real-time multi-agent collaboration progress, work performed, & evidence -->
+<!-- ===================================================================== -->
+
+<div id="devguardianAgentsModal" class="agents-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="agentsModalTitle">
+    <div class="agents-modal-card">
+        <!-- Ambient Pastel Glows -->
+        <div class="agents-ambient-glow top-left"></div>
+        <div class="agents-ambient-glow top-right"></div>
+        <div class="agents-ambient-glow bottom-center"></div>
+
+        <!-- Top Close Button (allowed without terminating agent execution) -->
+        <button type="button" class="agents-close-btn" onclick="DevGuardianAgentsModal.closeModal()" title="Close popup (agents will continue working in background)" aria-label="Close popup">
+            &times;
+        </button>
+
+        <!-- Dynamic Project Badge Pill -->
+        <div class="agents-project-badge">
+            <span style="font-size: 13px;">🌸</span>
+            <span id="agentsModalProjectName">Current Project</span>
+        </div>
+
+        <!-- Cute Mascot & Atmosphere SVG Illustration -->
+        <div class="agents-mascot-wrapper">
+            <svg class="agents-mascot-svg" viewBox="0 0 150 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Background Cloud Puff -->
+                <path class="launch-cloud" d="M 22 104 C 14 104 10 96 16 88 C 20 82 30 80 36 84 C 44 76 58 76 64 84 C 72 78 88 78 94 84 C 104 80 118 82 122 90 C 130 96 126 104 116 104 Z" />
+
+                <!-- Floating Twinkling Stars & Sparkles -->
+                <g class="launch-sparkles-group">
+                    <polygon class="launch-sparkle sparkle-1" points="20,12 23,20 31,23 23,26 20,34 17,26 9,23 17,20" />
+                    <polygon class="launch-sparkle sparkle-2" points="132,16 134,22 140,24 134,26 132,32 130,26 124,24 130,22" />
+                    <polygon class="launch-sparkle sparkle-3" points="16,68 18,72 22,74 18,76 16,80 14,76 10,74 14,72" />
+                    <polygon class="launch-sparkle sparkle-4" points="138,72 139,75 142,76 139,77 138,80 137,77 134,76 137,75" />
+                </g>
+
+                <!-- ROBOT MASCOT -->
+                <g id="agentsRobotGroup">
+                    <!-- Antenna Stick -->
+                    <line x1="58" y1="26" x2="58" y2="13" stroke="#A78BFA" stroke-width="3" stroke-linecap="round" />
+                    <!-- Antenna Glowing Orb -->
+                    <circle class="mascot-antenna-orb" id="agentsAntennaOrb" cx="58" cy="11" r="5.5" fill="#F472B6" />
+                    <circle cx="56.5" cy="9.5" r="1.8" fill="#FFFFFF" opacity="0.8" />
+
+                    <!-- Robot Ears -->
+                    <rect x="25" y="40" width="4" height="12" rx="2" fill="#A78BFA" />
+                    <rect x="87" y="40" width="4" height="12" rx="2" fill="#A78BFA" />
+
+                    <!-- Robot Head -->
+                    <rect x="28" y="26" width="60" height="42" rx="16" fill="#EDE9FE" stroke="#C4B5FD" stroke-width="2" />
+                    
+                    <!-- Head Visor -->
+                    <rect x="34" y="32" width="48" height="28" rx="11" fill="#1E1B4B" />
+
+                    <!-- Digital Glowing Eyes (Loading State) -->
+                    <g id="agentsEyesHappy">
+                        <path d="M 40 46 Q 46 39 52 46" stroke="#38BDF8" stroke-width="3" stroke-linecap="round" fill="none" />
+                        <path d="M 64 46 Q 70 39 76 46" stroke="#38BDF8" stroke-width="3" stroke-linecap="round" fill="none" />
+                    </g>
+                    <!-- Digital Eyes (Celebration State) -->
+                    <g id="agentsEyesCelebrate" style="display: none;">
+                        <polygon points="46,38 48,43 53,44 49,47 50,52 46,49 42,52 43,47 39,44 44,43" fill="#F472B6" />
+                        <polygon points="70,38 72,43 77,44 73,47 74,52 70,49 66,52 67,47 63,44 68,43" fill="#F472B6" />
+                    </g>
+                    <!-- Digital Eyes (Caring/Failure State) -->
+                    <g id="agentsEyesCaring" style="display: none;">
+                        <circle cx="46" cy="46" r="4.5" fill="#A78BFA" />
+                        <circle cx="47.5" cy="44.5" r="1.5" fill="#FFFFFF" />
+                        <circle cx="70" cy="46" r="4.5" fill="#A78BFA" />
+                        <circle cx="71.5" cy="44.5" r="1.5" fill="#FFFFFF" />
+                    </g>
+
+                    <!-- Blush Cheeks -->
+                    <circle cx="39" cy="53" r="3.5" fill="#F472B6" opacity="0.65" />
+                    <circle cx="77" cy="53" r="3.5" fill="#F472B6" opacity="0.65" />
+
+                    <!-- Robot Body Chassis -->
+                    <path d="M 37 68 Q 37 66 42 66 L 74 66 Q 79 66 79 68 L 83 91 Q 83 95 78 95 L 38 95 Q 33 95 33 91 Z" fill="#DDD6FE" stroke="#C4B5FD" stroke-width="2" />
+                    
+                    <!-- Chest Monitor with soft glowing Heart LED -->
+                    <rect x="47" y="73" width="22" height="14" rx="4" fill="#1E1B4B" />
+                    <path id="agentsChestIcon" d="M 58 78 Q 55 75 53 78 Q 51 81 58 85 Q 65 81 63 78 Q 61 75 58 78 Z" fill="#EC4899" />
+
+                    <!-- Left Arm resting -->
+                    <path d="M 34 72 Q 27 80 32 88" stroke="#C4B5FD" stroke-width="3.5" stroke-linecap="round" fill="none" />
+                </g>
+
+                <!-- LAPTOP BESIDE ROBOT -->
+                <g id="agentsLaptopGroup">
+                    <!-- Screen Lid -->
+                    <rect x="88" y="60" width="36" height="25" rx="4" fill="#C4B5FD" stroke="#8B5CF6" stroke-width="1.5" transform="rotate(-6 88 60)" />
+                    <!-- Screen Display -->
+                    <rect x="91" y="63" width="30" height="19" rx="2.5" fill="#1E1B4B" transform="rotate(-6 91 63)" />
+                    
+                    <!-- Code Lines (Typing animation) -->
+                    <line class="laptop-code-line" x1="94" y1="69" x2="110" y2="67" stroke="#38BDF8" stroke-width="1.8" stroke-linecap="round" />
+                    <line class="laptop-code-line" x1="94" y1="73" x2="116" y2="71" stroke="#F472B6" stroke-width="1.8" stroke-linecap="round" style="animation-delay: 0.3s;" />
+                    <line class="laptop-code-line" x1="94" y1="77" x2="106" y2="75" stroke="#34D399" stroke-width="1.8" stroke-linecap="round" style="animation-delay: 0.6s;" />
+
+                    <!-- Laptop Keyboard Base -->
+                    <polygon points="82,91 126,87 131,95 80,97" fill="#DDD6FE" stroke="#A78BFA" stroke-width="1.2" />
+                    <rect x="98" y="91" width="12" height="3" rx="1" fill="#C4B5FD" transform="rotate(-5 98 91)" />
+
+                    <!-- Right Arm typing on keyboard -->
+                    <path d="M 78 74 Q 88 78 93 88" stroke="#C4B5FD" stroke-width="3.5" stroke-linecap="round" fill="none" />
+                </g>
+            </svg>
+        </div>
+
+        <!-- Heading & Subtitle -->
+        <h2 class="agents-modal-title" id="agentsModalTitle">Your AI Team Is Getting to Work! ✨</h2>
+        <p class="agents-modal-subtitle" id="agentsModalSubtitle">Your agents are collaborating to build something amazing.</p>
+
+        <!-- Overall Progress Section -->
+        <div class="agents-progress-container" id="agentsProgressContainer">
+            <div class="agents-progress-track">
+                <div class="agents-progress-bar" id="agentsProgressBar"></div>
+            </div>
+            <div class="agents-progress-meta">
+                <span id="agentsProgressCounter">0 of 8 agents completed (0%)</span>
+                <span id="agentsProgressStage">Stage: Initializing</span>
+            </div>
+        </div>
+
+        <!-- Live Friendly Status Message -->
+        <div class="agents-status-live" id="agentsStatusLiveWrapper">
+            <span id="agentsStatusLiveMessage">Your team is getting organized…</span>
+            <span class="agents-dots" id="agentsLoadingDots"><span>.</span><span>.</span><span>.</span></span>
+        </div>
+
+        <!-- SUCCESS VIEW CARD -->
+        <div class="agents-success-card" id="agentsSuccessCard">
+            <div class="agents-summary-grid">
+                <div class="agents-summary-box">
+                    <div class="agents-summary-val" id="agentsSummaryCompletedCount">8 / 8</div>
+                    <div class="agents-summary-lbl">Completed</div>
+                </div>
+                <div class="agents-summary-box">
+                    <div class="agents-summary-val" id="agentsSummaryFilesCount">0 Files</div>
+                    <div class="agents-summary-lbl">Synthesized</div>
+                </div>
+                <div class="agents-summary-box">
+                    <div class="agents-summary-val" id="agentsSummaryTestRate">100%</div>
+                    <div class="agents-summary-lbl">Test Pass Rate</div>
+                </div>
+                <div class="agents-summary-box">
+                    <div class="agents-summary-val" style="color: #10B981;">Ready</div>
+                    <div class="agents-summary-lbl">Workflow Status</div>
+                </div>
+            </div>
+            <div style="font-size: 12px; color: var(--agents-text-secondary); line-height: 1.45;" id="agentsSummaryText">
+                All 8 autonomous engineering agents have completed their deliverables with verifiable artifacts.
+            </div>
+        </div>
+
+        <!-- FAILURE VIEW CARD -->
+        <div class="agents-failure-card" id="agentsFailureCard">
+            <div class="agents-failure-title">
+                <span>⚠️</span>
+                <span id="agentsFailureAgentName">Agent Execution Halted</span>
+            </div>
+            <div class="agents-failure-desc" id="agentsFailureErrorMessage">
+                An agent encountered an unexpected issue during workflow processing.
+            </div>
+            <div class="agents-failure-guide" id="agentsFailureGuide">
+                Subsequent stages were safely halted to preserve codebase integrity. Review the error details and click Retry Failed Agents to resume.
+            </div>
+        </div>
+
+        <!-- Scrollable Agent Items List -->
+        <div class="agents-list-scrollable" id="agentsListContainer">
+            <!-- Dynamic Agent Cards populated by JavaScript -->
+        </div>
+
+        <!-- Action Button Toolbar -->
+        <div class="agents-actions" id="agentsActionToolbar">
+            <!-- Running State Buttons -->
+            <button type="button" class="agents-btn-ghost" id="agentsDismissBtn" onclick="DevGuardianAgentsModal.closeModal()">
+                Run in background
+            </button>
+
+            <!-- Success State Buttons -->
+            <button type="button" class="agents-btn-primary" id="agentsViewReportsBtn" style="display: none;" onclick="DevGuardianAgentsModal.viewReports()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+                View Agent Reports
+            </button>
+            <a href="#" class="agents-btn-secondary" id="agentsViewFilesBtn" style="display: none;" target="_blank">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                View Project Files
+            </a>
+            <button type="button" class="agents-btn-primary" id="agentsRunProjectBtn" style="display: none; background: linear-gradient(135deg, #10B981 0%, #059669 100%);" onclick="DevGuardianAgentsModal.runProjectLaunch()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                Run Project
+            </button>
+            <a href="#" class="agents-btn-secondary" id="agentsViewLogsBtn" style="display: none;">
+                View Logs
+            </a>
+
+            <!-- Failure State Buttons -->
+            <button type="button" class="agents-btn-primary" id="agentsRetryBtn" style="display: none;" onclick="DevGuardianAgentsModal.retryWorkflow()">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+                Retry Failed Agents
+            </button>
+            <button type="button" class="agents-btn-ghost" id="agentsDoneBtn" style="display: none;" onclick="DevGuardianAgentsModal.closeModal()">
+                Done
+            </button>
+        </div>
+
+        <small class="agents-background-note" id="agentsBackgroundNote">
+            Closing this popup will not stop your AI agents from working.
+        </small>
+    </div>
+</div>
+
+<script>
+/**
+ * DevGuardian AI — Run All Agents Workflow Modal Controller
+ * Coordinates live agent execution updates via Server-Sent Events (SSE),
+ * fallback polling, real progress tracking, and transitions to Run Project.
+ */
+window.DevGuardianAgentsModal = (function() {
+    let currentProjectId = null;
+    let currentProjectName = "Project";
+    let eventSource = null;
+    let pollInterval = null;
+    let isExecuting = false;
+
+    function getElements() {
+        return {
+            modal: document.getElementById("devguardianAgentsModal"),
+            projectName: document.getElementById("agentsModalProjectName"),
+            title: document.getElementById("agentsModalTitle"),
+            subtitle: document.getElementById("agentsModalSubtitle"),
+            progressBar: document.getElementById("agentsProgressBar"),
+            progressCounter: document.getElementById("agentsProgressCounter"),
+            progressStage: document.getElementById("agentsProgressStage"),
+            progressContainer: document.getElementById("agentsProgressContainer"),
+            statusLiveWrapper: document.getElementById("agentsStatusLiveWrapper"),
+            statusLiveMessage: document.getElementById("agentsStatusLiveMessage"),
+            loadingDots: document.getElementById("agentsLoadingDots"),
+            listContainer: document.getElementById("agentsListContainer"),
+            // Mascot
+            mascotOrb: document.getElementById("agentsAntennaOrb"),
+            eyesHappy: document.getElementById("agentsEyesHappy"),
+            eyesCelebrate: document.getElementById("agentsEyesCelebrate"),
+            eyesCaring: document.getElementById("agentsEyesCaring"),
+            chestIcon: document.getElementById("agentsChestIcon"),
+            // Cards
+            successCard: document.getElementById("agentsSuccessCard"),
+            summaryCompletedCount: document.getElementById("agentsSummaryCompletedCount"),
+            summaryFilesCount: document.getElementById("agentsSummaryFilesCount"),
+            summaryTestRate: document.getElementById("agentsSummaryTestRate"),
+            summaryText: document.getElementById("agentsSummaryText"),
+            failureCard: document.getElementById("agentsFailureCard"),
+            failureAgentName: document.getElementById("agentsFailureAgentName"),
+            failureErrorMessage: document.getElementById("agentsFailureErrorMessage"),
+            failureGuide: document.getElementById("agentsFailureGuide"),
+            // Buttons
+            btnDismiss: document.getElementById("agentsDismissBtn"),
+            btnViewReports: document.getElementById("agentsViewReportsBtn"),
+            btnViewFiles: document.getElementById("agentsViewFilesBtn"),
+            btnRunProject: document.getElementById("agentsRunProjectBtn"),
+            btnViewLogs: document.getElementById("agentsViewLogsBtn"),
+            btnRetry: document.getElementById("agentsRetryBtn"),
+            btnDone: document.getElementById("agentsDoneBtn"),
+            backgroundNote: document.getElementById("agentsBackgroundNote")
+        };
+    }
+
+    function setMascotState(state) {
+        const els = getElements();
+        if (!els.eyesHappy) return;
+
+        els.eyesHappy.style.display = "none";
+        els.eyesCelebrate.style.display = "none";
+        els.eyesCaring.style.display = "none";
+
+        if (state === "celebrate") {
+            els.eyesCelebrate.style.display = "block";
+            if (els.mascotOrb) els.mascotOrb.setAttribute("fill", "#10B981");
+            if (els.chestIcon) els.chestIcon.setAttribute("fill", "#10B981");
+        } else if (state === "caring") {
+            els.eyesCaring.style.display = "block";
+            if (els.mascotOrb) els.mascotOrb.setAttribute("fill", "#A78BFA");
+            if (els.chestIcon) els.chestIcon.setAttribute("fill", "#A78BFA");
+        } else {
+            els.eyesHappy.style.display = "block";
+            if (els.mascotOrb) els.mascotOrb.setAttribute("fill", "#F472B6");
+            if (els.chestIcon) els.chestIcon.setAttribute("fill", "#EC4899");
+        }
+    }
+
+    function resetModal(projectName) {
+        const els = getElements();
+        currentProjectName = projectName || "Project";
+        if (els.projectName) els.projectName.textContent = currentProjectName;
+        if (els.title) els.title.textContent = "Your AI Team Is Getting to Work! ✨";
+        if (els.subtitle) els.subtitle.textContent = "Your agents are collaborating to build something amazing.";
+
+        if (els.progressBar) {
+            els.progressBar.className = "agents-progress-bar";
+            els.progressBar.style.width = "0%";
+        }
+        if (els.progressCounter) els.progressCounter.textContent = "0 of 8 agents completed (0%)";
+        if (els.progressStage) els.progressStage.textContent = "Stage: Initializing";
+
+        if (els.statusLiveMessage) els.statusLiveMessage.textContent = "Your team is getting organized…";
+        if (els.loadingDots) els.loadingDots.style.display = "inline-block";
+        if (els.statusLiveWrapper) els.statusLiveWrapper.style.display = "flex";
+
+        if (els.successCard) els.successCard.style.display = "none";
+        if (els.failureCard) els.failureCard.style.display = "none";
+
+        // Buttons
+        if (els.btnDismiss) els.btnDismiss.style.display = "inline-block";
+        if (els.btnViewReports) els.btnViewReports.style.display = "none";
+        if (els.btnViewFiles) els.btnViewFiles.style.display = "none";
+        if (els.btnRunProject) els.btnRunProject.style.display = "none";
+        if (els.btnViewLogs) els.btnViewLogs.style.display = "none";
+        if (els.btnRetry) els.btnRetry.style.display = "none";
+        if (els.btnDone) els.btnDone.style.display = "none";
+        if (els.backgroundNote) els.backgroundNote.style.display = "block";
+
+        setMascotState("loading");
+    }
+
+    function openModal(projectId, projectName) {
+        currentProjectId = projectId;
+        currentProjectName = projectName || currentProjectName;
+        resetModal(currentProjectName);
+        const els = getElements();
+        if (els.modal) els.modal.classList.add("active");
+    }
+
+    function closeModal() {
+        if (eventSource) {
+            eventSource.close();
+            eventSource = null;
+        }
+        if (pollInterval) {
+            clearInterval(pollInterval);
+            pollInterval = null;
+        }
+        isExecuting = false;
+        const els = getElements();
+        if (els.modal) els.modal.classList.remove("active");
+    }
+
+    function renderAgentsList(agents) {
+        const els = getElements();
+        if (!els.listContainer || !agents) return;
+
+        let html = "";
+        agents.forEach(agent => {
+            const rawStatus = agent.status || "pending";
+            let statusClass = "waiting";
+            let statusText = agent.status_label || "Waiting";
+            let iconBadge = "●";
+
+            if (rawStatus === "running" || rawStatus === "in_progress") {
+                statusClass = "in_progress";
+                statusText = "In Progress";
+                iconBadge = "⚡";
+            } else if (rawStatus === "completed") {
+                statusClass = "completed";
+                statusText = "Completed";
+                iconBadge = "✓";
+            } else if (rawStatus === "failed") {
+                statusClass = "failed";
+                statusText = "Failed";
+                iconBadge = "✕";
+            } else if (rawStatus === "blocked" || rawStatus === "skipped") {
+                statusClass = "skipped";
+                statusText = "Skipped";
+                iconBadge = "—";
+            }
+
+            let metaChipsHtml = "";
+            if (agent.files_created_count > 0) {
+                metaChipsHtml += `<span class="agent-chip files">+${agent.files_created_count} files</span>`;
+            }
+            if (agent.validation_performed && rawStatus === "completed") {
+                metaChipsHtml += `<span class="agent-chip validation">Validated</span>`;
+            }
+
+            let workDetails = agent.work_performed || agent.task_assigned || "Pending assignment";
+            if (rawStatus === "failed" && agent.error_message) {
+                workDetails = `<span style="color: #DC2626; font-weight: 600;">Error:</span> ${agent.error_message}`;
+            }
+
+            html += `
+                <div class="agent-item-card ${statusClass}">
+                    <div class="agent-card-header">
+                        <div class="agent-card-identity">
+                            <span class="agent-card-avatar">${agent.icon || "🤖"}</span>
+                            <div>
+                                <span class="agent-card-name">${agent.name}</span>
+                                <span style="font-size: 11px; color: var(--agents-text-muted); margin-left: 6px;">(${agent.role || 'Agent'})</span>
+                            </div>
+                        </div>
+                        <span class="agent-status-badge ${statusClass}">
+                            <span>${iconBadge}</span>
+                            <span>${statusText}</span>
+                        </span>
+                    </div>
+                    <div class="agent-card-body">
+                        ${workDetails}
+                    </div>
+                    ${metaChipsHtml ? `<div class="agent-card-meta-chips">${metaChipsHtml}</div>` : ''}
+                </div>
+            `;
+        });
+
+        els.listContainer.innerHTML = html;
+    }
+
+    function updateState(data) {
+        const els = getElements();
+        if (!data) return;
+
+        // Project Name
+        if (data.project_name && els.projectName) {
+            currentProjectName = data.project_name;
+            els.projectName.textContent = currentProjectName;
+        }
+
+        // Progress Bar
+        const pct = data.progress_pct !== undefined ? data.progress_pct : 0;
+        if (els.progressBar) {
+            els.progressBar.style.width = `${pct}%`;
+        }
+        if (els.progressCounter) {
+            els.progressCounter.textContent = data.progress_text || `${data.completed_count || 0} of ${data.total_agents || 8} completed (${pct}%)`;
+        }
+        if (els.progressStage) {
+            els.progressStage.textContent = data.current_agent ? `Active: ${data.current_agent}` : `Stage: ${data.current_stage || 'Review'}`;
+        }
+
+        // Live Friendly Message
+        if (els.statusLiveMessage && data.live_message) {
+            els.statusLiveMessage.textContent = data.live_message;
+        }
+
+        // Render Agents List
+        if (data.agents && data.agents.length > 0) {
+            renderAgentsList(data.agents);
+        }
+
+        // Check if finished
+        if (data.overall_status === "completed" && !data.is_running) {
+            showSuccess(data);
+        } else if (data.overall_status === "failed" && !data.is_running) {
+            showFailure(data);
+        }
+    }
+
+    function showSuccess(data) {
+        isExecuting = false;
+        if (eventSource) {
+            eventSource.close();
+            eventSource = null;
+        }
+        if (pollInterval) {
+            clearInterval(pollInterval);
+            pollInterval = null;
+        }
+
+        const els = getElements();
+        setMascotState("celebrate");
+
+        if (els.title) els.title.textContent = "Your AI Team Has Finished! 🎉";
+        if (els.subtitle) els.subtitle.textContent = "Your agents have completed their assigned work. Let's review the results.";
+
+        if (els.progressBar) {
+            els.progressBar.className = "agents-progress-bar completed";
+            els.progressBar.style.width = "100%";
+        }
+        if (els.loadingDots) els.loadingDots.style.display = "none";
+
+        // Summary Card
+        const summary = data.summary || {};
+        if (els.summaryCompletedCount) els.summaryCompletedCount.textContent = `${data.completed_count || data.total_agents} / ${data.total_agents}`;
+        if (els.summaryFilesCount) els.summaryFilesCount.textContent = `${summary.total_files_count || 0} Files`;
+        if (els.summaryTestRate) els.summaryTestRate.textContent = `${summary.test_pass_rate || 100}%`;
+        if (els.summaryText) {
+            els.summaryText.textContent = `All ${data.total_agents || 8} autonomous engineering agents synthesized complete source code and verified all architecture constraints.`;
+        }
+        if (els.successCard) els.successCard.style.display = "block";
+        if (els.failureCard) els.failureCard.style.display = "none";
+
+        // Links & Buttons
+        if (els.btnDismiss) els.btnDismiss.style.display = "none";
+        if (els.btnViewReports) els.btnViewReports.style.display = "inline-flex";
+        if (els.btnViewFiles) {
+            els.btnViewFiles.style.display = "inline-flex";
+            els.btnViewFiles.href = `/projects/${currentProjectId}/open-folder`;
+        }
+        if (els.btnRunProject) els.btnRunProject.style.display = "inline-flex";
+        if (els.btnViewLogs) {
+            els.btnViewLogs.style.display = "inline-flex";
+            els.btnViewLogs.href = `/projects/${currentProjectId}/logs`;
+        }
+        if (els.btnRetry) els.btnRetry.style.display = "none";
+        if (els.btnDone) els.btnDone.style.display = "inline-flex";
+        if (els.backgroundNote) els.backgroundNote.style.display = "none";
+
+        enableRunAllButtons();
+
+        // Dispatch custom completion event for workspace timeline & progress updates
+        window.dispatchEvent(new CustomEvent("devguardian:agents-completed", {
+            detail: { projectId: currentProjectId, summary: summary }
+        }));
+    }
+
+    function showFailure(data) {
+        isExecuting = false;
+        if (eventSource) {
+            eventSource.close();
+            eventSource = null;
+        }
+        if (pollInterval) {
+            clearInterval(pollInterval);
+            pollInterval = null;
+        }
+
+        const els = getElements();
+        setMascotState("caring");
+
+        if (els.title) els.title.textContent = "A Little Hiccup! Let's Fix It. 💜";
+        if (els.subtitle) els.subtitle.textContent = "One of our team members ran into an obstacle during workflow processing.";
+
+        if (els.progressBar) {
+            els.progressBar.className = "agents-progress-bar failed";
+        }
+        if (els.loadingDots) els.loadingDots.style.display = "none";
+
+        const summary = data.summary || {};
+        const failedInfo = summary.failed_agent || {};
+
+        if (els.failureAgentName) {
+            els.failureAgentName.textContent = failedInfo.agent_name ? `${failedInfo.agent_name} Encountered an Error` : "Agent Stage Failed";
+        }
+        if (els.failureErrorMessage) {
+            els.failureErrorMessage.textContent = failedInfo.error_message || "An unexpected error occurred during agent pipeline execution.";
+        }
+        if (els.failureGuide) {
+            els.failureGuide.textContent = failedInfo.suggestion || "Subsequent stages were safely halted. Review error logs and click Retry Failed Agents to resume.";
+        }
+
+        if (els.failureCard) els.failureCard.style.display = "block";
+        if (els.successCard) els.successCard.style.display = "none";
+
+        // Buttons
+        if (els.btnDismiss) els.btnDismiss.style.display = "none";
+        if (els.btnViewReports) els.btnViewReports.style.display = "none";
+        if (els.btnViewFiles) els.btnViewFiles.style.display = "none";
+        if (els.btnRunProject) els.btnRunProject.style.display = "none";
+        if (els.btnRetry) els.btnRetry.style.display = "inline-flex";
+        if (els.btnViewLogs) {
+            els.btnViewLogs.style.display = "inline-flex";
+            els.btnViewLogs.href = `/projects/${currentProjectId}/logs`;
+        }
+        if (els.btnDone) els.btnDone.style.display = "inline-flex";
+        if (els.backgroundNote) els.backgroundNote.style.display = "none";
+
+        enableRunAllButtons();
+    }
+
+    function startWorkflow(projectId, projectName) {
+        if (isExecuting) return;
+        isExecuting = true;
+        currentProjectId = projectId;
+        currentProjectName = projectName || currentProjectName;
+
+        openModal(projectId, currentProjectName);
+        disableRunAllButtons();
+
+        // Retrieve CSRF token
+        const csrfInput = document.querySelector("input[name='csrf_token']");
+        const csrfToken = csrfInput ? csrfInput.value : "";
+        const formData = new FormData();
+        if (csrfToken) formData.append("csrf_token", csrfToken);
+
+        // Send POST request to start background execution
+        fetch(`/projects/${projectId}/run-all-agents`, {
+            method: "POST",
+            headers: {
+                "Accept": "application/json",
+                "X-Requested-With": "XMLHttpRequest",
+                "X-CSRFToken": csrfToken
+            },
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            updateState(data);
+            connectStream(projectId);
+        })
+        .catch(err => {
+            console.warn("Direct POST error, initiating stream:", err);
+            connectStream(projectId);
+        });
+    }
+
+    function connectStream(projectId) {
+        if (eventSource) {
+            eventSource.close();
+            eventSource = null;
+        }
+
+        try {
+            if (window.EventSource) {
+                eventSource = new EventSource(`/projects/${projectId}/workflow-stream`);
+                eventSource.onmessage = function(event) {
+                    try {
+                        const data = JSON.parse(event.data);
+                        updateState(data);
+                    } catch (err) {
+                        console.warn("SSE parse error:", err);
+                    }
+                };
+                eventSource.onerror = function() {
+                    if (eventSource) {
+                        eventSource.close();
+                        eventSource = null;
+                    }
+                    // Fall back to REST polling if SSE disconnects
+                    startPolling(projectId);
+                };
+            } else {
+                startPolling(projectId);
+            }
+        } catch (e) {
+            startPolling(projectId);
+        }
+    }
+
+    function startPolling(projectId) {
+        if (pollInterval) clearInterval(pollInterval);
+        pollInterval = setInterval(function() {
+            fetch(`/api/projects/${projectId}/workflow-status`)
+                .then(res => res.json())
+                .then(data => {
+                    updateState(data);
+                    if (!data.is_running && data.overall_status in {completed: 1, failed: 1}) {
+                        clearInterval(pollInterval);
+                        pollInterval = null;
+                    }
+                })
+                .catch(err => console.warn("Polling error:", err));
+        }, 1200);
+    }
+
+    function retryWorkflow() {
+        if (!currentProjectId) return;
+        const csrfInput = document.querySelector("input[name='csrf_token']");
+        const csrfToken = csrfInput ? csrfInput.value : "";
+        const formData = new FormData();
+        if (csrfToken) formData.append("csrf_token", csrfToken);
+
+        resetModal(currentProjectName);
+        disableRunAllButtons();
+
+        fetch(`/projects/${currentProjectId}/workflow-retry`, {
+            method: "POST",
+            headers: {
+                "Accept": "application/json",
+                "X-Requested-With": "XMLHttpRequest",
+                "X-CSRFToken": csrfToken
+            },
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            updateState(data);
+            connectStream(currentProjectId);
+        })
+        .catch(err => {
+            console.warn("Retry error:", err);
+            connectStream(currentProjectId);
+        });
+    }
+
+    function viewReports() {
+        closeModal();
+        const repSection = document.getElementById("agent_reports_section");
+        if (repSection) {
+            repSection.scrollIntoView({ behavior: "smooth" });
+        } else {
+            window.location.hash = "#agent_reports_section";
+        }
+    }
+
+    function runProjectLaunch() {
+        closeModal();
+        // Invoke the cute project launch modal directly!
+        if (window.DevGuardianLauncher && currentProjectId) {
+            window.DevGuardianLauncher.startLaunch(currentProjectId, currentProjectName);
+        } else {
+            // Fallback: submit run project form
+            const runForm = document.querySelector("form[action*='run-project']");
+            if (runForm) runForm.submit();
+        }
+    }
+
+    function disableRunAllButtons() {
+        document.querySelectorAll(".btn-run-all-agents, [data-run-all-agents-btn]").forEach(btn => {
+            btn.classList.add("disabled");
+            btn.setAttribute("disabled", "true");
+        });
+    }
+
+    function enableRunAllButtons() {
+        document.querySelectorAll(".btn-run-all-agents, [data-run-all-agents-btn]").forEach(btn => {
+            btn.classList.remove("disabled");
+            btn.removeAttribute("disabled");
+        });
+    }
+
+    // Keyboard support: Escape key closes modal
+    document.addEventListener("keydown", function(e) {
+        if (e.key === "Escape") {
+            const els = getElements();
+            if (els.modal && els.modal.classList.contains("active")) {
+                closeModal();
+            }
+        }
+    });
+
+    // Auto-bind click handler on all Run All Agents buttons on page load
+    document.addEventListener("DOMContentLoaded", function() {
+        // Intercept forms targeting run_full_workflow_action or /run
+        document.querySelectorAll("form").forEach(form => {
+            const action = form.getAttribute("action") || "";
+            // Check if targeting run_full_workflow_action, ending in /run or /run-all-agents
+            const isRunAll = (action.endsWith("/run") || action.includes("/run-all-agents") || action.includes("run_full_workflow_action"))
+                             && !action.includes("run-project") && !action.includes("run_project_app_action");
+            if (isRunAll) {
+                form.addEventListener("submit", function(e) {
+                    e.preventDefault();
+                    const match = action.match(/\/projects\/([^\/]+)\/(run|run-all-agents)/);
+                    if (match && match[1]) {
+                        const pid = match[1];
+                        const submitBtn = form.querySelector("button[type='submit']");
+                        const pname = (submitBtn && submitBtn.getAttribute("data-project-name")) 
+                            || document.querySelector(".dashboard-title-area h1")?.textContent?.trim()
+                            || "DevGuardian Project";
+                        startWorkflow(pid, pname);
+                    } else {
+                        form.submit();
+                    }
+                });
+            }
+        });
+
+        // Intercept click on buttons with .btn-run-all-agents
+        document.querySelectorAll(".btn-run-all-agents").forEach(btn => {
+            btn.addEventListener("click", function(e) {
+                e.preventDefault();
+                const pid = btn.getAttribute("data-project-id");
+                const pname = btn.getAttribute("data-project-name") || "Project";
+                if (pid) {
+                    startWorkflow(pid, pname);
+                }
+            });
+        });
+
+        // Recovery check: Check if current page is project workspace and a workflow is running
+        const match = window.location.pathname.match(/\/projects\/([^\/]+)\/workspace/);
+        if (match && match[1]) {
+            const pid = match[1];
+            fetch(`/api/projects/${pid}/workflow-status`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data && data.is_running) {
+                        openModal(pid, data.project_name);
+                        updateState(data);
+                        connectStream(pid);
+                    }
+                })
+                .catch(e => {});
+        }
+    });
+
+    return {
+        openModal: openModal,
+        closeModal: closeModal,
+        startWorkflow: startWorkflow,
+        retryWorkflow: retryWorkflow,
+        viewReports: viewReports,
+        runProjectLaunch: runProjectLaunch
+    };
+})();
+</script>

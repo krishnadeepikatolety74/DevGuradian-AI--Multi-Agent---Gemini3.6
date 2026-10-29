@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+
+{% block title %}Project History &amp; Audit Logs — DevGuardian AI{% endblock %}
+
+{% block extra_head %}
+<style>
+.history-page-shell {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.history-header-card {
+    background: #FFFFFF;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 20px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    box-shadow: var(--shadow-sm);
+}
+
+.timeline-card {
+    background: #FFFFFF;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 24px;
+    box-shadow: var(--shadow-sm);
+}
+
+.timeline-entry {
+    display: flex;
+    gap: 16px;
+    padding-bottom: 20px;
+    position: relative;
+}
+
+.timeline-entry:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    top: 32px;
+    left: 17px;
+    bottom: 0;
+    width: 2px;
+    background: #E2E8F0;
+}
+
+.timeline-icon-box {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #F1F5F9;
+    color: #475569;
+    flex-shrink: 0;
+    z-index: 2;
+    border: 2px solid #FFFFFF;
+    box-shadow: 0 0 0 1px #E2E8F0;
+}
+
+.timeline-icon-box.success {
+    background: #DCFCE7;
+    color: #166534;
+}
+
+.timeline-icon-box.error {
+    background: #FEE2E2;
+    color: #991B1B;
+}
+
+.timeline-icon-box.arch {
+    background: #E0F2FE;
+    color: #0369A1;
+}
+
+.timeline-icon-box.doc {
+    background: #F3E8FF;
+    color: #7E22CE;
+}
+
+.timeline-content-body {
+    flex: 1;
+    background: #FAFAFC;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 18px;
+}
+
+.timeline-top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="history-page-shell">
+    <!-- Header Card -->
+    <div class="history-header-card">
+        <div>
+            <h1 style="font-size: 22px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px;">Project History &amp; Audit Logs</h1>
+            <p style="font-size: 13px; color: var(--text-secondary); margin: 0;">Comprehensive audit trail of multi-agent workflows, architecture diagrams, code generation, and documentation exports.</p>
+        </div>
+
+        <!-- Filter By Project -->
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <form id="historyFilterForm" method="GET" action="{{ url_for('history_page') }}" style="display: flex; align-items: center; gap: 8px;">
+                <label for="historyProjectSelect" style="font-size: 13px; font-weight: 600; color: var(--text-secondary);">Filter Project:</label>
+                <select id="historyProjectSelect" name="project_id" onchange="this.form.submit()" style="font-size: 13px; padding: 7px 12px; border: 1px solid var(--border); border-radius: 6px; background: #FFFFFF; color: var(--text-primary); font-weight: 600; cursor: pointer;">
+                    <option value="">All Projects</option>
+                    {% for p in projects %}
+                        <option value="{{ p.id }}" {% if selected_project_id == p.id %}selected{% endif %}>{{ p.name }}</option>
+                    {% endfor %}
+                </select>
+            </form>
+        </div>
+    </div>
+
+    <!-- Timeline Body Card -->
+    <div class="timeline-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; border-bottom: 1px solid var(--border); padding-bottom: 14px;">
+            <h2 style="font-size: 16px; font-weight: 700; color: var(--text-primary);">Activity Timeline</h2>
+            <span style="font-size: 12px; font-weight: 600; color: var(--text-secondary); background: #F1F5F9; padding: 3px 10px; border-radius: 12px;">
+                {{ activity_logs|length }} Events Logged
+            </span>
+        </div>
+
+        {% if activity_logs %}
+            <div style="display: flex; flex-direction: column;">
+                {% for log in activity_logs %}
+                    <div class="timeline-entry">
+                        <!-- Icon indicator based on action type -->
+                        {% if 'architecture' in log.action_type %}
+                            <div class="timeline-icon-box arch" title="Architecture Event">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3v12"></path><circle cx="18" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M18 9a9 9 0 0 1-9 9"></path></svg>
+                            </div>
+                        {% elif 'documentation' in log.action_type %}
+                            <div class="timeline-icon-box doc" title="Documentation Event">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                            </div>
+                        {% elif log.status == 'failed' %}
+                            <div class="timeline-icon-box error" title="Failed Action">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+                            </div>
+                        {% else %}
+                            <div class="timeline-icon-box success" title="Success Event">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            </div>
+                        {% endif %}
+
+                        <!-- Entry Body -->
+                        <div class="timeline-content-body">
+                            <div class="timeline-top-row">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <strong style="font-size: 14px; color: var(--text-primary);">{{ log.title }}</strong>
+                                    <span style="font-size: 11px; font-weight: 600; padding: 2px 7px; border-radius: 4px; background: #E2E8F0; color: #334155;">{{ log.project_name or log.project_id }}</span>
+                                </div>
+                                <span style="font-size: 12px; color: var(--text-secondary); font-family: monospace;">{{ str(log.created_at)[:19] }}</span>
+                            </div>
+
+                            <p style="font-size: 13px; color: var(--text-secondary); margin: 4px 0 8px 0; line-height: 1.5;">
+                                {{ log.details or 'Completed successfully.' }}
+                            </p>
+
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                <span style="font-size: 11px; padding: 2px 8px; border-radius: 12px; font-weight: 600; background: {{ '#DCFCE7' if log.status == 'success' else '#FEE2E2' }}; color: {{ '#166534' if log.status == 'success' else '#991B1B' }};">
+                                    {{ log.status|upper }}
+                                </span>
+                                <span style="font-size: 11px; color: #94A3B8;">&bull; Action: {{ log.action_type }}</span>
+                                
+                                {% if 'architecture' in log.action_type %}
+                                    <a href="{{ url_for('architecture_page', project_id=log.project_id) }}" style="font-size: 11px; color: #0369A1; font-weight: 600; text-decoration: none; margin-left: auto;">View Architecture &rarr;</a>
+                                {% elif 'documentation' in log.action_type %}
+                                    <a href="{{ url_for('documentation_page', project_id=log.project_id) }}" style="font-size: 11px; color: #7E22CE; font-weight: 600; text-decoration: none; margin-left: auto;">View Documentation &rarr;</a>
+                                {% else %}
+                                    <a href="{{ url_for('project_workspace', project_id=log.project_id) }}" style="font-size: 11px; color: #2563EB; font-weight: 600; text-decoration: none; margin-left: auto;">View Workspace &rarr;</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div style="text-align: center; padding: 48px 20px;">
+                <div style="width: 48px; height: 48px; border-radius: 50%; background: #F1F5F9; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; color: #64748B;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+                </div>
+                <h3 style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 6px;">No Activity Recorded Yet</h3>
+                <p style="font-size: 13px; color: var(--text-secondary); max-width: 400px; margin: 0 auto 16px;">Activity logs will appear automatically as you create projects, run agent workflows, generate architecture diagrams, and compile documentation.</p>
+                <a href="{{ url_for('new_project') }}" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; padding: 8px 16px; border-radius: 6px; text-decoration: none;">
+                    <span>Start a Project</span> &rarr;
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

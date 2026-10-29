@@ -1,0 +1,708 @@
+{% extends "base.html" %}
+{% set hide_sidebar = true %}
+{% set active_page = 'landing' %}
+
+{% block title %}DevGuardian AI — Autonomous Software Project Manager{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* Hide all scrollbars and sidebars on starting home page */
+    html, body, *, *::before, *::after {
+        scrollbar-width: none !important;
+        -ms-overflow-style: none !important;
+    }
+    ::-webkit-scrollbar,
+    *::-webkit-scrollbar {
+        display: none !important;
+        width: 0 !important;
+        height: 0 !important;
+        background: transparent !important;
+    }
+    .dashboard-layout,
+    .dashboard-sidebar {
+        display: none !important;
+    }
+</style>
+{% endblock %}
+
+
+{% block standalone_content %}
+<div style="background-color: var(--bg-main); min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; scrollbar-width: none; -ms-overflow-style: none;">
+    
+    <!-- Sticky Navigation Header with Glassmorphism -->
+    <div class="landing-nav-wrapper">
+        <header class="landing-nav">
+            <a href="#home" class="brand-link" id="brand-logo-link">
+                <img src="{{ url_for('static', filename='images/logo.svg') }}" width="32" height="32" alt="DevGuardian AI">
+                <span>DevGuardian AI</span>
+            </a>
+            
+            <ul class="nav-links" id="landing-nav-list">
+                <li><a href="#home" class="active">Home</a></li>
+                <li><a href="#features">Features</a></li>
+                <li><a href="#agents">Agents</a></li>
+                <li><a href="#workflow">Workflow</a></li>
+                <li><a href="#about">About</a></li>
+            </ul>
+
+            <div style="display: flex; align-items: center; gap: 10px;">
+                {% if session.get('user_id') %}
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-primary">Go to Dashboard &rarr;</a>
+                {% else %}
+                    <a href="{{ url_for('login') }}" class="btn btn-secondary" style="padding: 8px 18px; font-size: 13.5px;">Sign In</a>
+                    <a href="{{ url_for('register') }}" class="btn btn-primary" style="padding: 8px 18px; font-size: 13.5px;">Get Started &rarr;</a>
+                {% endif %}
+            </div>
+        </header>
+    </div>
+
+    <!-- 1. HERO SECTION (#home) -->
+    <section id="home" class="hero-section">
+        <div class="hero-content">
+            <div class="pill-badge">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+                <span>AI-Powered Autonomous Engineering Team</span>
+            </div>
+            
+            <h1 class="hero-title">DevGuardian AI</h1>
+            <h2 class="hero-subtitle">Autonomous Software Project Manager</h2>
+            
+            <p class="hero-description">
+                Turn your natural language ideas into complete, production-grade software applications. A team of 8 specialized AI agents plans, architects, writes code, executes tests, scans security, reviews quality, and containerizes your project.
+            </p>
+
+            <div class="hero-actions">
+                {% if session.get('user_id') %}
+                    <a href="{{ url_for('new_project') }}" class="btn btn-primary" style="padding: 12px 26px; font-size: 15px;">
+                        Create New Project &rarr;
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('register') }}" class="btn btn-primary" style="padding: 12px 26px; font-size: 15px;">
+                        Get Started Free &rarr;
+                    </a>
+                {% endif %}
+                <a href="#features" class="btn btn-secondary" style="padding: 12px 24px; font-size: 15px;">
+                    Explore Features &darr;
+                </a>
+            </div>
+
+            <div class="hero-badges-row">
+                <div class="feature-pill">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="m15 9-6 6"></path><path d="m9 9 6 6"></path></svg>
+                    <span>8 Specialized Agents</span>
+                </div>
+                <div class="feature-pill">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                    <span>End-to-End Pipeline</span>
+                </div>
+                <div class="feature-pill">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                    <span>AST Security Verified</span>
+                </div>
+                <div class="feature-pill">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>
+                    <span>Docker Container Ready</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Animated CSS/SVG Robot Stage -->
+        <div class="robot-stage-container" aria-label="Animated DevGuardian AI Autonomous Robot">
+            <div class="robot-glow"></div>
+            <div class="robot-pedestal"></div>
+            
+            <!-- Satellite Floating Icon Badges -->
+            <div class="floating-badge badge-code" title="Coding Agent">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#17191D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+            </div>
+            
+            <div class="floating-badge badge-arch" title="Architecture Agent">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#17191D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+            </div>
+
+            <div class="floating-badge badge-sec" title="Security Agent">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#17191D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+            </div>
+
+            <div class="floating-badge badge-test" title="Testing Agent">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#17191D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+            </div>
+
+            <div class="floating-badge badge-deploy" title="Deployment Agent">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#17191D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+            </div>
+
+            <!-- Sleek Monochrome Animated Robot -->
+            <div class="robot-wrapper">
+                <div class="robot-head">
+                    <div class="robot-ear robot-ear-left"></div>
+                    <div class="robot-ear robot-ear-right"></div>
+                    <div class="robot-visor">
+                        <div class="robot-eye"></div>
+                        <div class="robot-eye"></div>
+                    </div>
+                </div>
+                <div class="robot-neck"></div>
+                <div class="robot-body">
+                    <div class="robot-arm robot-arm-left"></div>
+                    <div class="robot-arm robot-arm-right"></div>
+                    <div class="robot-chest-core">
+                        <div class="robot-core-pulse"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 2. FEATURES SECTION (#features) -->
+    <section id="features" class="section-container">
+        <div class="section-header">
+            <div class="section-badge-pill">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                <span>Engineering-Grade Architecture</span>
+            </div>
+            <h2>Full-Lifecycle Autonomous Delivery</h2>
+            <p>Not a toy chatbot or single-file snippet generator. DevGuardian AI generates complete, tested, secured, and containerized software repositories directly on your machine.</p>
+        </div>
+
+        <div class="feature-grid-modern">
+            <!-- Feature 1 -->
+            <div class="feature-card-modern">
+                <span class="feature-card-tag">Code Synthesis</span>
+                <div class="feature-icon-box">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+                </div>
+                <h3 class="feature-card-title">Production Source Generation</h3>
+                <p class="feature-card-desc">
+                    Generates true modular multi-file codebases: application entry points (app.py), ORM data models, services, clean HTML5/CSS templates, dependency manifests, and environment configs.
+                </p>
+                <div class="feature-pill-list">
+                    <span class="feature-tag-chip">Python Flask / FastAPI</span>
+                    <span class="feature-tag-chip">Modular Structure</span>
+                    <span class="feature-tag-chip">ZIP Packaging</span>
+                </div>
+            </div>
+
+            <!-- Feature 2 -->
+            <div class="feature-card-modern">
+                <span class="feature-card-tag">Automated QA</span>
+                <div class="feature-icon-box">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2"></path><path d="M8.5 2h7"></path><path d="M7 16h10"></path></svg>
+                </div>
+                <h3 class="feature-card-title">Subprocess Sandbox Testing</h3>
+                <p class="feature-card-desc">
+                    Writes comprehensive pytest suites and runs them inside an isolated temporary sandbox. Collects assertion results, execution time, and stdout/stderr failure logs automatically.
+                </p>
+                <div class="feature-pill-list">
+                    <span class="feature-tag-chip">PyTest Integration</span>
+                    <span class="feature-tag-chip">Subprocess Sandboxing</span>
+                    <span class="feature-tag-chip">Pass/Fail Telemetry</span>
+                </div>
+            </div>
+
+            <!-- Feature 3 -->
+            <div class="feature-card-modern">
+                <span class="feature-card-tag">Static Security</span>
+                <div class="feature-icon-box">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                </div>
+                <h3 class="feature-card-title">AST Vulnerability Scanning</h3>
+                <p class="feature-card-desc">
+                    Parses Python Abstract Syntax Trees (AST) to evaluate code safety against OWASP risks: SQL injections, hardcoded API credentials, dangerous eval executions, and path traversals.
+                </p>
+                <div class="feature-pill-list">
+                    <span class="feature-tag-chip">AST Parsing</span>
+                    <span class="feature-tag-chip">OWASP Rules</span>
+                    <span class="feature-tag-chip">Secret Redaction</span>
+                </div>
+            </div>
+
+            <!-- Feature 4 -->
+            <div class="feature-card-modern">
+                <span class="feature-card-tag">DevOps & Cloud</span>
+                <div class="feature-icon-box">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>
+                </div>
+                <h3 class="feature-card-title">Docker & Runbook Packaging</h3>
+                <p class="feature-card-desc">
+                    Generates containerized deployment recipes: multi-stage Dockerfiles, docker-compose specs, port mappings, and operational step-by-step guides for cloud deployment.
+                </p>
+                <div class="feature-pill-list">
+                    <span class="feature-tag-chip">Dockerfile Synthesis</span>
+                    <span class="feature-tag-chip">docker-compose.yml</span>
+                    <span class="feature-tag-chip">Deployment Runbooks</span>
+                </div>
+            </div>
+
+            <!-- Feature 5 -->
+            <div class="feature-card-modern">
+                <span class="feature-card-tag">Stateful Engine</span>
+                <div class="feature-icon-box">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                </div>
+                <h3 class="feature-card-title">LangGraph State Orchestration</h3>
+                <p class="feature-card-desc">
+                    Orchestrated through LangGraph StateGraph with explicit state typing, human-in-the-loop inspection, checkpointing, and deterministic state transitions across all 8 agents.
+                </p>
+                <div class="feature-pill-list">
+                    <span class="feature-tag-chip">LangGraph 1.2+</span>
+                    <span class="feature-tag-chip">State Typing</span>
+                    <span class="feature-tag-chip">Zero Hallucinations</span>
+                </div>
+            </div>
+
+            <!-- Feature 6 -->
+            <div class="feature-card-modern">
+                <span class="feature-card-tag">Certification</span>
+                <div class="feature-icon-box">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+                </div>
+                <h3 class="feature-card-title">Certified Executive PDF Reports</h3>
+                <p class="feature-card-desc">
+                    Compiles every milestone, code metric, security scan, and test result into a certified ReportLab PDF report ready for technical leadership and compliance audits.
+                </p>
+                <div class="feature-pill-list">
+                    <span class="feature-tag-chip">ReportLab 4.2+</span>
+                    <span class="feature-tag-chip">Boardroom Ready</span>
+                    <span class="feature-tag-chip">Instant Download</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3. AGENTS SECTION (#agents) -->
+    <section id="agents" class="section-container" style="background: #FFFFFF; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding-top: 70px; padding-bottom: 70px;">
+        <div class="section-header">
+            <div class="section-badge-pill">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                <span>The Specialized Workforce</span>
+            </div>
+            <h2>Meet Your 8 Autonomous AI Agents</h2>
+            <p>Each agent has a strictly bounded role, custom domain prompts, and explicit output deliverables. They pass verifiable artifacts down the pipeline without prompt dilution.</p>
+        </div>
+
+        <div class="landing-agents-grid">
+            <!-- Agent 1 -->
+            <div class="landing-agent-card">
+                <div class="agent-card-top">
+                    <span class="agent-num-badge">STAGE 01</span>
+                    <div class="agent-icon-square">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+                    </div>
+                </div>
+                <h3>Requirement Agent</h3>
+                <p>Translates your project concept into structured functional specifications, user stories, acceptance criteria, and edge-case definitions.</p>
+                <div class="agent-deliverable-chip">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    <span>PRD & Functional Specs</span>
+                </div>
+            </div>
+
+            <!-- Agent 2 -->
+            <div class="landing-agent-card">
+                <div class="agent-card-top">
+                    <span class="agent-num-badge">STAGE 02</span>
+                    <div class="agent-icon-square">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                    </div>
+                </div>
+                <h3>Architecture Agent</h3>
+                <p>Selects tech stack, designs clean directory structures, defines database schema, and diagrams data flow contracts across all modules.</p>
+                <div class="agent-deliverable-chip">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    <span>System Architecture Blueprint</span>
+                </div>
+            </div>
+
+            <!-- Agent 3 -->
+            <div class="landing-agent-card">
+                <div class="agent-card-top">
+                    <span class="agent-num-badge">STAGE 03</span>
+                    <div class="agent-icon-square">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+                    </div>
+                </div>
+                <h3>Coding Agent</h3>
+                <p>Implements runnable, production-quality source code across routes, models, business services, templates, and configurations with zero placeholders.</p>
+                <div class="agent-deliverable-chip">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    <span>Production Codebase</span>
+                </div>
+            </div>
+
+            <!-- Agent 4 -->
+            <div class="landing-agent-card">
+                <div class="agent-card-top">
+                    <span class="agent-num-badge">STAGE 04</span>
+                    <div class="agent-icon-square">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2"></path><path d="M8.5 2h7"></path><path d="M7 16h10"></path></svg>
+                    </div>
+                </div>
+                <h3>Testing Agent</h3>
+                <p>Constructs automated pytest suites and executes them in an isolated sandbox subprocess, validating functionality, status codes, and edge-cases.</p>
+                <div class="agent-deliverable-chip">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    <span>Executed PyTest Suite</span>
+                </div>
+            </div>
+
+            <!-- Agent 5 -->
+            <div class="landing-agent-card">
+                <div class="agent-card-top">
+                    <span class="agent-num-badge">STAGE 05</span>
+                    <div class="agent-icon-square">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                    </div>
+                </div>
+                <h3>Security Agent</h3>
+                <p>Inspects the generated AST syntax trees for OWASP Top 10 vulnerabilities, detects leaked secrets or tokens, and validates secure input sanitization.</p>
+                <div class="agent-deliverable-chip">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    <span>AST Vulnerability Report</span>
+                </div>
+            </div>
+
+            <!-- Agent 6 -->
+            <div class="landing-agent-card">
+                <div class="agent-card-top">
+                    <span class="agent-num-badge">STAGE 06</span>
+                    <div class="agent-icon-square">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    </div>
+                </div>
+                <h3>Code Review Agent</h3>
+                <p>Acts as senior peer reviewer, scoring architecture consistency, cyclomatic complexity, readability, and PEP 8 standards with a quantified quality score.</p>
+                <div class="agent-deliverable-chip">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    <span>Code Quality Scorecard</span>
+                </div>
+            </div>
+
+            <!-- Agent 7 -->
+            <div class="landing-agent-card">
+                <div class="agent-card-top">
+                    <span class="agent-num-badge">STAGE 07</span>
+                    <div class="agent-icon-square">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>
+                    </div>
+                </div>
+                <h3>Deployment Agent</h3>
+                <p>Generates multi-stage Dockerfile configurations, docker-compose orchestration, environment templates, and operational runbooks.</p>
+                <div class="agent-deliverable-chip">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    <span>Container Spec & Runbook</span>
+                </div>
+            </div>
+
+            <!-- Agent 8 -->
+            <div class="landing-agent-card">
+                <div class="agent-card-top">
+                    <span class="agent-num-badge">STAGE 08</span>
+                    <div class="agent-icon-square">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                    </div>
+                </div>
+                <h3>Project Manager Agent</h3>
+                <p>Orchestrates the entire agent pipeline, coordinates state transitions, aggregates logs, and compiles the boardroom-ready certified PDF report.</p>
+                <div class="agent-deliverable-chip">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    <span>Certified Executive PDF</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. WORKFLOW SECTION (#workflow) -->
+    <section id="workflow" class="section-container">
+        <div class="section-header">
+            <div class="section-badge-pill">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                <span>Deterministic Execution</span>
+            </div>
+            <h2>The Autonomous 8-Stage Development Pipeline</h2>
+            <p>Every software project flows through specialized AI milestones from initial prompt to verified application release.</p>
+        </div>
+
+        <!-- Horizontal Step Bar -->
+        <div class="workflow-bar">
+            <div class="workflow-step-item">
+                <div class="step-circle">1</div>
+                <span class="step-name">Requirements</span>
+            </div>
+            <span class="step-arrow">&rarr;</span>
+
+            <div class="workflow-step-item">
+                <div class="step-circle">2</div>
+                <span class="step-name">Architecture</span>
+            </div>
+            <span class="step-arrow">&rarr;</span>
+
+            <div class="workflow-step-item">
+                <div class="step-circle">3</div>
+                <span class="step-name">Coding</span>
+            </div>
+            <span class="step-arrow">&rarr;</span>
+
+            <div class="workflow-step-item">
+                <div class="step-circle">4</div>
+                <span class="step-name">Testing</span>
+            </div>
+            <span class="step-arrow">&rarr;</span>
+
+            <div class="workflow-step-item">
+                <div class="step-circle">5</div>
+                <span class="step-name">Security</span>
+            </div>
+            <span class="step-arrow">&rarr;</span>
+
+            <div class="workflow-step-item">
+                <div class="step-circle">6</div>
+                <span class="step-name">Review</span>
+            </div>
+            <span class="step-arrow">&rarr;</span>
+
+            <div class="workflow-step-item">
+                <div class="step-circle">7</div>
+                <span class="step-name">Deployment</span>
+            </div>
+            <span class="step-arrow">&rarr;</span>
+
+            <div class="workflow-step-item">
+                <div class="step-circle">8</div>
+                <span class="step-name">Certified Report</span>
+            </div>
+        </div>
+
+        <!-- 5-Phase Deep Dive Cards -->
+        <div class="workflow-deep-grid">
+            <div class="workflow-phase-card">
+                <span class="workflow-phase-num">Phase 01</span>
+                <h4 class="workflow-phase-title">Discovery & Scoping</h4>
+                <p class="workflow-phase-desc">Deconstructs user prompt into discrete requirements, user flows, database entities, and technical boundaries.</p>
+                <div class="workflow-phase-agents">Requirement Agent</div>
+            </div>
+
+            <div class="workflow-phase-card">
+                <span class="workflow-phase-num">Phase 02</span>
+                <h4 class="workflow-phase-title">System Blueprinting</h4>
+                <p class="workflow-phase-desc">Establishes directory tree, file manifests, package dependencies, and schema contracts before writing any code.</p>
+                <div class="workflow-phase-agents">Architecture Agent</div>
+            </div>
+
+            <div class="workflow-phase-card">
+                <span class="workflow-phase-num">Phase 03</span>
+                <h4 class="workflow-phase-title">Full-Stack Synthesis</h4>
+                <p class="workflow-phase-desc">Generates complete runnable files with clean MVC separation and saves them directly to your project workspace.</p>
+                <div class="workflow-phase-agents">Coding Agent</div>
+            </div>
+
+            <div class="workflow-phase-card">
+                <span class="workflow-phase-num">Phase 04</span>
+                <h4 class="workflow-phase-title">Quality & Hardening</h4>
+                <p class="workflow-phase-desc">Executes isolated pytest tests, scans AST trees for vulnerabilities, and reviews maintainability with automated self-healing.</p>
+                <div class="workflow-phase-agents">Testing & Security Agents</div>
+            </div>
+
+            <div class="workflow-phase-card">
+                <span class="workflow-phase-num">Phase 05</span>
+                <h4 class="workflow-phase-title">Containerization & PDF</h4>
+                <p class="workflow-phase-desc">Packages Docker container specs, generates operational runbooks, and compiles the final certified ReportLab PDF report.</p>
+                <div class="workflow-phase-agents">Deployment & PM Agents</div>
+            </div>
+        </div>
+
+        <!-- Key Metrics Strip -->
+        <div class="workflow-metrics-strip">
+            <div class="workflow-metric-item">
+                <span class="workflow-metric-val">&lt; 60s</span>
+                <span class="workflow-metric-lbl">Average Pipeline Runtime</span>
+            </div>
+            <div class="workflow-metric-item">
+                <span class="workflow-metric-val">8 Agents</span>
+                <span class="workflow-metric-lbl">Autonomous Collaborators</span>
+            </div>
+            <div class="workflow-metric-item">
+                <span class="workflow-metric-val">100%</span>
+                <span class="workflow-metric-lbl">Sandbox Test Isolation</span>
+            </div>
+            <div class="workflow-metric-item">
+                <span class="workflow-metric-val">0 Lock-In</span>
+                <span class="workflow-metric-lbl">Standard Python & SQLite</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- 5. ABOUT SECTION (#about) -->
+    <section id="about" class="section-container" style="background: #FFFFFF; border-top: 1px solid var(--border); padding-top: 70px; padding-bottom: 70px;">
+        <div class="section-header">
+            <div class="section-badge-pill">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                <span>The Vision & Mission</span>
+            </div>
+            <h2>About DevGuardian AI</h2>
+            <p>Empowering software engineers, startup founders, and dev teams with an autonomous AI workforce that eliminates boilerplate and delivers verified software.</p>
+        </div>
+
+        <div class="about-grid">
+            <!-- Left: Our Mission -->
+            <div class="about-card-primary">
+                <h3>The Autonomous Software Engineering Vision</h3>
+                <p>
+                    Modern developers spend less than 30% of their time writing core business logic. The remaining 70% is swallowed by boilerplate setup, scaffolding schemas, debugging test suites, configuring Docker containers, and security validation.
+                </p>
+                <p>
+                    <strong>DevGuardian AI was created to solve this friction.</strong> Instead of an interactive chat bot that spits out unverified fragments, DevGuardian AI operates as an integrated virtual engineering team. It plans before coding, tests every function in an isolated sandbox, audits syntax trees for security risks, and produces certified release artifacts.
+                </p>
+                <div style="border-top: 1px solid var(--border); padding-top: 16px; margin-top: auto;">
+                    <div style="display: flex; gap: 24px; font-size: 13.5px; color: var(--text-secondary);">
+                        <div><strong>Engine:</strong> Python 3.11+</div>
+                        <div><strong>State:</strong> LangGraph StateGraph</div>
+                        <div><strong>Storage:</strong> SQLite 3</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: 4 Engineering Pillars -->
+            <div class="about-card-primary">
+                <h3>Our Core Architectural Pillars</h3>
+                <div class="pillars-list">
+                    <div class="pillar-item">
+                        <div class="pillar-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                        </div>
+                        <div class="pillar-text">
+                            <h4>Deterministic Sandboxes</h4>
+                            <p>Every generated test is executed within an isolated subprocess with strict timeouts to protect your system.</p>
+                        </div>
+                    </div>
+
+                    <div class="pillar-item">
+                        <div class="pillar-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+                        </div>
+                        <div class="pillar-text">
+                            <h4>Zero-Hallucination Guardrails</h4>
+                            <p>Agents communicate via strict typed schemas. Output deliverables are validated against schema boundaries before continuing.</p>
+                        </div>
+                    </div>
+
+                    <div class="pillar-item">
+                        <div class="pillar-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                        </div>
+                        <div class="pillar-text">
+                            <h4>Local Privacy & Control</h4>
+                            <p>All database instances and generated code repositories are stored on your local disk. No third-party lock-in.</p>
+                        </div>
+                    </div>
+
+                    <div class="pillar-item">
+                        <div class="pillar-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+                        </div>
+                        <div class="pillar-text">
+                            <h4>Certified Executive Reporting</h4>
+                            <p>Full ReportLab PDF generator renders certified project reports with test logs, security audits, and file manifests.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom CTA Banner -->
+        <div class="about-cta-banner">
+            <h2>Ready to Build with an Autonomous AI Team?</h2>
+            <p>Experience the next generation of software engineering. Start your first project in seconds and watch your 8 agents build it end-to-end.</p>
+            <div style="display: flex; gap: 14px; margin-top: 8px;">
+                {% if session.get('user_id') %}
+                    <a href="{{ url_for('new_project') }}" class="btn btn-primary">Create New Project &rarr;</a>
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-secondary" style="background: rgba(255,255,255,0.1); color: #FFF; border-color: rgba(255,255,255,0.2);">Go to Dashboard</a>
+                {% else %}
+                    <a href="{{ url_for('register') }}" class="btn btn-primary">Get Started Free &rarr;</a>
+                    <a href="{{ url_for('login') }}" class="btn btn-secondary" style="background: rgba(255,255,255,0.1); color: #FFF; border-color: rgba(255,255,255,0.2);">Sign In to Account</a>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer style="margin-top: auto; border-top: 1px solid var(--border); background: #FFFFFF; padding: 28px 32px; text-align: center; font-size: 13.5px; color: var(--text-secondary);">
+        <div style="max-width: 1280px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+            <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; color: var(--text-primary);">
+                <img src="{{ url_for('static', filename='images/logo.svg') }}" width="22" height="22" alt="DevGuardian">
+                <span>DevGuardian AI</span>
+            </div>
+            <div>
+                &copy; 2026 DevGuardian AI — Autonomous Software Project Manager. Built with Python & Flask.
+            </div>
+            <div style="display: flex; gap: 20px;">
+                <a href="#home" class="smooth-scroll-link" style="color: var(--text-secondary);">Back to Top &uarr;</a>
+            </div>
+        </div>
+    </footer>
+</div>
+
+<!-- Smooth Scrolling & ScrollSpy Navigation Script -->
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const navLinks = document.querySelectorAll('#landing-nav-list a, .hero-actions a[href^="#"], #brand-logo-link, a.smooth-scroll-link');
+    const sections = document.querySelectorAll("section[id]");
+    const navBarHeight = 80;
+
+    // Smooth scroll on click
+    navLinks.forEach(function(link) {
+        link.addEventListener("click", function(e) {
+            const targetId = this.getAttribute("href");
+            if (targetId && targetId.startsWith("#")) {
+                const targetSection = document.querySelector(targetId);
+                if (targetSection) {
+                    e.preventDefault();
+                    const targetPosition = targetSection.getBoundingClientRect().top + window.pageYOffset - navBarHeight;
+                    window.scrollTo({
+                        top: targetPosition,
+                        behavior: "smooth"
+                    });
+                    
+                    // Update active nav state
+                    document.querySelectorAll('#landing-nav-list a').forEach(function(nl) {
+                        nl.classList.remove('active');
+                    });
+                    const correspondingNavLink = document.querySelector('#landing-nav-list a[href="' + targetId + '"]');
+                    if (correspondingNavLink) {
+                        correspondingNavLink.classList.add('active');
+                    }
+
+                    // Update URL without harsh jump
+                    if (history.pushState) {
+                        history.pushState(null, null, targetId);
+                    }
+                }
+            }
+        });
+    });
+
+    // ScrollSpy to highlight active section on scroll
+    function updateActiveNav() {
+        const scrollPosition = window.pageYOffset + navBarHeight + 50;
+        
+        sections.forEach(function(section) {
+            const top = section.offsetTop;
+            const height = section.offsetHeight;
+            const id = section.getAttribute("id");
+
+            if (scrollPosition >= top && scrollPosition < top + height) {
+                document.querySelectorAll('#landing-nav-list a').forEach(function(nl) {
+                    nl.classList.remove('active');
+                });
+                const activeLink = document.querySelector('#landing-nav-list a[href="#' + id + '"]');
+                if (activeLink) {
+                    activeLink.classList.add('active');
+                }
+            }
+        });
+    }
+
+    window.addEventListener("scroll", updateActiveNav, { passive: true });
+});
+</script>
+{% endblock %}

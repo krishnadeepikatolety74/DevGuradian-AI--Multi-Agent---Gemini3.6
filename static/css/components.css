@@ -1,0 +1,587 @@
+/* DevGuardian AI - Reusable Page & UI Components */
+
+/* Hide scrollbars across all components while preserving smooth scrolling */
+*, *::before, *::after {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+}
+
+::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    background: transparent !important;
+}
+
+
+/* =====================================================================
+   4-STEP WIZARD (CREATE NEW PROJECT)
+   ===================================================================== */
+.wizard-steps-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 680px;
+    margin: 0 auto 36px;
+    position: relative;
+}
+
+.wizard-steps-container::before {
+    content: "";
+    position: absolute;
+    top: 16px;
+    left: 40px;
+    right: 40px;
+    height: 2px;
+    background: var(--border);
+    z-index: 1;
+}
+
+.wizard-step-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+    z-index: 2;
+    background: var(--bg-main);
+    padding: 0 10px;
+}
+
+.wizard-step-circle {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #FFFFFF;
+    border: 2px solid var(--border);
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 600;
+    transition: var(--transition);
+}
+
+.wizard-step-node.active .wizard-step-circle {
+    background: #17191D;
+    border-color: #17191D;
+    color: #FFFFFF;
+}
+
+.wizard-step-node.completed .wizard-step-circle {
+    background: var(--success);
+    border-color: var(--success);
+    color: #FFFFFF;
+}
+
+.wizard-step-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.wizard-step-node.active .wizard-step-label {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+/* =====================================================================
+   8-AGENTS GRID (AI AGENTS PAGE)
+   ===================================================================== */
+.agents-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+}
+
+.agents-grid::-webkit-scrollbar,
+.agent-card::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+
+
+.agent-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 24px;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    position: relative;
+    transition: var(--transition);
+}
+
+.agent-card:hover {
+    border-color: #B8BFC8;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.agent-order-badge {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted-grey);
+}
+
+.agent-card-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    background: #F4F5F7;
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 16px auto 4px;
+    color: var(--text-primary);
+}
+
+.agent-card h3 {
+    font-size: 16px;
+    font-weight: 600;
+    text-align: center;
+}
+
+.agent-card p {
+    font-size: 13px;
+    color: var(--text-secondary);
+    text-align: center;
+    line-height: 1.45;
+    flex: 1;
+}
+
+.agent-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+}
+
+/* =====================================================================
+   PROJECT WORKSPACE & PROGRESS TRACKER
+   ===================================================================== */
+.stepper-timeline-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #FFFFFF;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 24px 20px;
+    box-shadow: var(--shadow-sm);
+    overflow-x: auto;
+    gap: 8px;
+    margin-bottom: 24px;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+}
+
+.stepper-timeline-bar::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+
+
+.timeline-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    min-width: 90px;
+    text-align: center;
+    position: relative;
+}
+
+.timeline-step-indicator {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    border: 2px solid var(--border);
+    background: #FFFFFF;
+    color: var(--muted-grey);
+}
+
+.timeline-step.completed .timeline-step-indicator {
+    background: var(--success);
+    border-color: var(--success);
+    color: #FFFFFF;
+}
+
+.timeline-step.running .timeline-step-indicator {
+    background: #17191D;
+    border-color: #17191D;
+    color: #FFFFFF;
+    box-shadow: 0 0 0 4px rgba(23, 25, 29, 0.1);
+}
+
+.timeline-step.failed .timeline-step-indicator {
+    background: var(--error);
+    border-color: var(--error);
+    color: #FFFFFF;
+}
+
+.timeline-step-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.timeline-step-status {
+    font-size: 11px;
+    font-weight: 500;
+}
+.timeline-step.completed .timeline-step-status { color: var(--success); }
+.timeline-step.running .timeline-step-status { color: var(--text-primary); font-weight: 600; }
+.timeline-step.pending .timeline-step-status { color: var(--muted-grey); }
+.timeline-step.failed .timeline-step-status { color: var(--error); }
+
+/* Execution Console Log Box */
+.terminal-log-box {
+    background: #1E2126;
+    color: #E6EDF3;
+    border-radius: var(--radius-sm);
+    padding: 20px 24px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 1.6;
+    margin: 16px 0;
+    max-height: 320px;
+    overflow-y: auto;
+    border: 1px solid #2B2F36;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+}
+
+.terminal-log-box::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+
+
+.terminal-line {
+    display: flex;
+    gap: 12px;
+}
+.terminal-num {
+    color: #7D8590;
+    user-select: none;
+    min-width: 20px;
+}
+.terminal-text {
+    color: #C9D1D9;
+}
+
+.progress-track-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.progress-track-bar {
+    flex: 1;
+    height: 8px;
+    background: #E9ECEF;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: #17191D;
+    border-radius: 4px;
+    transition: width 0.4s ease;
+}
+
+.progress-percent-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-primary);
+    min-width: 36px;
+}
+
+/* =====================================================================
+   CODING AGENT OUTPUT (DARK CHARCOAL CODE EDITOR)
+   ===================================================================== */
+.code-workspace-container {
+    background: #1E2126;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    border: 1px solid #2D3139;
+    box-shadow: var(--shadow-md);
+}
+
+.code-workspace-tabbar {
+    display: flex;
+    align-items: center;
+    background: #16181D;
+    border-bottom: 1px solid #2D3139;
+    padding: 0 12px;
+    overflow-x: auto;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+}
+
+.code-workspace-tabbar::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+
+.code-tab-btn {
+    padding: 10px 16px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: #8B949E;
+    border-right: 1px solid #22252C;
+    cursor: pointer;
+    background: transparent;
+    border-top: none;
+    border-bottom: 2px solid transparent;
+    transition: var(--transition);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+}
+
+.code-tab-btn:hover {
+    color: #C9D1D9;
+    background: #1E2126;
+}
+
+.code-tab-btn.active {
+    color: #FFFFFF;
+    background: #1E2126;
+    border-bottom-color: #58A6FF;
+}
+
+.code-editor-body {
+    display: flex;
+    max-height: 560px;
+    overflow: auto;
+    background: #1E2126;
+    color: #E6EDF3;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 1.6;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+}
+
+.code-editor-body::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+
+.code-line-numbers {
+    padding: 16px 12px;
+    background: #191B20;
+    color: #6E7681;
+    text-align: right;
+    user-select: none;
+    border-right: 1px solid #2B2F36;
+    min-width: 48px;
+}
+
+.code-text-content {
+    padding: 16px 20px;
+    flex: 1;
+    white-space: pre;
+    overflow-x: auto;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+}
+
+.code-text-content::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+
+
+/* =====================================================================
+   PROJECT REPORTS (MATCHING BOTTOM-RIGHT PANEL)
+   ===================================================================== */
+.report-hero-banner {
+    background: #FFFFFF;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow-sm);
+}
+
+.report-hero-left {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+
+.report-proj-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+    background: #F4F5F7;
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.report-dates-box {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+}
+
+.report-date-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.report-date-item span.label {
+    font-size: 11px;
+    color: var(--muted-grey);
+    text-transform: uppercase;
+    font-weight: 600;
+}
+.report-date-item span.val {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.agent-summary-pills-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.agent-summary-pill {
+    background: #FFFFFF;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 16px 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: var(--shadow-sm);
+}
+
+.agent-pill-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: #F4F5F7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-primary);
+    flex-shrink: 0;
+}
+
+.agent-pill-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.agent-pill-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+.agent-pill-status {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--success);
+}
+
+.final-output-card {
+    background: #FFFFFF;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 24px;
+    box-shadow: var(--shadow-sm);
+}
+
+/* =====================================================================
+   FINDINGS & METRICS TABLES
+   ===================================================================== */
+.data-table-card {
+    background: #FFFFFF;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+}
+
+.custom-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.custom-table th, .custom-table td {
+    padding: 14px 18px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+}
+
+.custom-table th {
+    background: #F8F9FA;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.custom-table tr:hover {
+    background: #FAFAFA;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .agents-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .agent-summary-pills-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 640px) {
+    .agents-grid {
+        grid-template-columns: 1fr;
+    }
+    .agent-summary-pills-grid {
+        grid-template-columns: 1fr;
+    }
+    .report-hero-banner {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}

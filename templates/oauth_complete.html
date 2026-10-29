@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Complete Registration — DevGuardian AI{% endblock %}
+
+{% block standalone_content %}
+<div class="signin-screen">
+    <div class="signin-container" style="max-width: 460px; margin: 0 auto; display: block;">
+        <div class="signin-card" style="width: 100%; border: 1px solid var(--border); box-shadow: var(--shadow-md);">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <a href="{{ url_for('landing') }}" class="signin-card-logo" style="justify-content: center; margin-bottom: 12px;">
+                    <img src="{{ url_for('static', filename='images/logo.svg') }}" width="32" height="32" alt="DevGuardian AI Logo">
+                    <span>DevGuardian AI</span>
+                </a>
+                <h1 class="signin-card-title" style="font-size: 20px;">Complete Registration</h1>
+                <p class="signin-card-subtitle" style="font-size: 13.5px; margin-top: 6px;">
+                    Your {{ provider|capitalize }} account did not return a verified email address. Please provide a verified email address to finish setting up your account.
+                </p>
+            </div>
+
+            <form action="{{ url_for('oauth_complete_registration') }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label for="full_name" style="font-size: 12.5px; font-weight: 600; margin-bottom: 6px; display: block;">Full Name</label>
+                    <input type="text" id="full_name" name="full_name" value="{{ full_name }}" class="form-control" required>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label for="email" style="font-size: 12.5px; font-weight: 600; margin-bottom: 6px; display: block;">Verified Email Address</label>
+                    <input type="email" id="email" name="email" class="form-control" placeholder="name@example.com" required autofocus>
+                </div>
+
+                <button type="submit" class="btn-signup-submit" style="width: 100%; margin-bottom: 12px;">
+                    <span>Complete Setup & Sign In</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </button>
+            </form>
+
+            <form action="{{ url_for('oauth_link_cancel') }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <button type="submit" class="btn btn-secondary" style="width: 100%; justify-content: center; font-size: 13px;">
+                    Cancel and Return to Sign In
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

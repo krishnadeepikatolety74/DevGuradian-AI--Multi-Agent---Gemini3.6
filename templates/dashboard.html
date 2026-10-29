@@ -1,0 +1,267 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard Overview — DevGuardian AI{% endblock %}
+
+{% block content %}
+<div class="dashboard-topbar" style="margin-bottom: 24px;">
+    <div class="dashboard-title-area">
+        <h1 style="font-size: 24px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px;">Enterprise Overview</h1>
+        <p style="font-size: 14px; color: var(--text-secondary);">Welcome back, {{ session.get('user_name', 'Developer') }}! Monitor and orchestrate your autonomous AI software projects.</p>
+    </div>
+    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+        <a href="{{ url_for('chat_page') }}" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 8px; font-size: 13px; padding: 8px 14px; background: #FFFFFF; border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary); text-decoration: none;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+            <span>Open AI Chat</span>
+        </a>
+        <a href="{{ url_for('architecture_page') }}" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 8px; font-size: 13px; padding: 8px 14px; background: #FFFFFF; border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary); text-decoration: none;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3v12"></path><circle cx="18" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M18 9a9 9 0 0 1-9 9"></path></svg>
+            <span>Architecture</span>
+        </a>
+        <a href="{{ url_for('documentation_page') }}" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 8px; font-size: 13px; padding: 8px 14px; background: #FFFFFF; border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary); text-decoration: none;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+            <span>Documentation</span>
+        </a>
+        <a href="{{ url_for('new_project') }}" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; font-size: 13px; padding: 8px 16px; background: var(--btn-primary); border: 1px solid var(--btn-primary); border-radius: var(--radius-sm); color: #FFFFFF; text-decoration: none; font-weight: 600;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            <span>Start New Project</span>
+        </a>
+    </div>
+</div>
+
+<div class="dashboard-content-body">
+    <!-- 6 Live Statistics Cards -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; margin-bottom: 24px;">
+        <div class="stat-card" style="background: #FFFFFF; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 18px 20px; box-shadow: var(--shadow-sm);">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span class="stat-card-label" style="font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Total Projects</span>
+                <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #3B82F6;"></span>
+            </div>
+            <span class="stat-card-value" style="font-size: 28px; font-weight: 700; color: var(--text-primary); margin-top: 8px; display: block;">{{ stats.total_projects }}</span>
+        </div>
+        <div class="stat-card" style="background: #FFFFFF; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 18px 20px; box-shadow: var(--shadow-sm);">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span class="stat-card-label" style="font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">In Progress</span>
+                <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #F59E0B;"></span>
+            </div>
+            <span class="stat-card-value" style="font-size: 28px; font-weight: 700; color: var(--text-primary); margin-top: 8px; display: block;">{{ stats.in_progress }}</span>
+        </div>
+        <div class="stat-card" style="background: #FFFFFF; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 18px 20px; box-shadow: var(--shadow-sm);">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span class="stat-card-label" style="font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Completed</span>
+                <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #10B981;"></span>
+            </div>
+            <span class="stat-card-value" style="font-size: 28px; font-weight: 700; color: var(--text-primary); margin-top: 8px; display: block;">{{ stats.completed }}</span>
+        </div>
+        <div class="stat-card" style="background: #FFFFFF; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 18px 20px; box-shadow: var(--shadow-sm);">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span class="stat-card-label" style="font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Success Rate</span>
+                <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #6366F1;"></span>
+            </div>
+            <span class="stat-card-value" style="font-size: 28px; font-weight: 700; color: var(--text-primary); margin-top: 8px; display: block;">{{ stats.success_rate }}</span>
+        </div>
+        <div class="stat-card" style="background: #FFFFFF; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 18px 20px; box-shadow: var(--shadow-sm);">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span class="stat-card-label" style="font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Architectures</span>
+                <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #0E7490;"></span>
+            </div>
+            <span class="stat-card-value" style="font-size: 28px; font-weight: 700; color: var(--text-primary); margin-top: 8px; display: block;">{{ stats.total_architectures }}</span>
+        </div>
+        <div class="stat-card" style="background: #FFFFFF; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 18px 20px; box-shadow: var(--shadow-sm);">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span class="stat-card-label" style="font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Documents</span>
+                <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #8B5CF6;"></span>
+            </div>
+            <span class="stat-card-value" style="font-size: 28px; font-weight: 700; color: var(--text-primary); margin-top: 8px; display: block;">{{ stats.total_documents }}</span>
+        </div>
+    </div>
+
+    <!-- 4 High-Impact Workflow Action Cards -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-bottom: 28px;">
+        <a href="{{ url_for('new_project') }}" style="text-decoration: none; color: inherit; background: linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 100%); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px; display: flex; flex-direction: column; gap: 10px; transition: var(--transition); box-shadow: var(--shadow-sm);">
+            <div style="width: 36px; height: 36px; border-radius: 8px; background: #EEF2FF; display: flex; align-items: center; justify-content: center; color: #4F46E5;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+            </div>
+            <h3 style="font-size: 15px; font-weight: 600; color: var(--text-primary);">Start New Project</h3>
+            <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.4;">Define requirements and generate source code, tests, and configurations with 8 AI agents.</p>
+            <span style="font-size: 12px; font-weight: 600; color: #4F46E5; margin-top: auto; display: flex; align-items: center; gap: 4px;">Launch Generator &rarr;</span>
+        </a>
+
+        <a href="{{ url_for('chat_page') }}" style="text-decoration: none; color: inherit; background: linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 100%); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px; display: flex; flex-direction: column; gap: 10px; transition: var(--transition); box-shadow: var(--shadow-sm);">
+            <div style="width: 36px; height: 36px; border-radius: 8px; background: #F0FDF4; display: flex; align-items: center; justify-content: center; color: #16A34A;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+            </div>
+            <h3 style="font-size: 15px; font-weight: 600; color: var(--text-primary);">Open AI Chat</h3>
+            <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.4;">Chat with multimodal vision support, analyze wireframes, or trigger project builds directly from prompts.</p>
+            <span style="font-size: 12px; font-weight: 600; color: #16A34A; margin-top: auto; display: flex; align-items: center; gap: 4px;">Start Conversation &rarr;</span>
+        </a>
+
+        <a href="{{ url_for('architecture_page') }}" style="text-decoration: none; color: inherit; background: linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 100%); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px; display: flex; flex-direction: column; gap: 10px; transition: var(--transition); box-shadow: var(--shadow-sm);">
+            <div style="width: 36px; height: 36px; border-radius: 8px; background: #E0F2FE; display: flex; align-items: center; justify-content: center; color: #0284C7;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3v12"></path><circle cx="18" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M18 9a9 9 0 0 1-9 9"></path></svg>
+            </div>
+            <h3 style="font-size: 15px; font-weight: 600; color: var(--text-primary);">Generate Architecture</h3>
+            <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.4;">Produce reference node-and-arrow diagrams (PNG & SVG) from actual models, routes, and agents.</p>
+            <span style="font-size: 12px; font-weight: 600; color: #0284C7; margin-top: auto; display: flex; align-items: center; gap: 4px;">Inspect Diagrams &rarr;</span>
+        </a>
+
+        <a href="{{ url_for('documentation_page') }}" style="text-decoration: none; color: inherit; background: linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 100%); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px; display: flex; flex-direction: column; gap: 10px; transition: var(--transition); box-shadow: var(--shadow-sm);">
+            <div style="width: 36px; height: 36px; border-radius: 8px; background: #FDF4FF; display: flex; align-items: center; justify-content: center; color: #9333EA;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+            </div>
+            <h3 style="font-size: 15px; font-weight: 600; color: var(--text-primary);">Generate Documentation</h3>
+            <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.4;">Export DOCX and PDF using strict CaptionAI master template with preserved SmartBridge & SkillWallet logos.</p>
+            <span style="font-size: 12px; font-weight: 600; color: #9333EA; margin-top: auto; display: flex; align-items: center; gap: 4px;">Compile Documents &rarr;</span>
+        </a>
+    </div>
+
+    <!-- Main Content Panels (Projects, Architectures, Documentation) -->
+    <div style="display: grid; grid-template-columns: 1fr; gap: 24px;">
+        <!-- Recent Projects Panel -->
+        <div class="section-panel-card" style="background: #FFFFFF; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 22px 24px; box-shadow: var(--shadow-sm);">
+            <div class="panel-header-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; border-bottom: 1px solid var(--border); padding-bottom: 14px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <h2 style="font-size: 16px; font-weight: 700; color: var(--text-primary);">Recent Projects</h2>
+                    <span style="font-size: 12px; background: #F1F5F9; color: #475569; padding: 2px 8px; border-radius: 12px; font-weight: 600;">{{ projects|length }} Total</span>
+                </div>
+                <a href="{{ url_for('projects_list') }}" class="link-view-all" style="font-size: 13px; color: #3B82F6; text-decoration: none; font-weight: 600; display: flex; align-items: center; gap: 4px;">
+                    <span>View All Projects</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </a>
+            </div>
+
+            {% if projects %}
+                <div class="projects-list" style="display: flex; flex-direction: column; gap: 10px;">
+                    {% for p in projects[:5] %}
+                        <div class="project-item-row" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; background: #FAFAFB; border: 1px solid var(--border); border-radius: var(--radius-sm); transition: var(--transition);">
+                            <div class="project-item-left" style="display: flex; align-items: center; gap: 14px; min-width: 0;">
+                                <div class="project-icon-box" style="width: 36px; height: 36px; border-radius: 8px; background: #E2E8F0; display: flex; align-items: center; justify-content: center; color: #334155; flex-shrink: 0;">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                                </div>
+                                <div class="project-name-desc" style="min-width: 0;">
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <a href="{{ url_for('project_workspace', project_id=p.id) }}" class="project-title-link" style="font-size: 14px; font-weight: 600; color: var(--text-primary); text-decoration: none;">
+                                            {{ p.name }}
+                                        </a>
+                                        <span style="font-size: 11px; color: var(--text-secondary); background: #E2E8F0; padding: 1px 6px; border-radius: 4px;">{{ p.app_type or 'Web App' }}</span>
+                                    </div>
+                                    <span class="project-short-desc" style="font-size: 12px; color: var(--text-secondary); display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 480px;">{{ p.description or 'Autonomous software project generated by DevGuardian AI.' }}</span>
+                                </div>
+                            </div>
+
+                            <div class="project-item-right" style="display: flex; align-items: center; gap: 12px; flex-shrink: 0;">
+                                {% if p.status == 'completed' %}
+                                    <span class="badge badge-success" style="font-size: 11px; padding: 3px 8px; border-radius: 12px; background: #DCFCE7; color: #15803D; font-weight: 600;">Completed</span>
+                                {% elif p.status == 'failed' %}
+                                    <span class="badge badge-error" style="font-size: 11px; padding: 3px 8px; border-radius: 12px; background: #FEE2E2; color: #B91C1C; font-weight: 600;">Failed</span>
+                                {% else %}
+                                    <span class="badge badge-neutral" style="font-size: 11px; padding: 3px 8px; border-radius: 12px; background: #E0F2FE; color: #0369A1; font-weight: 600;">In Progress</span>
+                                {% endif %}
+
+                                <a href="{{ url_for('architecture_page', project_id=p.id) }}" title="View Architecture Diagram" style="color: var(--text-secondary); text-decoration: none; padding: 4px 6px; border-radius: 4px; border: 1px solid var(--border); font-size: 11px; display: inline-flex; align-items: center; gap: 4px;">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3v12"></path><circle cx="18" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle></svg>
+                                    <span>Arch</span>
+                                </a>
+
+                                <a href="{{ url_for('documentation_page', project_id=p.id) }}" title="View Master Documentation" style="color: var(--text-secondary); text-decoration: none; padding: 4px 6px; border-radius: 4px; border: 1px solid var(--border); font-size: 11px; display: inline-flex; align-items: center; gap: 4px;">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path></svg>
+                                    <span>Docs</span>
+                                </a>
+
+                                <a href="{{ url_for('project_workspace', project_id=p.id) }}" class="project-row-arrow" title="Open Workspace" style="color: var(--text-secondary);">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                                </a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state-card" style="text-align: center; padding: 36px 20px;">
+                    <div class="empty-state-icon" style="width: 48px; height: 48px; border-radius: 50%; background: #F1F5F9; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; color: #64748B;">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                    </div>
+                    <h3 style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 6px;">No projects created yet</h3>
+                    <p style="font-size: 13px; color: var(--text-secondary); max-width: 420px; margin: 0 auto 16px;">Describe your software project idea in plain English and let your 8 AI agents plan, code, test, and document it.</p>
+                    <a href="{{ url_for('new_project') }}" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; font-size: 13px; padding: 8px 16px; background: var(--btn-primary); color: #FFFFFF; text-decoration: none; border-radius: var(--radius-sm); font-weight: 600;">
+                        <span>Create Your First Project</span>
+                        <span>&rarr;</span>
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Two Column Grid for Recent Architecture & Documentation -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 24px;">
+            <!-- Recent Architecture Diagrams -->
+            <div class="section-panel-card" style="background: #FFFFFF; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 22px 24px; box-shadow: var(--shadow-sm);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 12px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0284C7" stroke-width="2"><path d="M6 3v12"></path><circle cx="18" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M18 9a9 9 0 0 1-9 9"></path></svg>
+                        <h2 style="font-size: 15px; font-weight: 700; color: var(--text-primary);">Recent Architecture Diagrams</h2>
+                    </div>
+                    <a href="{{ url_for('architecture_page') }}" style="font-size: 12px; color: #0284C7; text-decoration: none; font-weight: 600;">Open Architecture &rarr;</a>
+                </div>
+
+                {% if stats.recent_architectures %}
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        {% for arch in stats.recent_architectures %}
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: #F8FAFC; border: 1px solid var(--border); border-radius: var(--radius-sm);">
+                                <div>
+                                    <a href="{{ url_for('architecture_page', project_id=arch.project_id) }}" style="font-size: 13px; font-weight: 600; color: var(--text-primary); text-decoration: none;">
+                                        {{ arch.project_name }}
+                                    </a>
+                                    <span style="font-size: 11px; color: var(--text-secondary); display: block;">{{ arch.diagram_type|title }} Architecture &bull; {{ str(arch.updated_at)[:10] }}</span>
+                                </div>
+                                <div style="display: flex; gap: 6px;">
+                                    <a href="{{ url_for('architecture_export_file', project_id=arch.project_id, fmt='png', type=arch.diagram_type) }}" class="btn" style="font-size: 11px; padding: 4px 8px; border: 1px solid var(--border); border-radius: 4px; background: #FFFFFF; color: var(--text-primary); text-decoration: none;">PNG</a>
+                                    <a href="{{ url_for('architecture_export_file', project_id=arch.project_id, fmt='svg', type=arch.diagram_type) }}" class="btn" style="font-size: 11px; padding: 4px 8px; border: 1px solid var(--border); border-radius: 4px; background: #FFFFFF; color: var(--text-primary); text-decoration: none;">SVG</a>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div style="text-align: center; padding: 24px 10px; color: var(--text-secondary);">
+                        <p style="font-size: 13px;">No architecture diagrams generated yet.</p>
+                        <a href="{{ url_for('architecture_page') }}" style="font-size: 12px; color: #0284C7; font-weight: 600; text-decoration: none; margin-top: 6px; display: inline-block;">Generate First Diagram &rarr;</a>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Recent Project Documentation Files -->
+            <div class="section-panel-card" style="background: #FFFFFF; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 22px 24px; box-shadow: var(--shadow-sm);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 12px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9333EA" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                        <h2 style="font-size: 15px; font-weight: 700; color: var(--text-primary);">Recent Master Documentation</h2>
+                    </div>
+                    <a href="{{ url_for('documentation_page') }}" style="font-size: 12px; color: #9333EA; text-decoration: none; font-weight: 600;">Open Documentation &rarr;</a>
+                </div>
+
+                {% if stats.recent_documents %}
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        {% for doc in stats.recent_documents %}
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: #F8FAFC; border: 1px solid var(--border); border-radius: var(--radius-sm);">
+                                <div>
+                                    <a href="{{ url_for('documentation_page', project_id=doc.project_id) }}" style="font-size: 13px; font-weight: 600; color: var(--text-primary); text-decoration: none;">
+                                        {{ doc.project_name }}
+                                    </a>
+                                    <span style="font-size: 11px; color: var(--text-secondary); display: block;">Logos Preserved &bull; {{ str(doc.updated_at)[:10] }}</span>
+                                </div>
+                                <div style="display: flex; gap: 6px;">
+                                    <a href="{{ url_for('documentation_page', project_id=doc.project_id, view='preview') }}" class="btn" style="font-size: 11px; padding: 4px 8px; border: 1px solid #6366F1; border-radius: 4px; background: #EEF2FF; color: #4F46E5; font-weight: 600; text-decoration: none;">Preview</a>
+                                    <a href="{{ url_for('documentation_download_docx', project_id=doc.project_id) }}" class="btn" style="font-size: 11px; padding: 4px 8px; border: 1px solid var(--border); border-radius: 4px; background: #FFFFFF; color: #1D4ED8; font-weight: 600; text-decoration: none;">DOCX</a>
+                                    <a href="{{ url_for('documentation_download_pdf', project_id=doc.project_id) }}" class="btn" style="font-size: 11px; padding: 4px 8px; border: 1px solid var(--border); border-radius: 4px; background: #FFFFFF; color: #B91C1C; font-weight: 600; text-decoration: none;">PDF</a>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div style="text-align: center; padding: 24px 10px; color: var(--text-secondary);">
+                        <p style="font-size: 13px;">No reference documentation generated yet.</p>
+                        <a href="{{ url_for('documentation_page') }}" style="font-size: 12px; color: #9333EA; font-weight: 600; text-decoration: none; margin-top: 6px; display: inline-block;">Generate Master Docs &rarr;</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

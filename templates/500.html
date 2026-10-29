@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}Internal Server Error — DevGuardian AI{% endblock %}
+
+{% block standalone_content %}
+<div class="auth-page-container">
+    <div class="auth-card" style="text-align: center;">
+        <div style="font-size: 64px; font-weight: 800; color: #C45D5D; line-height: 1; margin-bottom: 12px;">500</div>
+        <h1 style="font-size: 20px; margin-bottom: 8px;">Internal Service Exception</h1>
+        <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 24px;">
+            An unexpected error occurred during execution. Diagnostic details have been recorded safely in server logs.
+        </p>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-primary" style="display: inline-flex;">
+            Return to Dashboard &rarr;
+        </a>
+    </div>
+</div>
+{% endblock %}

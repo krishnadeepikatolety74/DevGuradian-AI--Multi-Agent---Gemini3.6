@@ -1,0 +1,571 @@
+{% extends "base.html" %}
+
+{% block title %}Projects — DevGuardian AI{% endblock %}
+
+{% block content %}
+<div class="dashboard-topbar">
+    <div class="dashboard-title-area">
+        <h1>Projects & Server Orchestration</h1>
+        <p>Manage, inspect, and execute your independent software projects on dedicated application ports.</p>
+    </div>
+    <div style="display: flex; align-items: center; gap: 12px;">
+        <button onclick="window.location.reload();" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+            <span>Refresh Status</span>
+        </button>
+        <a href="{{ url_for('new_project') }}" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            <span>New Project</span>
+        </a>
+    </div>
+</div>
+
+<div class="dashboard-content-body" style="display: flex; flex-direction: column; gap: 24px;">
+
+    <!-- ============================================================ -->
+    <!-- PORT CONFLICT DETECTION & RESOLUTION PANEL                   -->
+    <!-- ============================================================ -->
+    <div id="portConflictPanel" class="section-panel-card" style="padding: 20px 24px; border: 1px solid {% if port_conflicts and port_conflicts.has_conflicts %}#fed7aa; background: #fffaf5;{% else %}#bbf7d0; background: #f0fdf4;{% endif %} border-radius: 8px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="width: 36px; height: 36px; border-radius: 8px; {% if port_conflicts and port_conflicts.has_conflicts %}background: #ffedd5; color: #c2410c;{% else %}background: #dcfce7; color: #166534;{% endif %} display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    {% if port_conflicts and port_conflicts.has_conflicts %}
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                    {% else %}
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                    {% endif %}
+                </div>
+                <div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <h3 style="font-size: 15px; font-weight: 700; color: #0f172a; margin: 0;">
+                            {% if port_conflicts and port_conflicts.has_conflicts %}
+                                Port Conflict Detection ({{ port_conflicts.total_conflicts }} Issues Identified)
+                            {% else %}
+                                Port Allocation Engine: All Applications Conflict-Free
+                            {% endif %}
+                        </h3>
+                        {% if port_conflicts and port_conflicts.has_conflicts %}
+                            <span class="badge" style="background: #ea580c; color: #ffffff; font-weight: 700; font-size: 11px;">Conflict Detected</span>
+                        {% else %}
+                            <span class="badge" style="background: #16a34a; color: #ffffff; font-weight: 700; font-size: 11px;">100% Unique & Healthy</span>
+                        {% endif %}
+                    </div>
+                    <p style="font-size: 12px; color: #475569; margin: 3px 0 0 0;">
+                        {% if port_conflicts and port_conflicts.has_conflicts %}
+                            Proactive diagnostic engine identified port contention across local processes or duplicate database registrations.
+                        {% else %}
+                            DevGuardian AI is running on port 5000. All child applications have dedicated, collision-free ports (5001–5007) and persistent assignments.
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 8px;">
+                {% if port_conflicts and port_conflicts.has_conflicts %}
+                    <button id="btnResolveConflicts" onclick="triggerResolveConflicts()" class="btn btn-sm" style="background: #ea580c; color: white; padding: 6px 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+                        <span>Resolve Conflicts Automatically</span>
+                    </button>
+                {% endif %}
+                <button onclick="window.location.reload();" class="btn btn-secondary btn-sm" style="padding: 6px 12px; font-size: 12px;">
+                    Scan Again
+                </button>
+            </div>
+        </div>
+
+        {% if port_conflicts and port_conflicts.has_conflicts %}
+            <!-- Conflict Details Breakdown -->
+            <div style="margin-top: 14px; padding-top: 14px; border-top: 1px solid #fed7aa;">
+                <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; font-size: 11px;">
+                    {% if port_conflicts.summary.duplicate_registry %}
+                        <span style="background: #ffedd5; color: #9a3412; padding: 3px 8px; border-radius: 4px; font-weight: 600;">{{ port_conflicts.summary.duplicate_registry }} Duplicate Registrations</span>
+                    {% endif %}
+                    {% if port_conflicts.summary.external_conflict %}
+                        <span style="background: #fee2e2; color: #991b1b; padding: 3px 8px; border-radius: 4px; font-weight: 600;">{{ port_conflicts.summary.external_conflict }} External Port Contention</span>
+                    {% endif %}
+                    {% if port_conflicts.summary.stale_process %}
+                        <span style="background: #f1f5f9; color: #475569; padding: 3px 8px; border-radius: 4px; font-weight: 600;">{{ port_conflicts.summary.stale_process }} Stale Process Records</span>
+                    {% endif %}
+                    {% if port_conflicts.summary.unexpected_port %}
+                        <span style="background: #fef3c7; color: #92400e; padding: 3px 8px; border-radius: 4px; font-weight: 600;">{{ port_conflicts.summary.unexpected_port }} Unexpected Port Mismatches</span>
+                    {% endif %}
+                    {% if port_conflicts.summary.unassigned_port %}
+                        <span style="background: #f1f5f9; color: #64748b; padding: 3px 8px; border-radius: 4px; font-weight: 600;">{{ port_conflicts.summary.unassigned_port }} Unassigned Ports</span>
+                    {% endif %}
+                </div>
+
+                <div style="overflow-x: auto; max-height: 220px; overflow-y: auto;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; background: #ffffff; border: 1px solid #fed7aa; border-radius: 6px;">
+                        <thead>
+                            <tr style="background: #fff7ed; border-bottom: 1px solid #fed7aa; color: #9a3412; font-size: 11px; text-transform: uppercase;">
+                                <th style="padding: 8px 12px;">Port</th>
+                                <th style="padding: 8px 12px;">Application</th>
+                                <th style="padding: 8px 12px;">Conflict Category</th>
+                                <th style="padding: 8px 12px;">Diagnostic Detail</th>
+                                <th style="padding: 8px 12px;">Suggested Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for c in port_conflicts.conflicts %}
+                                <tr style="border-bottom: 1px solid #ffedd5;">
+                                    <td style="padding: 8px 12px; font-family: monospace; font-weight: 700; color: #c2410c;">
+                                        {{ c.port or 'None' }}
+                                    </td>
+                                    <td style="padding: 8px 12px; font-weight: 600; color: #1e293b;">
+                                        {{ c.project_name }}
+                                    </td>
+                                    <td style="padding: 8px 12px;">
+                                        <span class="badge" style="background: #ffedd5; color: #c2410c; font-size: 10px;">{{ c.type_label }}</span>
+                                    </td>
+                                    <td style="padding: 8px 12px; color: #475569;">
+                                        {{ c.description }}
+                                    </td>
+                                    <td style="padding: 8px 12px; color: #0369a1; font-weight: 500;">
+                                        {{ c.suggested_action }}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- 8. PORT STATUS MONITORING SECTION                            -->
+    <!-- ============================================================ -->
+    <div class="section-panel-card" style="padding: 22px 26px; border: 1px solid #e2e8f0; background: #ffffff;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="width: 32px; height: 32px; border-radius: 8px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>
+                </div>
+                <div>
+                    <h2 style="font-size: 16px; font-weight: 700; color: #0f172a; margin: 0;">Server & Port Status Monitoring</h2>
+                    <p style="font-size: 12px; color: #64748b; margin: 2px 0 0 0;">Centralized independent runtime registry & proactive health verification.</p>
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px; font-size: 12px;">
+                <span style="display: inline-flex; align-items: center; gap: 5px; color: #166534; font-weight: 600;">
+                    <span style="width: 8px; height: 8px; border-radius: 50%; background: #16a34a;"></span>
+                    Running
+                </span>
+                <span style="display: inline-flex; align-items: center; gap: 5px; color: #b45309; font-weight: 600;">
+                    <span style="width: 8px; height: 8px; border-radius: 50%; background: #f59e0b;"></span>
+                    Starting
+                </span>
+                <span style="display: inline-flex; align-items: center; gap: 5px; color: #475569; font-weight: 600;">
+                    <span style="width: 8px; height: 8px; border-radius: 50%; background: #94a3b8;"></span>
+                    Stopped
+                </span>
+                <span style="display: inline-flex; align-items: center; gap: 5px; color: #c2410c; font-weight: 600;">
+                    <span style="width: 8px; height: 8px; border-radius: 50%; background: #ea580c;"></span>
+                    Port Conflict
+                </span>
+                <span style="display: inline-flex; align-items: center; gap: 5px; color: #dc2626; font-weight: 600;">
+                    <span style="width: 8px; height: 8px; border-radius: 50%; background: #dc2626;"></span>
+                    Health Failed
+                </span>
+            </div>
+        </div>
+
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
+                <thead>
+                    <tr style="border-bottom: 2px solid #f1f5f9; color: #64748b; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em;">
+                        <th style="padding: 10px 14px;">Application / Project</th>
+                        <th style="padding: 10px 14px;">Assigned Port</th>
+                        <th style="padding: 10px 14px;">Process Status</th>
+                        <th style="padding: 10px 14px;">Health-Check</th>
+                        <th style="padding: 10px 14px;">Local URL</th>
+                        <th style="padding: 10px 14px; text-align: right;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Main DevGuardian AI Application (Always Port 5000) -->
+                    <tr style="border-bottom: 1px solid #f1f5f9; background: #f8fafc;">
+                        <td style="padding: 12px 14px; font-weight: 700; color: #0f172a;">
+                            <span style="display: inline-flex; align-items: center; gap: 6px;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
+                                DevGuardian AI — Main Platform
+                            </span>
+                        </td>
+                        <td style="padding: 12px 14px;">
+                            <code style="font-weight: 700; background: #e0e7ff; color: #3730a3; padding: 2px 7px; border-radius: 4px;">5000</code>
+                        </td>
+                        <td style="padding: 12px 14px;">
+                            <span class="badge badge-success" style="background: #dcfce7; color: #166534; font-weight: 600;">Running</span>
+                        </td>
+                        <td style="padding: 12px 14px;">
+                            <span style="color: #16a34a; font-weight: 600;">● Healthy</span>
+                        </td>
+                        <td style="padding: 12px 14px;">
+                            <a href="http://127.0.0.1:5000" target="_blank" style="color: #2563eb; text-decoration: underline; font-weight: 600;">http://127.0.0.1:5000</a>
+                        </td>
+                        <td style="padding: 12px 14px; text-align: right;">
+                            <span style="color: #64748b; font-size: 11px; font-weight: 600;">PRIMARY PLATFORM</span>
+                        </td>
+                    </tr>
+
+                    <!-- Generated Projects -->
+                    {% if servers_overview and servers_overview.generated_projects %}
+                        {% for sp in servers_overview.generated_projects %}
+                            <tr style="border-bottom: 1px solid #f1f5f9;">
+                                <td style="padding: 12px 14px;">
+                                    <div style="font-weight: 600; color: #1e293b;">{{ sp.project_name }}</div>
+                                    <code style="font-size: 10px; color: #64748b; font-family: monospace;">{{ sp.project_id }}</code>
+                                </td>
+                                <td style="padding: 12px 14px;">
+                                    {% if sp.assigned_port %}
+                                        {% if sp.process_status == 'Port Conflict' %}
+                                            <span title="Port conflict detected" style="display: inline-flex; align-items: center; gap: 4px; background: #ffedd5; color: #c2410c; padding: 2px 7px; border-radius: 4px; font-weight: 700; font-family: monospace;">⚠ {{ sp.assigned_port }}</span>
+                                        {% else %}
+                                            <code style="font-weight: 700; background: #f1f5f9; color: #0284c7; padding: 2px 7px; border-radius: 4px;">{{ sp.assigned_port }}</code>
+                                        {% endif %}
+                                    {% else %}
+                                        <span style="color: #94a3b8; font-size: 12px;">Unassigned</span>
+                                    {% endif %}
+                                </td>
+                                <td style="padding: 12px 14px;">
+                                    {% if sp.process_status == 'Running' %}
+                                        <span class="badge badge-success" style="background: #dcfce7; color: #166534;">Running</span>
+                                    {% elif sp.process_status == 'Starting' %}
+                                        <span class="badge" style="background: #fef3c7; color: #b45309; display: inline-flex; align-items: center; gap: 4px;">
+                                            <span style="width: 6px; height: 6px; border-radius: 50%; background: #b45309;"></span>
+                                            Starting...
+                                        </span>
+                                    {% elif sp.process_status == 'Port Conflict' %}
+                                        <span class="badge" style="background: #ffedd5; color: #c2410c;">Port Conflict</span>
+                                    {% elif sp.process_status in ['Failed', 'Health Check Failed'] %}
+                                        <span class="badge badge-error">Failed</span>
+                                    {% else %}
+                                        <span class="badge badge-neutral">Stopped</span>
+                                    {% endif %}
+                                </td>
+                                <td style="padding: 12px 14px;">
+                                    {% if sp.health_status == 'Healthy' %}
+                                        <span style="color: #16a34a; font-weight: 600; font-size: 12px;">● Healthy</span>
+                                    {% elif sp.health_status == 'Conflict' %}
+                                        <span style="color: #ea580c; font-weight: 600; font-size: 12px;" title="{{ sp.detail }}">⚠ Conflict</span>
+                                    {% elif sp.health_status in ['Unhealthy', 'Health Check Failed'] %}
+                                        <span style="color: #dc2626; font-weight: 600; font-size: 12px;" title="{{ sp.detail }}">✕ Failed</span>
+                                    {% elif sp.health_status == 'Pending' %}
+                                        <span style="color: #d97706; font-weight: 600; font-size: 12px;">⏳ Polling</span>
+                                    {% else %}
+                                        <span style="color: #94a3b8; font-size: 12px;">○ Off</span>
+                                    {% endif %}
+                                </td>
+                                <td style="padding: 12px 14px;">
+                                    {% if sp.local_url and sp.process_status == 'Running' %}
+                                        <a href="{{ sp.local_url }}" target="_blank" style="color: #0284c7; text-decoration: underline; font-weight: 600;">
+                                            {{ sp.local_url }}
+                                        </a>
+                                    {% elif sp.assigned_port %}
+                                        <a href="http://127.0.0.1:{{ sp.assigned_port }}" target="_blank" style="color: #64748b; font-family: monospace; font-size: 12px; text-decoration: none;" title="Application assigned URL">
+                                            http://127.0.0.1:{{ sp.assigned_port }}
+                                        </a>
+                                    {% else %}
+                                        <span style="color: #cbd5e1;">—</span>
+                                    {% endif %}
+                                </td>
+                                <td style="padding: 12px 14px; text-align: right;">
+                                    <div style="display: inline-flex; align-items: center; gap: 6px;">
+                                        {% if sp.process_status == 'Starting' %}
+                                            <button disabled class="btn btn-secondary btn-sm" style="padding: 3px 8px; font-size: 11px; opacity: 0.7; cursor: not-allowed;">
+                                                Starting...
+                                            </button>
+                                            <form action="{{ url_for('stop_project_action', project_id=sp.project_id) }}" method="POST" style="display: inline;">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                                <button type="submit" class="btn btn-sm" style="background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; padding: 3px 8px; font-size: 11px;">Stop</button>
+                                            </form>
+                                        {% elif sp.is_running %}
+                                            <a href="{{ sp.local_url }}" target="_blank" class="btn btn-sm" style="background: #16a34a; color: white; padding: 3px 8px; font-size: 11px;">Open &#x2197;</a>
+                                            <form action="{{ url_for('restart_project_action', project_id=sp.project_id) }}" method="POST" style="display: inline;">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                                <button type="submit" class="btn btn-secondary btn-sm" style="padding: 3px 8px; font-size: 11px;">Restart</button>
+                                            </form>
+                                            <form action="{{ url_for('stop_project_action', project_id=sp.project_id) }}" method="POST" style="display: inline;">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                                <button type="submit" class="btn btn-sm" style="background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; padding: 3px 8px; font-size: 11px;">Stop</button>
+                                            </form>
+                                        {% else %}
+                                            <form action="{{ url_for('run_project_app_action', project_id=sp.project_id) }}" method="POST" style="display: inline;">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                                <button type="submit" class="btn btn-primary btn-sm btn-run-project" data-project-id="{{ sp.project_id }}" data-project-name="{{ sp.project_name }}" style="padding: 3px 8px; font-size: 11px;">Run</button>
+                                            </form>
+                                        {% endif %}
+                                        <a href="{{ url_for('open_project_folder_action', project_id=sp.project_id) }}" class="btn btn-secondary btn-sm" style="padding: 3px 8px; font-size: 11px;" title="Open Project Folder in Explorer">Folder</a>
+                                        <a href="{{ url_for('project_logs_view', project_id=sp.project_id) }}" class="btn btn-secondary btn-sm" style="padding: 3px 8px; font-size: 11px;" title="View Project Execution Logs">Logs</a>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- 7. PROJECT CARDS WITH COMPLETE CONTROLS                      -->
+    <!-- ============================================================ -->
+    {% if projects %}
+        <div style="display: flex; flex-direction: column; gap: 18px;">
+            {% for p in projects %}
+                <div class="section-panel-card" style="padding: 24px 28px; border: 1px solid #e2e8f0; background: #ffffff;">
+                    <!-- Main Card Top Row -->
+                    <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; flex-wrap: wrap;">
+                        <div style="display: flex; align-items: flex-start; gap: 18px; flex: 1; min-width: 280px;">
+                            <div class="project-icon-box" style="width: 48px; height: 48px; flex-shrink: 0; margin-top: 2px;">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 0;">
+                                <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                                    <a href="{{ url_for('project_workspace', project_id=p.id) }}" style="font-size: 18px; font-weight: 700; color: var(--text-primary); text-decoration: none;">
+                                        {{ p.name }}
+                                    </a>
+                                    <code style="font-size: 11px; background: #e2e8f0; color: #334155; padding: 2px 7px; border-radius: 4px; font-family: monospace; font-weight: 600;" title="Project ID">
+                                        {{ p.id }}
+                                    </code>
+
+                                    <!-- Process / Port Status Badge -->
+                                    {% if p.is_running %}
+                                        <span class="badge badge-success" style="background: #dcfce7; color: #166534; display: inline-flex; align-items: center; gap: 5px;">
+                                            <span style="width: 7px; height: 7px; border-radius: 50%; background: #16a34a; display: inline-block;"></span>
+                                            Live :{{ p.process_port or p.assigned_port }}
+                                        </span>
+                                    {% elif p.process_status == 'Starting' %}
+                                        <span class="badge" style="background: #fef3c7; color: #b45309;">
+                                            Starting...
+                                        </span>
+                                    {% elif p.process_status == 'Port Conflict' %}
+                                        <span class="badge" style="background: #ffedd5; color: #c2410c;">
+                                            ⚠ Port Conflict
+                                        </span>
+                                    {% elif p.process_status in ['Dependencies Missing'] %}
+                                        <span class="badge" style="background: #fef2f2; color: #991b1b; border: 1px solid #fecaca;">
+                                            ⚠ Dependencies Missing
+                                        </span>
+                                    {% elif p.process_status in ['Entry Point Missing'] %}
+                                        <span class="badge" style="background: #fef2f2; color: #991b1b; border: 1px solid #fecaca;">
+                                            ✕ Entry Point Missing
+                                        </span>
+                                    {% elif p.process_status in ['Failed', 'Health Check Failed'] %}
+                                        <span class="badge badge-error">
+                                            ✕ {{ p.process_status }}
+                                        </span>
+                                    {% else %}
+                                        <span class="badge badge-neutral">Stopped</span>
+                                    {% endif %}
+                                </div>
+
+                                <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin: 2px 0;">
+                                    {{ p.description }}
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Top-Right Primary Action Buttons -->
+                        <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end;">
+                            {% if p.is_running and p.process_url %}
+                                <a href="{{ p.process_url }}" target="_blank" class="btn btn-sm" style="background: #16a34a; color: #ffffff; text-decoration: none; font-weight: 600;" title="Open Running Application in Browser">
+                                    Open App &#x2197;
+                                </a>
+                                <form action="{{ url_for('restart_project_action', project_id=p.id) }}" method="POST" style="display: inline;">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                    <button type="submit" class="btn btn-secondary btn-sm" title="Restart Project Process">
+                                        &#x21bb; Restart
+                                    </button>
+                                </form>
+                                <form action="{{ url_for('stop_project_action', project_id=p.id) }}" method="POST" style="display: inline;">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                    <button type="submit" class="btn btn-sm" style="background: #fee2e2; color: #dc2626; border: 1px solid #fecaca;" title="Stop Running Application">
+                                        Stop
+                                    </button>
+                                </form>
+                            {% else %}
+                                <form action="{{ url_for('run_project_app_action', project_id=p.id) }}" method="POST" style="display: inline;">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                    <button type="submit" class="btn btn-primary btn-sm btn-run-project" data-project-id="{{ p.id }}" data-project-name="{{ p.name }}" title="Run This Project on Dedicated Port">
+                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align: -2px; margin-right: 4px;"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                                        Run Project
+                                    </button>
+                                </form>
+                            {% endif %}
+
+                            <!-- Open Project Folder Button -->
+                            <a href="{{ url_for('open_project_folder_action', project_id=p.id) }}" class="btn btn-secondary btn-sm" title="Open Project Directory in File Explorer">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -2px; margin-right: 3px;"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                                Open Folder
+                            </a>
+
+                            <!-- Logs Link -->
+                            <a href="{{ url_for('project_logs_view', project_id=p.id) }}" class="btn btn-secondary btn-sm" title="View Process Logs">
+                                Logs
+                            </a>
+
+                            <!-- UI Preview -->
+                            <a href="{{ url_for('project_ui_preview', project_id=p.id) }}" class="btn btn-secondary btn-sm" title="Preview Generated UI Templates">
+                                Preview UI
+                            </a>
+
+                            <!-- Documentation Preview -->
+                            <a href="{{ url_for('documentation_page', project_id=p.id, view='preview') }}" class="btn btn-secondary btn-sm" title="Preview Master Project Documentation">
+                                Preview Docs
+                            </a>
+
+                            <!-- Open Project Workspace -->
+                            <a href="{{ url_for('project_workspace', project_id=p.id) }}" class="btn btn-secondary btn-sm" title="Open Project Workspace">
+                                Open Project &rarr;
+                            </a>
+
+                            <!-- View Generated Files -->
+                            <a href="{{ url_for('project_code_output', project_id=p.id) }}" class="btn btn-secondary btn-sm" title="View Generated Source Files">
+                                View Files ({{ p.files_count }})
+                            </a>
+
+                            <!-- Delete Project -->
+                            <form action="{{ url_for('delete_project_action', project_id=p.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this project and all its generated files?');" style="display: inline;">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                <button type="submit" class="btn btn-danger btn-sm" title="Delete Project">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Metadata Grid: Workspace, Entry Point, Command, Assigned Port, URL, PID, Health -->
+                    <div style="margin-top: 16px; padding-top: 14px; border-top: 1px solid #f1f5f9; display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; font-size: 12px;">
+                        <!-- Project Directory / Workspace -->
+                        <div style="grid-column: span 2; min-width: 260px;">
+                            <span style="font-weight: 600; color: #475569; display: block; margin-bottom: 3px;">Project Directory / Workspace:</span>
+                            <code style="font-family: monospace; background: #f8fafc; border: 1px solid #e2e8f0; padding: 3px 8px; border-radius: 4px; font-size: 11px; word-break: break-all; color: #0f172a; display: block;">
+                                {{ p.workspace_path }}
+                            </code>
+                        </div>
+
+                        <!-- Dedicated Run Command -->
+                        <div>
+                            <span style="font-weight: 600; color: #475569; display: block; margin-bottom: 3px;">Dedicated Command:</span>
+                            <code style="font-family: monospace; background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: 700; display: inline-block;">
+                                {{ p.run_cmd or ('python ' ~ (p.entry_point or 'app.py')) }}
+                            </code>
+                        </div>
+
+                        <!-- Python Entry Point Filename -->
+                        <div>
+                            <span style="font-weight: 600; color: #475569; display: block; margin-bottom: 3px;">Python Entry Point:</span>
+                            <code style="font-family: monospace; background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 2px 7px; border-radius: 4px; font-size: 12px; font-weight: 600;">
+                                {{ p.entry_point or 'app.py' }}
+                            </code>
+                        </div>
+
+                        <!-- Assigned Port -->
+                        <div>
+                            <span style="font-weight: 600; color: #475569; display: block; margin-bottom: 3px;">Assigned Port:</span>
+                            {% if p.process_port or p.assigned_port %}
+                                <code style="font-family: monospace; background: #f1f5f9; color: #0284c7; padding: 2px 8px; border-radius: 4px; font-weight: 700; font-size: 12px;">
+                                    {{ p.process_port or p.assigned_port }}
+                                </code>
+                            {% else %}
+                                <span style="color: #94a3b8;">Pending allocation</span>
+                            {% endif %}
+                        </div>
+
+                        <!-- Local URL -->
+                        <div>
+                            <span style="font-weight: 600; color: #475569; display: block; margin-bottom: 3px;">Local URL:</span>
+                            {% if p.is_running and p.process_url %}
+                                <a href="{{ p.process_url }}" target="_blank" style="color: #0284c7; text-decoration: underline; font-weight: 600;">
+                                    {{ p.process_url }}
+                                </a>
+                            {% elif p.process_port or p.assigned_port %}
+                                <span style="color: #64748b; font-family: monospace;">http://127.0.0.1:{{ p.process_port or p.assigned_port }}</span>
+                            {% else %}
+                                <span style="color: #cbd5e1;">—</span>
+                            {% endif %}
+                        </div>
+
+                        <!-- Health Status & PID -->
+                        <div>
+                            <span style="font-weight: 600; color: #475569; display: block; margin-bottom: 3px;">Health Status:</span>
+                            {% if p.health_status == 'Healthy' %}
+                                <span style="color: #16a34a; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
+                                    <span style="width: 7px; height: 7px; border-radius: 50%; background: #16a34a;"></span>
+                                    Healthy {% if p.pid %}(PID {{ p.pid }}){% endif %}
+                                </span>
+                            {% elif p.health_status == 'Conflict' %}
+                                <span style="color: #ea580c; font-weight: 600;">⚠ Port Conflict</span>
+                            {% elif p.health_status in ['Unhealthy', 'Health Check Failed'] %}
+                                <span style="color: #dc2626; font-weight: 600;">✕ Failed</span>
+                            {% elif p.is_running %}
+                                <span style="color: #16a34a; font-weight: 600;">● Running (PID {{ p.pid }})</span>
+                            {% else %}
+                                <span style="color: #94a3b8;">○ Stopped</span>
+                            {% endif %}
+                        </div>
+
+                        <!-- Last Run -->
+                        <div>
+                            <span style="font-weight: 600; color: #475569; display: block; margin-bottom: 3px;">Last Run:</span>
+                            <span style="color: #334155; font-weight: 500;">{{ p.last_run or 'Never' }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Last Startup Error (if present) -->
+                    {% if p.last_error and not p.is_running %}
+                        <div style="margin-top: 14px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 12px 16px; font-size: 12px; color: #991b1b;">
+                            <div style="font-weight: 700; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                                <span>Diagnostics / Last Error Notice:</span>
+                            </div>
+                            <pre style="margin: 0; font-family: monospace; font-size: 11px; white-space: pre-wrap; word-break: break-all; max-height: 90px; overflow-y: auto; background: #ffffff; border: 1px solid #fee2e2; border-radius: 4px; padding: 8px;">{{ p.last_error }}</pre>
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="section-panel-card empty-state-card" style="padding: 40px; text-align: center;">
+            <div class="empty-state-icon" style="margin: 0 auto 16px;">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+            </div>
+            <h3>No projects found</h3>
+            <p style="color: #64748b;">You haven't initialized any software projects yet.</p>
+            <a href="{{ url_for('new_project') }}" class="btn btn-primary" style="margin-top: 12px;">
+                + Create New Project
+            </a>
+        </div>
+    {% endif %}
+
+</div>
+
+<script>
+function triggerResolveConflicts() {
+    const btn = document.getElementById('btnResolveConflicts');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span>Resolving conflicts...</span>';
+    }
+    fetch('/api/port-conflicts/resolve', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    })
+    .then(r => r.json())
+    .then(data => {
+        window.location.reload();
+    })
+    .catch(err => {
+        alert('Error resolving conflicts: ' + err);
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<span>Resolve Conflicts Automatically</span>';
+        }
+    });
+}
+</script>
+{% endblock %}

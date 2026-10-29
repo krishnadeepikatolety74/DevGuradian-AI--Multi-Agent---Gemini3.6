@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+
+{% block title %}Requirements Traceability — {{ project.name }}{% endblock %}
+
+{% block content %}
+<div class="dashboard-topbar">
+    <div class="dashboard-title-area">
+        <h1>Requirements Traceability & Verification</h1>
+        <p>End-to-end mapping from business requirements to source files, automated test cases, and verification evidence.</p>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 12px;">
+        <a href="{{ url_for('project_workspace', project_id=project.id) }}" class="btn btn-secondary">
+            &larr; Workspace
+        </a>
+        <a href="{{ url_for('run_project_validation_action', project_id=project.id) }}" class="btn btn-primary">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <span>Re-Verify All Requirements</span>
+        </a>
+    </div>
+</div>
+
+<div class="dashboard-content-body">
+    <!-- Traceability Metric Cards -->
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px;">
+        <div class="section-panel-card" style="padding: 18px;">
+            <span style="font-size: 12px; color: var(--text-secondary); text-transform: uppercase; font-weight: 600;">Total Requirements</span>
+            <h2 style="font-size: 26px; font-weight: 800; margin-top: 4px;">{{ requirements|length }}</h2>
+            <span style="font-size: 12px; color: var(--text-secondary);">Functional & Non-Functional</span>
+        </div>
+
+        <div class="section-panel-card" style="padding: 18px;">
+            <span style="font-size: 12px; color: var(--text-secondary); text-transform: uppercase; font-weight: 600;">Verified Requirements</span>
+            <h2 style="font-size: 26px; font-weight: 800; margin-top: 4px; color: var(--success);">
+                {{ verified_count }}
+            </h2>
+            <span class="badge badge-success" style="font-size: 11px;">Backed by Test Evidence</span>
+        </div>
+
+        <div class="section-panel-card" style="padding: 18px;">
+            <span style="font-size: 12px; color: var(--text-secondary); text-transform: uppercase; font-weight: 600;">Implementation Rate</span>
+            <h2 style="font-size: 26px; font-weight: 800; margin-top: 4px;">{{ compliance_rate }}%</h2>
+            <span style="font-size: 12px; color: var(--text-secondary);">AST & Syntax Confirmed</span>
+        </div>
+
+        <div class="section-panel-card" style="padding: 18px;">
+            <span style="font-size: 12px; color: var(--text-secondary); text-transform: uppercase; font-weight: 600;">Failed / Blocked</span>
+            <h2 style="font-size: 26px; font-weight: 800; margin-top: 4px; color: {{ 'var(--error)' if failed_count > 0 else 'var(--text-secondary)' }};">
+                {{ failed_count }}
+            </h2>
+            <span style="font-size: 12px; color: var(--text-secondary);">Requiring Remediation</span>
+        </div>
+    </div>
+
+    <!-- Requirements Matrix Card -->
+    <div class="section-panel-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+            <div>
+                <h3 style="font-size: 16px; font-weight: 700;">Specification Traceability Matrix</h3>
+                <p style="font-size: 13.5px; color: var(--text-secondary);">
+                    Verified using automated test assertions, AST compiler verification, security scans, and template rendering checks.
+                </p>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th style="width: 90px;">Req ID</th>
+                        <th>Specification & Acceptance Criteria</th>
+                        <th style="width: 90px;">Priority</th>
+                        <th>Related Files & Tests</th>
+                        <th>Verification Method</th>
+                        <th style="width: 120px;">Status</th>
+                        <th>Evidence / Failure Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for req in requirements %}
+                    <tr>
+                        <!-- ID -->
+                        <td>
+                            <code style="font-weight: 700; color: var(--primary); background: var(--bg-main); padding: 4px 8px; border-radius: 4px;">
+                                {{ req.req_id }}
+                            </code>
+                        </td>
+
+                        <!-- Title & Description -->
+                        <td>
+                            <strong style="color: var(--text-primary); font-size: 14px; display: block; margin-bottom: 3px;">
+                                {{ req.title }}
+                            </strong>
+                            <p style="font-size: 12.5px; color: var(--text-secondary); margin-bottom: 4px;">
+                                {{ req.description }}
+                            </p>
+                            {% if req.acceptance_criteria %}
+                            <div style="font-size: 12px; color: #4B5563; background: #F9FAFB; padding: 4px 8px; border-radius: 4px; border-left: 2px solid #CBD5E1;">
+                                <em>Acceptance:</em> {{ req.acceptance_criteria }}
+                            </div>
+                            {% endif %}
+                        </td>
+
+                        <!-- Priority -->
+                        <td>
+                            {% if req.priority == 'High' %}
+                                <span class="badge" style="background: #FEE2E2; color: #991B1B; font-size: 11px;">High</span>
+                            {% elif req.priority == 'Medium' %}
+                                <span class="badge" style="background: #FEF3C7; color: #92400E; font-size: 11px;">Medium</span>
+                            {% else %}
+                                <span class="badge" style="background: #F3F4F6; color: #374151; font-size: 11px;">Low</span>
+                            {% endif %}
+                        </td>
+
+                        <!-- Related Files & Tests -->
+                        <td>
+                            {% if req.files_list %}
+                                <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 4px;">
+                                    {% for f in req.files_list %}
+                                        <a href="{{ url_for('project_code_output', project_id=project.id, selected_file=f) }}"
+                                           style="font-size: 11.5px; font-family: var(--font-mono); background: #F1F5F9; color: #0F172A; padding: 2px 6px; border-radius: 3px; text-decoration: none; border: 1px solid #E2E8F0;" title="View file">
+                                            {{ f }}
+                                        </a>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            {% if req.tests_list %}
+                                <div style="display: flex; flex-wrap: wrap; gap: 4px;">
+                                    {% for t in req.tests_list %}
+                                        <span style="font-size: 11px; font-family: var(--font-mono); background: #EFF6FF; color: #1E40AF; padding: 2px 6px; border-radius: 3px;">
+                                            &#129514; {{ t }}
+                                        </span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </td>
+
+                        <!-- Verification Method -->
+                        <td style="font-size: 12.5px; color: var(--text-secondary);">
+                            {{ req.verification_method }}
+                        </td>
+
+                        <!-- Status Badge -->
+                        <td>
+                            {% if req.status == 'Verified' %}
+                                <span class="badge badge-success" style="font-size: 11.5px;">&#10003; Verified</span>
+                            {% elif req.status == 'Implemented' %}
+                                <span class="badge badge-info" style="font-size: 11.5px;">Implemented</span>
+                            {% elif req.status == 'Partially Implemented' %}
+                                <span class="badge badge-warning" style="font-size: 11.5px;">Partial</span>
+                            {% elif req.status == 'Failed' %}
+                                <span class="badge badge-error" style="font-size: 11.5px;">Failed</span>
+                            {% elif req.status == 'Blocked' %}
+                                <span class="badge badge-error" style="font-size: 11.5px;">Blocked</span>
+                            {% else %}
+                                <span class="badge" style="background: #F3F4F6; color: #6B7280; font-size: 11.5px;">Not Verified</span>
+                            {% endif %}
+                        </td>
+
+                        <!-- Evidence & Failure Details -->
+                        <td>
+                            <div style="font-size: 12.5px; color: var(--text-primary); line-height: 1.4;">
+                                {{ req.evidence }}
+                            </div>
+                            {% if req.failure_details %}
+                                <div style="margin-top: 6px; padding: 6px 10px; background: #FDF2F2; border: 1px solid #FCA5A5; border-radius: 4px; font-size: 11.5px; color: #991B1B;">
+                                    <strong>Failure Details:</strong> {{ req.failure_details }}
+                                </div>
+                            {% endif %}
+                            {% if req.remaining_work %}
+                                <div style="margin-top: 4px; font-size: 11.5px; color: #D97706;">
+                                    <em>Next:</em> {{ req.remaining_work }}
+                                </div>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

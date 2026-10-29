@@ -1,0 +1,330 @@
+{% extends "base.html" %}
+
+{% block title %}File Explorer & Code Studio — {{ project.name }}{% endblock %}
+
+{% block content %}
+<div class="dashboard-topbar">
+    <div class="dashboard-title-area">
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+            <a href="{{ url_for('projects_list') }}" style="color: var(--text-secondary); text-decoration: none; font-size: 13px;">Projects</a>
+            <span style="color: var(--border);">&sol;</span>
+            <span style="color: var(--text-secondary); font-size: 13px;">{{ project.name }}</span>
+            <span style="color: var(--border);">&sol;</span>
+            <span style="color: var(--primary); font-size: 13px; font-weight: 600;">File Explorer</span>
+        </div>
+        <h1 style="font-size: 22px; font-weight: 800; color: #0F172A; margin: 0 0 4px 0;">Project Filesystem &amp; Source Code Explorer</h1>
+        <p style="margin: 0; font-size: 13px; color: #64748B;">
+            Authentic filesystem directory tree, AST syntax verification, and secure source inspection for <strong>{{ project.name }}</strong>.
+        </p>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 10px;">
+        <a href="{{ url_for('project_workspace', project_id=project.id) }}" class="btn btn-secondary btn-sm">
+            &larr; Workspace
+        </a>
+        <a href="{{ url_for('project_ui_preview', project_id=project.id) }}" class="btn btn-secondary btn-sm">
+            &#128187; UI Preview
+        </a>
+        <a href="{{ url_for('download_project_zip', project_id=project.id) }}" class="btn btn-primary btn-sm" title="Download all project files as ZIP archive">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            Download ZIP
+        </a>
+    </div>
+</div>
+
+<div class="dashboard-content-body" style="padding-top: 16px;">
+    <!-- Two-Pane File Explorer Container -->
+    <div style="display: grid; grid-template-columns: 320px 1fr; gap: 20px; align-items: start; height: calc(100vh - 200px); min-height: 600px;">
+        
+        <!-- LEFT PANE: COLLAPSIBLE DIRECTORY TREE -->
+        <div class="section-panel-card" style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; height: 100%; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+            
+            <!-- Explorer Header -->
+            <div style="padding: 14px 16px; border-bottom: 1px solid #E2E8F0; background: #F8FAFC; display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 8px; overflow: hidden;">
+                    <span style="font-size: 16px;">&#128193;</span>
+                    <strong style="font-size: 13.5px; color: #0F172A; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
+                        {{ file_tree.name if file_tree else project.name }}
+                    </strong>
+                </div>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    <button type="button" onclick="refreshFileTree()" class="btn btn-secondary btn-sm" style="padding: 3px 8px; font-size: 11px;" title="Refresh Filesystem Tree">
+                        &#8635;
+                    </button>
+                    <span style="font-size: 11px; background: #E2E8F0; color: #475569; padding: 2px 7px; border-radius: 12px; font-weight: 600;">
+                        {{ file_tree.total_files if file_tree else files|length }} files
+                    </span>
+                </div>
+            </div>
+
+            <!-- Search Filter Bar -->
+            <div style="padding: 10px 14px; border-bottom: 1px solid #E2E8F0; background: #FFFFFF;">
+                <div style="position: relative;">
+                    <input type="text" id="tree_search_input" oninput="filterTreeFiles()" placeholder="Search project files..."
+                           style="width: 100%; box-sizing: border-box; padding: 6px 10px 6px 28px; font-size: 12px; border: 1px solid #CBD5E1; border-radius: 6px; background: #F8FAFC;">
+                    <span style="position: absolute; left: 9px; top: 7px; font-size: 12px; color: #94A3B8;">&#128269;</span>
+                </div>
+            </div>
+
+            <!-- Hierarchical Tree View Container -->
+            <div id="tree_view_container" style="flex: 1; overflow-y: auto; padding: 10px 8px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13px;">
+                {% macro render_tree_node(node, depth=0) %}
+                    {% if node.type == 'directory' %}
+                        <div class="tree-dir-node" data-path="{{ node.path }}" style="margin-bottom: 2px;">
+                            <div class="tree-dir-header" onclick="toggleDirectory(this)"
+                                 style="padding: 5px 8px; padding-left: {{ depth * 14 + 8 }}px; display: flex; align-items: center; gap: 6px; cursor: pointer; border-radius: 4px; user-select: none; color: #334155; font-weight: 600; font-size: 12.5px; transition: background 0.15s;">
+                                <span class="dir-chevron" style="display: inline-block; width: 14px; font-size: 10px; color: #94A3B8; transition: transform 0.15s;">&#9660;</span>
+                                <span class="dir-icon" style="color: #3B82F6; font-size: 14px;">&#128194;</span>
+                                <span style="text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">{{ node.name }}/</span>
+                            </div>
+                            <div class="tree-dir-children" style="display: block;">
+                                {% for child in node.children %}
+                                    {{ render_tree_node(child, depth + 1) }}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% else %}
+                        {% set is_active = (current_file and (current_file.path == node.path or current_file.filename == node.name)) %}
+                        <div class="tree-file-node" data-path="{{ node.path }}" data-name="{{ node.name|lower }}"
+                             onclick="selectFile('{{ node.path }}')"
+                             style="padding: 5px 8px; padding-left: {{ depth * 14 + 26 }}px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border-radius: 4px; margin-bottom: 1px; background: {{ '#EFF6FF' if is_active else 'transparent' }}; border: 1px solid {{ '#BFDBFE' if is_active else 'transparent' }}; color: {{ '#1E40AF' if is_active else '#1E293B' }}; font-weight: {{ '600' if is_active else '400' }}; font-size: 12.5px; transition: background 0.15s;">
+                            <div style="display: flex; align-items: center; gap: 6px; overflow: hidden;">
+                                <span style="font-size: 13px;">
+                                    {% if node.extension in ['py'] %}&#128013;
+                                    {% elif node.extension in ['html', 'htm'] %}&#127760;
+                                    {% elif node.extension in ['css'] %}&#127912;
+                                    {% elif node.extension in ['js', 'json'] %}&#128295;
+                                    {% elif node.extension in ['md', 'txt'] %}&#128196;
+                                    {% else %}&#128196;{% endif %}
+                                </span>
+                                <span style="text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">{{ node.name }}</span>
+                            </div>
+                            <span style="font-size: 10.5px; color: #94A3B8; font-family: monospace;">{{ node.size_formatted }}</span>
+                        </div>
+                    {% endif %}
+                {% endmacro %}
+
+                {% if file_tree and file_tree.children %}
+                    {% for child in file_tree.children %}
+                        {{ render_tree_node(child, 0) }}
+                    {% endfor %}
+                {% elif files %}
+                    {% for f in files %}
+                        <div class="tree-file-node" data-path="{{ f.filename }}" data-name="{{ f.filename|lower }}"
+                             onclick="selectFile('{{ f.filename }}')"
+                             style="padding: 6px 10px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border-radius: 4px; margin-bottom: 2px;">
+                            <span>{{ f.filename }}</span>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div style="padding: 24px 12px; text-align: center; color: #94A3B8; font-size: 12px;">
+                        No project files found on disk.
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Workspace Path Footer -->
+            <div style="padding: 8px 12px; border-top: 1px solid #E2E8F0; background: #F8FAFC; font-size: 11px; color: #64748B; font-family: monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ file_tree.root_path if file_tree else '' }}">
+                Root: {{ file_tree.root_path if file_tree else 'generated_projects/' }}
+            </div>
+        </div>
+
+        <!-- RIGHT PANE: SOURCE CODE INSPECTION & EDITOR -->
+        <div class="section-panel-card" style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; height: 100%; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+            
+            {% if current_file %}
+                <!-- File Detail Toolbar Header -->
+                <div style="padding: 12px 18px; border-bottom: 1px solid #E2E8F0; background: #F8FAFC; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 18px;">
+                            {% if current_file.extension in ['py'] %}&#128013;
+                            {% elif current_file.extension in ['html'] %}&#127760;
+                            {% elif current_file.extension in ['css'] %}&#127912;
+                            {% else %}&#128196;{% endif %}
+                        </span>
+                        <div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <strong style="font-size: 14px; color: #0F172A;" id="active_file_title">{{ current_file.filename }}</strong>
+                                {% if current_file.syntax_ok is defined and current_file.extension == 'py' %}
+                                    {% if current_file.syntax_ok %}
+                                        <span style="font-size: 10.5px; background: #DCFCE7; color: #166534; padding: 2px 7px; border-radius: 10px; font-weight: 600;">&#10003; AST Syntax Passed</span>
+                                    {% else %}
+                                        <span style="font-size: 10.5px; background: #FEE2E2; color: #991B1B; padding: 2px 7px; border-radius: 10px; font-weight: 600;" title="{{ current_file.syntax_message }}">&#9888; Syntax Error</span>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                            <div style="font-size: 11.5px; color: #64748B; display: flex; gap: 10px; margin-top: 2px; font-family: monospace;">
+                                <span>Path: <strong id="active_file_path">{{ current_file.path if current_file.path else current_file.filename }}</strong></span>
+                                <span>&bull;</span>
+                                <span>Size: {{ current_file.size_formatted if current_file.size_formatted else current_file.file_size ~ ' bytes' }}</span>
+                                <span>&bull;</span>
+                                <span>Lines: {{ current_file.lines_count if current_file.lines_count is defined else current_file.file_content.splitlines()|length }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <button type="button" onclick="copyCurrentCode()" class="btn btn-secondary btn-sm" style="font-size: 12px; padding: 5px 10px;">
+                            Copy
+                        </button>
+                        <a href="{{ url_for('download_project_individual_file', project_id=project.id, path=current_file.path if current_file.path else current_file.filename) }}"
+                           class="btn btn-secondary btn-sm" style="font-size: 12px; padding: 5px 10px;" title="Download this file">
+                            Download
+                        </a>
+                        <button type="button" id="btn_toggle_edit" onclick="toggleEditMode()" class="btn btn-secondary btn-sm" style="font-size: 12px; padding: 5px 10px;">
+                            &#9998; Edit
+                        </button>
+                        <button type="button" id="btn_save_code" onclick="saveActiveFile()" class="btn btn-primary btn-sm" style="display: none; font-size: 12px; padding: 5px 12px;">
+                            Save Changes
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Code Editor Body (Dark Charcoal IDE Style) -->
+                <div style="flex: 1; display: flex; position: relative; background: #0F172A; overflow: hidden;">
+                    <!-- Line Numbers -->
+                    <div id="editor_line_numbers" style="padding: 16px 12px; background: #0B1120; color: #475569; font-family: 'JetBrains Mono', Consolas, Monaco, monospace; font-size: 12.5px; line-height: 1.6; user-select: none; text-align: right; border-right: 1px solid #1E293B; min-width: 44px; overflow: hidden;">
+                        {% set file_text = current_file.content if current_file.content is defined else current_file.file_content %}
+                        {% for line in file_text.splitlines() %}
+                            <div>{{ loop.index }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Code Viewer Mode -->
+                    <div id="code_viewer_pane" style="flex: 1; padding: 16px; overflow: auto; background: #0F172A;">
+                        <pre style="margin: 0; font-family: 'JetBrains Mono', Consolas, Monaco, monospace; font-size: 12.5px; line-height: 1.6; color: #E2E8F0; white-space: pre;"><code id="code_display_block">{{ file_text|e }}</code></pre>
+                    </div>
+
+                    <!-- Code Edit Mode Textarea -->
+                    <textarea id="code_edit_textarea"
+                              style="display: none; flex: 1; padding: 16px; background: #0F172A; color: #E2E8F0; font-family: 'JetBrains Mono', Consolas, Monaco, monospace; font-size: 12.5px; line-height: 1.6; border: none; resize: none; outline: none; white-space: pre; overflow: auto;">{{ file_text }}</textarea>
+                </div>
+
+                <!-- Editor Status Bar Footer -->
+                <div style="padding: 6px 16px; background: #0B1120; border-top: 1px solid #1E293B; color: #94A3B8; font-family: monospace; font-size: 11px; display: flex; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; gap: 16px;">
+                        <span>Encoding: <strong>UTF-8</strong></span>
+                        <span>Format: <strong>{{ current_file.extension|upper }}</strong></span>
+                        <span id="save_status_indicator" style="color: #10B981;">&#10003; Synced with Filesystem</span>
+                    </div>
+                    <div>DevGuardian AI Code Engine</div>
+                </div>
+
+            {% else %}
+                <div style="padding: 48px; text-align: center; color: #64748B;">
+                    <span style="font-size: 32px; display: block; margin-bottom: 12px;">&#128193;</span>
+                    <h3>Select a file from the explorer tree</h3>
+                    <p style="font-size: 13px;">Click on any file in the left directory tree to inspect its source code.</p>
+                </div>
+            {% endif %}
+
+        </div>
+
+    </div>
+</div>
+
+<script>
+var isEditMode = false;
+
+function toggleDirectory(headerEl) {
+    var parent = headerEl.parentElement;
+    var children = parent.querySelector('.tree-dir-children');
+    var chevron = headerEl.querySelector('.dir-chevron');
+    var icon = headerEl.querySelector('.dir-icon');
+
+    if (children.style.display === 'none') {
+        children.style.display = 'block';
+        chevron.style.transform = 'rotate(0deg)';
+        icon.innerHTML = '&#128194;';
+    } else {
+        children.style.display = 'none';
+        chevron.style.transform = 'rotate(-90deg)';
+        icon.innerHTML = '&#128193;';
+    }
+}
+
+function selectFile(filePath) {
+    window.location.href = "{{ url_for('project_code_output', project_id=project.id) }}?selected_file=" + encodeURIComponent(filePath);
+}
+
+function filterTreeFiles() {
+    var q = (document.getElementById('tree_search_input').value || '').toLowerCase();
+    var fileNodes = document.querySelectorAll('.tree-file-node');
+
+    fileNodes.forEach(function(node) {
+        var name = (node.getAttribute('data-name') || '').toLowerCase();
+        var path = (node.getAttribute('data-path') || '').toLowerCase();
+        if (!q || name.indexOf(q) !== -1 || path.indexOf(q) !== -1) {
+            node.style.display = 'flex';
+        } else {
+            node.style.display = 'none';
+        }
+    });
+}
+
+function refreshFileTree() {
+    window.location.reload();
+}
+
+function toggleEditMode() {
+    isEditMode = !isEditMode;
+    var viewer = document.getElementById('code_viewer_pane');
+    var editor = document.getElementById('code_edit_textarea');
+    var btnToggle = document.getElementById('btn_toggle_edit');
+    var btnSave = document.getElementById('btn_save_code');
+
+    if (isEditMode) {
+        viewer.style.display = 'none';
+        editor.style.display = 'block';
+        btnToggle.innerText = 'Cancel Edit';
+        btnSave.style.display = 'inline-flex';
+    } else {
+        viewer.style.display = 'block';
+        editor.style.display = 'none';
+        btnToggle.innerText = '✎ Edit';
+        btnSave.style.display = 'none';
+    }
+}
+
+function saveActiveFile() {
+    var path = document.getElementById('active_file_path').innerText.trim();
+    var content = document.getElementById('code_edit_textarea').value;
+    var indicator = document.getElementById('save_status_indicator');
+
+    indicator.innerText = 'Saving...';
+    indicator.style.color = '#F59E0B';
+
+    fetch('/api/projects/{{ project.id }}/files/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ path: path, content: content })
+    })
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+        if (data.success) {
+            indicator.innerText = '✓ Saved & AST Verified';
+            indicator.style.color = '#10B981';
+            document.getElementById('code_display_block').innerText = content;
+            toggleEditMode();
+        } else {
+            indicator.innerText = '⚠ ' + data.message;
+            indicator.style.color = '#EF4444';
+            alert('Save Failed: ' + data.message);
+        }
+    })
+    .catch(function(err) {
+        indicator.innerText = '⚠ Error saving';
+        indicator.style.color = '#EF4444';
+        alert('Network or server error saving file: ' + err);
+    });
+}
+
+function copyCurrentCode() {
+    var code = document.getElementById('code_edit_textarea').value;
+    navigator.clipboard.writeText(code).then(function() {
+        alert('Code copied to clipboard!');
+    });
+}
+</script>
+{% endblock %}

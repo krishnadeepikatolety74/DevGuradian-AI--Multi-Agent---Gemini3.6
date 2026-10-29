@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Testing Results — {{ project.name }}{% endblock %}
+
+{% block content %}
+<div class="dashboard-topbar">
+    <div class="dashboard-title-area">
+        <a href="{{ url_for('project_workspace', project_id=project.id) }}" style="font-size: 13px; color: var(--text-secondary); display: inline-flex; align-items: center; gap: 6px; margin-bottom: 8px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            <span>Back to Workspace</span>
+        </a>
+        <h1>Testing Results</h1>
+        <p>Automated test execution logs run inside an isolated subprocess sandbox.</p>
+    </div>
+
+    <form action="{{ url_for('run_single_agent_action', project_id=project.id, agent_key='testing') }}" method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button type="submit" class="btn btn-secondary">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+            <span>Rerun Test Suite</span>
+        </button>
+    </form>
+</div>
+
+<div class="dashboard-content-body">
+    <!-- Test Stat Cards -->
+    <div class="stats-cards-grid">
+        <div class="stat-card">
+            <span class="stat-card-label">Overall Status</span>
+            <span class="stat-card-value" style="font-size: 24px;">
+                {% if tests.overall_result == 'passed' %}
+                    <span style="color: var(--success);">&#10003; PASSED</span>
+                {% elif tests.overall_result == 'failed' %}
+                    <span style="color: var(--error);">FAILED</span>
+                {% else %}
+                    <span style="color: var(--muted-grey);">PENDING</span>
+                {% endif %}
+            </span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-card-label">Total Tests</span>
+            <span class="stat-card-value">{{ tests.total_tests }}</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-card-label">Passed Tests</span>
+            <span class="stat-card-value" style="color: var(--success);">{{ tests.passed_tests }}</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-card-label">Execution Time</span>
+            <span class="stat-card-value" style="font-size: 24px;">{{ tests.execution_time_ms }} ms</span>
+        </div>
+    </div>
+
+    <!-- Test Log Console -->
+    <div class="section-panel-card">
+        <h2 style="font-size: 16px; margin-bottom: 12px;">Unittest Subprocess Log</h2>
+        <div class="terminal-log-box" style="max-height: 400px;">
+            <pre style="margin: 0; font-family: inherit; color: inherit; white-space: pre-wrap;">{{ tests.test_log|e }}</pre>
+        </div>
+    </div>
+</div>
+{% endblock %}

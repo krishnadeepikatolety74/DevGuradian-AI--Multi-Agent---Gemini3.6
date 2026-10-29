@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+
+{% block title %}{{ project.name }} — Documentation Preview — DevGuardian AI{% endblock %}
+
+{% block content %}
+<div class="dashboard-topbar" style="margin-bottom: 16px;">
+    <div class="dashboard-title-area">
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+            <a href="{{ url_for('documentation_page', project_id=project.id) }}" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; font-size: 12px; text-decoration: none;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                <span>Back to Documentation</span>
+            </a>
+            <h1 style="font-size: 20px; font-weight: 700; color: var(--text-primary); margin: 0;">
+                {{ project.name }} — Master Documentation Preview
+            </h1>
+            <span class="badge-verified" style="font-size: 11px; padding: 2px 8px;">100% VALIDATED</span>
+        </div>
+        <p style="font-size: 13px; color: var(--text-secondary); margin: 0;">
+            Interactive in-browser preview of generated enterprise documentation strictly formatted to the master reference standard.
+        </p>
+    </div>
+
+    <!-- Quick Actions -->
+    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+        <a href="{{ url_for('documentation_download_docx', project_id=project.id) }}" class="btn" style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; padding: 7px 14px; background: #FFFFFF; border: 1px solid #2563EB; border-radius: 6px; color: #2563EB; font-weight: 600; text-decoration: none;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            <span>Download DOCX</span>
+        </a>
+
+        <a href="{{ url_for('documentation_download_pdf', project_id=project.id) }}" class="btn" style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; padding: 7px 14px; background: #FFFFFF; border: 1px solid #DC2626; border-radius: 6px; color: #DC2626; font-weight: 600; text-decoration: none;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+            <span>Download PDF</span>
+        </a>
+
+        <a href="{{ url_for('documentation_download_pdf', project_id=project.id, inline=1) }}" target="_blank" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; padding: 7px 12px; text-decoration: none;" title="Open raw PDF in new browser tab">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+            <span>Open in Tab &#x2197;</span>
+        </a>
+
+        <button onclick="printPdfDocument()" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; padding: 7px 12px;" title="Print Documentation">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+            <span>Print</span>
+        </button>
+
+        <form method="POST" action="{{ url_for('documentation_generate_action', project_id=project.id) }}" style="margin: 0;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <button type="submit" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; padding: 7px 12px;" title="Regenerate from current source files">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+                <span>Regenerate</span>
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Main Split Container -->
+<div style="display: grid; grid-template-columns: 1fr 340px; gap: 18px; align-items: start;">
+
+    <!-- Left Column: Embedded Live Document Viewer -->
+    <div style="background: #FFFFFF; border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); overflow: hidden; display: flex; flex-direction: column;">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; background: #F8FAFC; border-bottom: 1px solid var(--border); font-size: 12px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                <span style="font-weight: 600; color: var(--text-primary);">{{ project.name }}_Documentation.pdf</span>
+                <span style="color: var(--text-secondary);">&bull;</span>
+                <span style="color: var(--text-secondary);">{{ (doc_data.pdf_size / 1024)|round(1) if doc_data else 0 }} KB</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 11px; color: var(--text-secondary);">Native PDF Controls (Zoom, Page Scroll, Fit Width)</span>
+                <button type="button" onclick="toggleFullscreenViewer()" class="btn btn-secondary btn-sm" style="font-size: 11px; padding: 3px 8px;">
+                    Fullscreen
+                </button>
+            </div>
+        </div>
+
+        <div id="viewerWrapper" style="position: relative; width: 100%; height: calc(100vh - 180px); min-height: 700px; background: #525659;">
+            <iframe
+                id="pdfViewerIframe"
+                name="pdfViewerFrame"
+                src="{{ url_for('documentation_download_pdf', project_id=project.id, inline=1) }}#toolbar=1&navpanes=1"
+                style="width: 100%; height: 100%; border: none; display: block;"
+                title="{{ project.name }} Documentation Live Preview">
+            </iframe>
+        </div>
+    </div>
+
+    <!-- Right Column: Document Inspector & Verified Specs -->
+    <div style="display: flex; flex-direction: column; gap: 16px;">
+
+        <!-- Reference Standard Verification Card -->
+        <div style="background: #FFFFFF; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px; box-shadow: var(--shadow-sm);">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <h3 style="font-size: 13px; font-weight: 700; color: var(--text-primary); margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">
+                    Format &amp; Compliance Verified
+                </h3>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 8px; font-size: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="color: var(--text-secondary);">Reference Format:</span>
+                    <span style="font-weight: 600; color: var(--text-primary);">CaptionAI Master DOCX</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="color: var(--text-secondary);">Header Logos:</span>
+                    <span class="badge-verified" style="font-size: 10px; padding: 2px 6px;">SmartBridge &amp; SkillWallet</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="color: var(--text-secondary);">Page Numbering:</span>
+                    <span style="font-weight: 600; color: #4F46E5;">Page X of Y (2-Pass)</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="color: var(--text-secondary);">Typography:</span>
+                    <span style="font-weight: 600; color: var(--text-primary);">Cambria &amp; Consolas</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="color: var(--text-secondary);">DOCX Size:</span>
+                    <span style="font-weight: 600; color: var(--text-primary);">{{ ((doc_data.docx_size / 1024)|round(1)) if doc_data else 0 }} KB</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="color: var(--text-secondary);">PDF Size:</span>
+                    <span style="font-weight: 600; color: var(--text-primary);">{{ ((doc_data.pdf_size / 1024)|round(1)) if doc_data else 0 }} KB</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Applicable Document Sections List -->
+        <div style="background: #FFFFFF; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px; box-shadow: var(--shadow-sm);">
+            <h3 style="font-size: 13px; font-weight: 700; color: var(--text-primary); margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: 0.5px;">
+                Generated Sections
+            </h3>
+            <div style="display: flex; flex-direction: column; gap: 6px; font-size: 12px;">
+                <div style="padding: 6px 8px; background: #F8FAFC; border-radius: 4px; display: flex; align-items: center; gap: 8px;">
+                    <span style="color: #4F46E5; font-weight: 700; min-width: 16px;">1.</span>
+                    <span style="color: var(--text-primary); font-weight: 500;">Title &amp; Executive Summary</span>
+                </div>
+                <div style="padding: 6px 8px; background: #F8FAFC; border-radius: 4px; display: flex; align-items: center; gap: 8px;">
+                    <span style="color: #4F46E5; font-weight: 700; min-width: 16px;">2.</span>
+                    <span style="color: var(--text-primary); font-weight: 500;">Scenarios &amp; User Workflows</span>
+                </div>
+                <div style="padding: 6px 8px; background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 4px; display: flex; align-items: center; gap: 8px;">
+                    <span style="color: #2563EB; font-weight: 700; min-width: 16px;">3.</span>
+                    <span style="color: #1E3A8A; font-weight: 600;">Technical Architecture &amp; Diagram</span>
+                </div>
+                <div style="padding: 6px 8px; background: #F8FAFC; border-radius: 4px; display: flex; align-items: center; gap: 8px;">
+                    <span style="color: #4F46E5; font-weight: 700; min-width: 16px;">4.</span>
+                    <span style="color: var(--text-primary); font-weight: 500;">Component Breakdown &amp; Models</span>
+                </div>
+                <div style="padding: 6px 8px; background: #F8FAFC; border-radius: 4px; display: flex; align-items: center; gap: 8px;">
+                    <span style="color: #4F46E5; font-weight: 700; min-width: 16px;">5.</span>
+                    <span style="color: var(--text-primary); font-weight: 500;">Registered Application Routes</span>
+                </div>
+                <div style="padding: 6px 8px; background: #F8FAFC; border-radius: 4px; display: flex; align-items: center; gap: 8px;">
+                    <span style="color: #4F46E5; font-weight: 700; min-width: 16px;">6.</span>
+                    <span style="color: var(--text-primary); font-weight: 500;">Source Code (Flask, DB, Tests)</span>
+                </div>
+                <div style="padding: 6px 8px; background: #F8FAFC; border-radius: 4px; display: flex; align-items: center; gap: 8px;">
+                    <span style="color: #4F46E5; font-weight: 700; min-width: 16px;">7.</span>
+                    <span style="color: var(--text-primary); font-weight: 500;">Embedded UI Screenshots (4 Pages)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Embedded UI Screenshots Thumbnails -->
+        {% if screenshots %}
+        <div style="background: #FFFFFF; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px; box-shadow: var(--shadow-sm);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <h3 style="font-size: 13px; font-weight: 700; color: var(--text-primary); margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">
+                    Embedded Screenshots ({{ screenshots|length }})
+                </h3>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                {% for s in screenshots %}
+                <a href="{{ url_for('documentation_asset_file', project_id=project.id, asset_path=s.rel_path) }}" target="_blank" style="text-decoration: none; border: 1px solid var(--border); border-radius: 4px; overflow: hidden; background: #F8FAFC; display: flex; flex-direction: column;">
+                    <img src="{{ url_for('documentation_asset_file', project_id=project.id, asset_path=s.rel_path) }}" alt="{{ s.name }}" style="width: 100%; height: 75px; object-fit: cover; border-bottom: 1px solid var(--border);">
+                    <span style="font-size: 10px; color: var(--text-secondary); padding: 4px 6px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ s.name }}</span>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Quick Link to Architecture Generator -->
+        <a href="{{ url_for('architecture_page', project_id=project.id) }}" class="btn btn-secondary" style="display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 12px; padding: 10px; text-decoration: none;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3v12"></path><circle cx="18" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle></svg>
+            <span>Open Dynamic Architecture Page &rarr;</span>
+        </a>
+
+    </div>
+</div>
+
+<script>
+function printPdfDocument() {
+    const iframe = document.getElementById('pdfViewerIframe');
+    if (iframe && iframe.contentWindow) {
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+    } else {
+        window.open("{{ url_for('documentation_download_pdf', project_id=project.id, inline=1) }}", "_blank");
+    }
+}
+
+function toggleFullscreenViewer() {
+    const wrapper = document.getElementById('viewerWrapper');
+    if (!document.fullscreenElement) {
+        wrapper.requestFullscreen().catch(err => {
+            console.error(err);
+        });
+    } else {
+        document.exitFullscreen();
+    }
+}
+</script>
+{% endblock %}

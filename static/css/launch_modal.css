@@ -1,0 +1,605 @@
+/* =====================================================================
+   DEVGUARDIAN AI — CUTE & RELAXING PROJECT LAUNCH MODAL STYLES
+   Soft pastel palette: Lavender, Pastel Blue, Blush Pink, Warm White
+   Smooth relaxing animations, floating robot mascot & responsive design
+   ===================================================================== */
+
+:root {
+    --launch-lavender-50: #F5F3FF;
+    --launch-lavender-100: #EDE9FE;
+    --launch-lavender-200: #DDD6FE;
+    --launch-lavender-400: #A78BFA;
+    --launch-lavender-600: #7C3AED;
+    --launch-blue-50: #F0F9FF;
+    --launch-blue-100: #E0F2FE;
+    --launch-blue-400: #38BDF8;
+    --launch-pink-50: #FDF2F8;
+    --launch-pink-100: #FCE7F3;
+    --launch-pink-400: #F472B6;
+    --launch-pink-500: #EC4899;
+    --launch-text-primary: #1E1B4B;
+    --launch-text-secondary: #475569;
+    --launch-text-muted: #64748B;
+    --launch-success: #10B981;
+    --launch-success-bg: #ECFDF5;
+    --launch-error: #EF4444;
+    --launch-error-bg: #FEF2F2;
+}
+
+/* Modal Backdrop */
+.launch-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(15, 23, 42, 0.52);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.3s ease;
+}
+
+.launch-modal-backdrop.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Modal Card */
+.launch-modal-card {
+    position: relative;
+    width: 100%;
+    max-width: 520px;
+    background: rgba(255, 255, 255, 0.96);
+    border-radius: 28px;
+    box-shadow: 
+        0 25px 60px -15px rgba(124, 58, 237, 0.22),
+        0 15px 35px -10px rgba(244, 114, 182, 0.18),
+        0 0 0 1px rgba(221, 214, 254, 0.85);
+    padding: 32px 30px;
+    text-align: center;
+    overflow: hidden;
+    transform: scale(0.92) translateY(12px);
+    transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+}
+
+.launch-modal-backdrop.active .launch-modal-card {
+    transform: scale(1) translateY(0);
+}
+
+/* Background Soft Ambient Glows */
+.launch-ambient-glow {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(45px);
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.65;
+}
+
+.launch-ambient-glow.top-left {
+    top: -40px;
+    left: -40px;
+    width: 160px;
+    height: 160px;
+    background: radial-gradient(circle, rgba(244, 114, 182, 0.35) 0%, rgba(253, 242, 248, 0) 70%);
+}
+
+.launch-ambient-glow.top-right {
+    top: -40px;
+    right: -40px;
+    width: 170px;
+    height: 170px;
+    background: radial-gradient(circle, rgba(167, 139, 250, 0.35) 0%, rgba(245, 243, 255, 0) 70%);
+}
+
+.launch-ambient-glow.bottom-center {
+    bottom: -60px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 260px;
+    height: 140px;
+    background: radial-gradient(circle, rgba(56, 189, 248, 0.25) 0%, rgba(224, 242, 254, 0) 70%);
+}
+
+/* Top Close Button */
+.launch-close-btn {
+    position: absolute;
+    top: 18px;
+    right: 20px;
+    z-index: 10;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: rgba(245, 243, 255, 0.85);
+    border: 1px solid var(--launch-lavender-200);
+    color: var(--launch-text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    transition: all 0.2s ease;
+}
+
+.launch-close-btn:hover {
+    background: #EDE9FE;
+    color: var(--launch-text-primary);
+    transform: scale(1.06);
+}
+
+/* Mascot Container & Floating Atmosphere */
+.launch-mascot-wrapper {
+    position: relative;
+    width: 150px;
+    height: 130px;
+    margin: 0 auto 16px;
+    z-index: 2;
+}
+
+.launch-mascot-svg {
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 10px 18px rgba(139, 92, 246, 0.16));
+    animation: robotFloat 3.6s ease-in-out infinite;
+}
+
+/* Floating Clouds */
+.launch-cloud {
+    position: absolute;
+    fill: #FFFFFF;
+    filter: drop-shadow(0 4px 8px rgba(167, 139, 250, 0.12));
+    animation: cloudDrift 5s ease-in-out infinite alternate;
+}
+
+/* Sparkles & Floating Stars */
+.launch-sparkle {
+    position: absolute;
+    fill: #F472B6;
+    animation: starTwinkle 2.4s ease-in-out infinite alternate;
+}
+
+.launch-sparkle.sparkle-1 {
+    top: 8px;
+    left: 12px;
+    animation-delay: 0.2s;
+}
+
+.launch-sparkle.sparkle-2 {
+    top: 14px;
+    right: 14px;
+    animation-delay: 0.8s;
+    fill: #A78BFA;
+}
+
+.launch-sparkle.sparkle-3 {
+    bottom: 22px;
+    left: 8px;
+    animation-delay: 1.4s;
+    fill: #38BDF8;
+}
+
+.launch-sparkle.sparkle-4 {
+    bottom: 20px;
+    right: 10px;
+    animation-delay: 1.9s;
+    fill: #F472B6;
+}
+
+/* Mascot Antenna Glow Animation */
+.mascot-antenna-orb {
+    animation: antennaPulse 2s ease-in-out infinite alternate;
+    transform-origin: 50% 12%;
+}
+
+/* Laptop Screen Code Lines Animation */
+.laptop-code-line {
+    animation: codeTyping 2.2s ease-in-out infinite alternate;
+}
+
+/* Dynamic Project Name Badge / Pill */
+.launch-project-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 14px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, rgba(253, 242, 248, 0.9) 0%, rgba(237, 233, 254, 0.9) 100%);
+    border: 1px solid var(--launch-lavender-200);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--launch-lavender-600);
+    margin-bottom: 12px;
+    position: relative;
+    z-index: 2;
+    box-shadow: 0 2px 6px rgba(139, 92, 246, 0.08);
+}
+
+/* Modal Headers */
+.launch-title {
+    font-size: 21px;
+    font-weight: 800;
+    color: var(--launch-text-primary);
+    margin: 0 0 6px 0;
+    letter-spacing: -0.02em;
+    position: relative;
+    z-index: 2;
+    transition: all 0.3s ease;
+}
+
+.launch-subtitle {
+    font-size: 13.5px;
+    color: var(--launch-text-secondary);
+    margin: 0 0 22px 0;
+    line-height: 1.45;
+    position: relative;
+    z-index: 2;
+}
+
+/* Progress Section */
+.launch-progress-container {
+    margin: 0 0 16px 0;
+    position: relative;
+    z-index: 2;
+}
+
+.launch-progress-track {
+    width: 100%;
+    height: 9px;
+    background: #EDE9FE;
+    border-radius: 999px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: inset 0 1px 3px rgba(124, 58, 237, 0.1);
+}
+
+.launch-progress-bar {
+    height: 100%;
+    width: 15%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #F472B6 0%, #A78BFA 50%, #38BDF8 100%);
+    background-size: 200% 100%;
+    transition: width 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: progressShimmer 2.8s linear infinite;
+    box-shadow: 0 0 12px rgba(167, 139, 250, 0.45);
+}
+
+.launch-progress-bar.failed {
+    background: linear-gradient(90deg, #F87171 0%, #EF4444 100%);
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.4);
+}
+
+.launch-progress-bar.ready {
+    background: linear-gradient(90deg, #34D399 0%, #10B981 100%);
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.45);
+}
+
+/* Status Message Text & Detail */
+.launch-status-wrapper {
+    min-height: 48px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+}
+
+.launch-status-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--launch-text-primary);
+    margin-bottom: 2px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.launch-status-detail {
+    font-size: 12px;
+    color: var(--launch-text-muted);
+}
+
+/* Animated Loading Dots */
+.launch-dots span {
+    display: inline-block;
+    animation: dotPulse 1.4s infinite ease-in-out both;
+}
+
+.launch-dots span:nth-child(1) { animation-delay: 0.0s; }
+.launch-dots span:nth-child(2) { animation-delay: 0.2s; }
+.launch-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+/* Success Card View */
+.launch-success-card {
+    display: none;
+    background: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    border-radius: 18px;
+    padding: 16px;
+    margin: 18px 0;
+    text-align: left;
+    position: relative;
+    z-index: 2;
+    animation: fadeInScale 0.35s ease;
+}
+
+.launch-success-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    font-size: 13px;
+}
+
+.launch-success-row:last-child {
+    margin-bottom: 0;
+}
+
+.launch-url-link {
+    font-family: var(--font-mono, monospace);
+    font-weight: 700;
+    color: #2563EB;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    background: #EFF6FF;
+    border-radius: 6px;
+    border: 1px solid #BFDBFE;
+    transition: all 0.2s ease;
+}
+
+.launch-url-link:hover {
+    background: #DBEAFE;
+    text-decoration: underline;
+}
+
+/* Failure Card View */
+.launch-failure-card {
+    display: none;
+    background: #FEF2F2;
+    border: 1px solid #FECACA;
+    border-radius: 18px;
+    padding: 16px;
+    margin: 18px 0;
+    text-align: left;
+    position: relative;
+    z-index: 2;
+    animation: fadeInScale 0.35s ease;
+}
+
+.launch-failure-message {
+    font-size: 12.5px;
+    color: #991B1B;
+    line-height: 1.45;
+    margin-bottom: 10px;
+    font-weight: 500;
+}
+
+.launch-logs-box {
+    display: none;
+    background: #1E1B4B;
+    color: #E0E7FF;
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-family: monospace;
+    font-size: 11px;
+    max-height: 130px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    text-align: left;
+    margin-top: 10px;
+}
+
+/* Action Button Toolbar */
+.launch-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+    position: relative;
+    z-index: 2;
+    flex-wrap: wrap;
+}
+
+.launch-btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 11px 24px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #7C3AED 0%, #4F46E5 100%);
+    color: #FFFFFF;
+    font-size: 14px;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    box-shadow: 0 4px 14px rgba(124, 58, 237, 0.32);
+    transition: all 0.2s ease;
+}
+
+.launch-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(124, 58, 237, 0.42);
+    color: #FFFFFF;
+}
+
+.launch-btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 20px;
+    border-radius: 999px;
+    background: #F5F3FF;
+    color: var(--launch-lavender-600);
+    border: 1px solid var(--launch-lavender-200);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.launch-btn-secondary:hover {
+    background: #EDE9FE;
+    color: #6D28D9;
+}
+
+.launch-btn-ghost {
+    background: transparent;
+    border: none;
+    color: var(--launch-text-muted);
+    font-size: 12.5px;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 6px 12px;
+    border-radius: 999px;
+    transition: color 0.2s ease;
+}
+
+.launch-btn-ghost:hover {
+    color: var(--launch-text-primary);
+}
+
+/* Background Running Notice */
+.launch-background-note {
+    font-size: 11.5px;
+    color: var(--launch-text-muted);
+    margin-top: 14px;
+    display: block;
+    position: relative;
+    z-index: 2;
+}
+
+/* =====================================================================
+   KEYFRAME ANIMATIONS
+   ===================================================================== */
+@keyframes robotFloat {
+    0%, 100% {
+        transform: translateY(0px) rotate(0deg);
+    }
+    50% {
+        transform: translateY(-7px) rotate(0.6deg);
+    }
+}
+
+@keyframes cloudDrift {
+    0% {
+        transform: translateX(-4px);
+    }
+    100% {
+        transform: translateX(4px);
+    }
+}
+
+@keyframes starTwinkle {
+    0% {
+        opacity: 0.3;
+        transform: scale(0.8) rotate(0deg);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1.15) rotate(45deg);
+    }
+}
+
+@keyframes antennaPulse {
+    0% {
+        filter: drop-shadow(0 0 2px #EC4899);
+        transform: scale(0.95);
+    }
+    100% {
+        filter: drop-shadow(0 0 8px #F472B6);
+        transform: scale(1.08);
+    }
+}
+
+@keyframes codeTyping {
+    0% {
+        opacity: 0.4;
+        width: 14px;
+    }
+    100% {
+        opacity: 1;
+        width: 32px;
+    }
+}
+
+@keyframes progressShimmer {
+    0% {
+        background-position: 100% 0;
+    }
+    100% {
+        background-position: -100% 0;
+    }
+}
+
+@keyframes dotPulse {
+    0%, 80%, 100% {
+        opacity: 0.2;
+        transform: translateY(0);
+    }
+    40% {
+        opacity: 1;
+        transform: translateY(-3px);
+    }
+}
+
+@keyframes fadeInScale {
+    0% {
+        opacity: 0;
+        transform: scale(0.96) translateY(6px);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* =====================================================================
+   ACCESSIBILITY & REDUCED MOTION PREFERENCE
+   ===================================================================== */
+@media (prefers-reduced-motion: reduce) {
+    .launch-mascot-svg,
+    .launch-cloud,
+    .launch-sparkle,
+    .mascot-antenna-orb,
+    .laptop-code-line,
+    .launch-progress-bar,
+    .launch-dots span {
+        animation: none !important;
+        transition: none !important;
+    }
+    .launch-modal-card {
+        transform: none !important;
+        transition: none !important;
+    }
+}
+
+/* Mobile Responsive Adjustments */
+@media (max-width: 580px) {
+    .launch-modal-card {
+        padding: 24px 18px;
+        border-radius: 22px;
+    }
+    .launch-title {
+        font-size: 18px;
+    }
+    .launch-subtitle {
+        font-size: 12.5px;
+    }
+    .launch-mascot-wrapper {
+        width: 130px;
+        height: 110px;
+    }
+}

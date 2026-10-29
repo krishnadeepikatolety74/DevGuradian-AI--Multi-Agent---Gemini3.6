@@ -1,0 +1,241 @@
+{% extends "base.html" %}
+
+{% block title %}Sign In — DevGuardian AI{% endblock %}
+
+{% block standalone_content %}
+<div class="signin-screen">
+    <div class="signin-container">
+        <!-- Left Side: Welcome Back Sign In Card -->
+        <div class="signin-card">
+            <a href="{{ url_for('landing') }}" class="signin-card-logo">
+                <img src="{{ url_for('static', filename='images/logo.svg') }}" width="28" height="28" alt="DevGuardian AI Logo">
+                <span>DevGuardian AI</span>
+            </a>
+
+            <h1 class="signin-card-title">Welcome Back</h1>
+            <p class="signin-card-subtitle">Sign in to continue building amazing software with your AI team.</p>
+
+            <form action="{{ url_for('login', next=next or request.args.get('next')) }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <input type="hidden" name="next" value="{{ next or request.args.get('next', '') }}">
+
+                <!-- Email -->
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <div class="input-with-icon">
+                        <span class="input-icon">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                        </span>
+                        <input type="email" id="email" name="email" class="form-control" placeholder="Email address" required autofocus>
+                    </div>
+                </div>
+
+                <!-- Password -->
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <div class="input-with-icon">
+                        <span class="input-icon">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                        </span>
+                        <input type="password" id="password" name="password" class="form-control" placeholder="Password" style="padding-right: 40px;" required>
+                        <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('password', this)" title="Show / Hide Password">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Remember me & Forgot Password -->
+                <div class="auth-extra-row">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="remember_me" value="1">
+                        <span>Remember me</span>
+                    </label>
+                    <a href="#" onclick="alert('Password reset: Please contact your workspace administrator or register a new local account.'); return false;" style="color: var(--text-secondary); font-size: 13px;">Forgot password?</a>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="btn-signup-submit">
+                    <span>Sign In</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                </button>
+            </form>
+
+            <div class="oauth-divider">
+                <span>or continue with</span>
+            </div>
+
+            <!-- Social OAuth Buttons -->
+            <div class="oauth-buttons">
+                <a href="{{ url_for('oauth_start', provider='google') }}" class="btn btn-secondary oauth-btn" title="Continue with Google">
+                    <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.1 9 5 12 5z"/><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.8z"/><path fill="#FBBC05" d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.3s.2-1.6.4-2.3L1.9 7.3C.7 9.7 0 12.4 0 15.2s.7 5.5 1.9 7.9l3.7-2.9c-.2-.8-.4-1.6-.4-2.4z"/><path fill="#34A853" d="M12 23.5c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.1-6.4-5.2L1.9 16.5C3.7 20.2 7.5 23.5 12 23.5z"/></svg>
+                    <span>Continue with Google</span>
+                </a>
+                <a href="{{ url_for('oauth_start', provider='github') }}" class="btn btn-secondary oauth-btn" title="Continue with GitHub">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+                    <span>Continue with GitHub</span>
+                </a>
+            </div>
+
+            <div class="auth-footer-text">
+                Don't have an account? <a href="{{ url_for('register') }}">Sign Up</a>
+            </div>
+        </div>
+
+        <!-- Right Side: Hero & Animated Typing Laptop Robot -->
+        <div class="signin-right">
+            <span class="signin-team-badge">AI-Powered Development Team</span>
+            <h1 class="signin-hero-title">DevGuardian <span class="brand-ai">AI</span></h1>
+            <p class="signin-hero-subtitle">Plan. Build. Test. Secure. Deploy.</p>
+
+            <div class="signin-robot-stage">
+                <!-- Handwritten Speech Bubble "Let's build something amazing!" -->
+                <div class="signin-speech-bubble">
+                    <span>Let's<br/>build something<br/>amazing!</span>
+                    <svg class="speech-arrow-svg" width="36" height="24" viewBox="0 0 36 24" fill="none">
+                        <path d="M6 2C16 4 28 12 30 20M30 20L22 18M30 20L28 12" stroke="#24272D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+
+                <!-- Glowing Podium -->
+                <div class="signin-robot-pedestal"></div>
+                <div class="signin-pedestal-rim"></div>
+
+                <!-- Sitting Plant & Notebook Beside Podium -->
+                <div style="position: absolute; bottom: 45px; left: 70px; z-index: 2;">
+                    <!-- Small potted plant -->
+                    <div style="width: 22px; height: 18px; background: #DEE2E6; border-radius: 2px 2px 6px 6px; position: relative;">
+                        <div style="position: absolute; top: -14px; left: 3px; width: 8px; height: 16px; background: #368568; border-radius: 50% 50% 0 0; transform: rotate(-20deg);"></div>
+                        <div style="position: absolute; top: -16px; left: 10px; width: 8px; height: 18px; background: #40916C; border-radius: 50% 50% 0 0;"></div>
+                        <div style="position: absolute; top: -14px; left: 15px; width: 8px; height: 16px; background: #368568; border-radius: 50% 50% 0 0; transform: rotate(20deg);"></div>
+                    </div>
+                </div>
+
+                <div style="position: absolute; bottom: 45px; left: 20px; z-index: 2;">
+                    <!-- Small notebook -->
+                    <div style="width: 38px; height: 26px; background: #24272D; border-radius: 4px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-left: 4px solid #368568;"></div>
+                </div>
+
+                <!-- The Animated Typing Robot -->
+                <div class="robot-typing-wrapper">
+                    <!-- Head with curved antenna and smile eyes -->
+                    <div class="robot-antenna"></div>
+                    <div class="robot-typing-head">
+                        <div class="robot-typing-ear robot-typing-ear-left"></div>
+                        <div class="robot-typing-ear robot-typing-ear-right"></div>
+                        <div class="robot-typing-visor">
+                            <div class="robot-eye-happy"></div>
+                            <div class="robot-eye-happy"></div>
+                        </div>
+                    </div>
+
+                    <!-- Torso -->
+                    <div class="robot-typing-torso">
+                        <!-- Laptop with Typing Hands -->
+                        <div class="robot-laptop-container">
+                            <div class="robot-laptop-screen">
+                                <svg class="laptop-logo-mark" viewBox="0 0 32 32" fill="none">
+                                    <path d="M16 6L24 10.5V19.5L16 24L8 19.5V10.5L16 6Z" stroke="#FFFFFF" stroke-width="2" stroke-linejoin="round"/>
+                                    <path d="M16 6V15M24 10.5L16 15M8 10.5L16 15" stroke="#FFFFFF" stroke-width="2"/>
+                                    <circle cx="16" cy="15" r="2" fill="#52E5E7"/>
+                                </svg>
+                            </div>
+                            <div class="robot-laptop-base"></div>
+                            <!-- Moving Typing Hands -->
+                            <div class="typing-hand typing-hand-left"></div>
+                            <div class="typing-hand typing-hand-right"></div>
+                        </div>
+
+                        <!-- Sitting Feet -->
+                        <div class="robot-feet-container">
+                            <div class="robot-foot"></div>
+                            <div class="robot-foot"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Arched Orbit & All 8 Project Agents on Right -->
+                <div class="orbit-arc-container">
+                    <div class="orbit-arc-line"></div>
+
+                    <!-- 1. Requirements Agent -->
+                    <div class="arc-badge-card arc-badge-1" title="Stage 01: Requirement Agent">
+                        <div class="arc-badge-icon">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#17191D" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                        </div>
+                        <span class="arc-badge-label">Requirements</span>
+                    </div>
+
+                    <!-- 2. Architecture Agent -->
+                    <div class="arc-badge-card arc-badge-2" title="Stage 02: Architecture Agent">
+                        <div class="arc-badge-icon">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#17191D" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                        </div>
+                        <span class="arc-badge-label">Architecture</span>
+                    </div>
+
+                    <!-- 3. Coding Agent -->
+                    <div class="arc-badge-card arc-badge-3" title="Stage 03: Coding Agent">
+                        <div class="arc-badge-icon">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#17191D" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+                        </div>
+                        <span class="arc-badge-label">Coding</span>
+                    </div>
+
+                    <!-- 4. Testing Agent -->
+                    <div class="arc-badge-card arc-badge-4" title="Stage 04: Testing Agent">
+                        <div class="arc-badge-icon">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#17191D" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2"></path><path d="M8.5 2h7"></path><path d="M7 16h10"></path></svg>
+                        </div>
+                        <span class="arc-badge-label">Testing</span>
+                    </div>
+
+                    <!-- 5. Security Agent -->
+                    <div class="arc-badge-card arc-badge-5" title="Stage 05: Security Agent">
+                        <div class="arc-badge-icon">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#17191D" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                        </div>
+                        <span class="arc-badge-label">Security</span>
+                    </div>
+
+                    <!-- 6. Code Review Agent -->
+                    <div class="arc-badge-card arc-badge-6" title="Stage 06: Code Review Agent">
+                        <div class="arc-badge-icon">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#17191D" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        </div>
+                        <span class="arc-badge-label">Code Review</span>
+                    </div>
+
+                    <!-- 7. Deployment Agent -->
+                    <div class="arc-badge-card arc-badge-7" title="Stage 07: Deployment Agent">
+                        <div class="arc-badge-icon">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#17191D" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>
+                        </div>
+                        <span class="arc-badge-label">Deployment</span>
+                    </div>
+
+                    <!-- 8. Project Manager Agent -->
+                    <div class="arc-badge-card arc-badge-8" title="Stage 08: Project Manager Agent">
+                        <div class="arc-badge-icon">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#17191D" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                        </div>
+                        <span class="arc-badge-label">Project Manager</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function togglePasswordVisibility(inputId, btn) {
+    var input = document.getElementById(inputId);
+    if (input.type === "password") {
+        input.type = "text";
+        btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>';
+    } else {
+        input.type = "password";
+        btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
+    }
+}
+</script>
+
+
+{% endblock %}

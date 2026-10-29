@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}Security Results — {{ project.name }}{% endblock %}
+
+{% block content %}
+<div class="dashboard-topbar">
+    <div class="dashboard-title-area">
+        <a href="{{ url_for('project_workspace', project_id=project.id) }}" style="font-size: 13px; color: var(--text-secondary); display: inline-flex; align-items: center; gap: 6px; margin-bottom: 8px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            <span>Back to Workspace</span>
+        </a>
+        <h1>Security Audit Results</h1>
+        <p>Static AST vulnerability scan and sensitive token detection.</p>
+    </div>
+
+    <form action="{{ url_for('run_single_agent_action', project_id=project.id, agent_key='security') }}" method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button type="submit" class="btn btn-secondary">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+            <span>Rescan Security</span>
+        </button>
+    </form>
+</div>
+
+<div class="dashboard-content-body">
+    <!-- Findings Severity Cards -->
+    <div class="stats-cards-grid" style="grid-template-columns: repeat(5, 1fr);">
+        <div class="stat-card">
+            <span class="stat-card-label">Critical</span>
+            <span class="stat-card-value" style="color: var(--error);">{{ counts.Critical }}</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-card-label">High</span>
+            <span class="stat-card-value" style="color: #D97706;">{{ counts.High }}</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-card-label">Medium</span>
+            <span class="stat-card-value" style="color: var(--warning);">{{ counts.Medium }}</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-card-label">Low</span>
+            <span class="stat-card-value">{{ counts.Low }}</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-card-label">Informational</span>
+            <span class="stat-card-value" style="color: var(--success);">{{ counts.Informational }}</span>
+        </div>
+    </div>
+
+    <!-- Findings Table / Accordion -->
+    <div class="section-panel-card">
+        <h2 style="font-size: 16px; margin-bottom: 16px;">Detailed Security Findings ({{ findings|length }})</h2>
+
+        {% if findings %}
+            <div style="display: flex; flex-direction: column; gap: 16px;">
+                {% for f in findings %}
+                    <div style="border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 18px; background: #FFFFFF;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <span class="badge {{ 'badge-error' if f.severity in ['Critical', 'High'] else 'badge-warning' if f.severity == 'Medium' else 'badge-neutral' }}">
+                                    {{ f.severity }}
+                                </span>
+                                <strong style="font-size: 15px; color: var(--text-primary);">{{ f.title }}</strong>
+                            </div>
+                            <span style="font-size: 12px; font-family: var(--font-mono); color: var(--muted-grey);">
+                                {{ f.rule_id }}
+                            </span>
+                        </div>
+
+                        <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 8px;">
+                            <strong>Location:</strong> <code>{{ f.file_path }}{% if f.line_number > 0 %}:{{ f.line_number }}{% endif %}</code>
+                        </div>
+
+                        <p style="font-size: 13.5px; line-height: 1.5; color: var(--text-primary); margin-bottom: 10px;">
+                            {{ f.explanation }}
+                        </p>
+
+                        <div style="background: #F8F9FA; border-left: 3px solid var(--btn-primary); padding: 10px 14px; font-size: 13px; border-radius: 0 4px 4px 0;">
+                            <strong>Recommended Fix:</strong> {{ f.recommended_fix }}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state-card">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                <h3 style="margin-top: 8px;">No Vulnerabilities Detected</h3>
+                <p>The codebase complies with standard static security rules.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

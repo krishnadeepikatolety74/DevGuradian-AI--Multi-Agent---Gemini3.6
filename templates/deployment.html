@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Deployment — {{ project.name }}{% endblock %}
+
+{% block content %}
+<div class="dashboard-topbar">
+    <div class="dashboard-title-area">
+        <a href="{{ url_for('project_workspace', project_id=project.id) }}" style="font-size: 13px; color: var(--text-secondary); display: inline-flex; align-items: center; gap: 6px; margin-bottom: 8px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            <span>Back to Workspace</span>
+        </a>
+        <h1>Deployment Preparation</h1>
+        <p>Container configuration, environment variable checklists, and production runbooks.</p>
+    </div>
+
+    <div>
+        <span class="badge badge-success" style="font-size: 13px; padding: 6px 14px;">
+            &#10003; {{ deployment.readiness_status|upper }} FOR CONTAINER DEPLOYMENT
+        </span>
+    </div>
+</div>
+
+<div class="dashboard-content-body">
+    <!-- Deployment Readiness Disclaimer Alert -->
+    <div class="alert alert-info" style="margin-bottom: 0;">
+        <span><strong>Deployment Notice:</strong> DevGuardian AI has generated production-ready Docker containers and runbooks. In accordance with safety policies, automated remote cloud deployment requires external cluster credentials.</span>
+    </div>
+
+    <!-- Environment Variables Checklist -->
+    <div class="section-panel-card">
+        <h2 style="font-size: 16px; margin-bottom: 12px;">Required Environment Variables Checklist</h2>
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th>Variable Name</th>
+                    <th>Default / Recommended Value</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for env in deployment.env_vars %}
+                    <tr>
+                        <td><code>{{ env.name }}</code></td>
+                        <td><code>{{ env.default }}</code></td>
+                        <td style="color: var(--text-secondary);">{{ env.description }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Dockerfile Viewer -->
+    <div class="section-panel-card">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+            <h2 style="font-size: 16px;">Production Dockerfile</h2>
+            <span style="font-size: 12px; font-family: var(--font-mono); color: var(--muted-grey);">Dockerfile</span>
+        </div>
+        <div class="terminal-log-box" style="max-height: 340px;">
+            <pre style="margin: 0; font-family: inherit; color: inherit; white-space: pre;">{{ deployment.dockerfile_content|e }}</pre>
+        </div>
+    </div>
+
+    <!-- Deployment Runbook Instructions -->
+    <div class="section-panel-card">
+        <h2 style="font-size: 16px; margin-bottom: 12px;">Step-by-Step Deployment Instructions</h2>
+        <div style="font-size: 14px; line-height: 1.6; color: var(--text-primary);">
+            <pre style="background: #F8F9FA; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 16px; font-family: var(--font-mono); font-size: 13px; white-space: pre-wrap;">{{ deployment.instructions|e }}</pre>
+        </div>
+    </div>
+</div>
+{% endblock %}

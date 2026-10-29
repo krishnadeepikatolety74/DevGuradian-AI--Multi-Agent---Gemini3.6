@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Code Review — {{ project.name }}{% endblock %}
+
+{% block content %}
+<div class="dashboard-topbar">
+    <div class="dashboard-title-area">
+        <a href="{{ url_for('project_workspace', project_id=project.id) }}" style="font-size: 13px; color: var(--text-secondary); display: inline-flex; align-items: center; gap: 6px; margin-bottom: 8px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            <span>Back to Workspace</span>
+        </a>
+        <h1>Code Review</h1>
+        <p>Maintainability analysis, architecture adherence, and code quality observations.</p>
+    </div>
+
+    <form action="{{ url_for('run_single_agent_action', project_id=project.id, agent_key='review') }}" method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button type="submit" class="btn btn-secondary">
+            <span>Rerun Code Review</span>
+        </button>
+    </form>
+</div>
+
+<div class="dashboard-content-body">
+    <!-- Score & Status Banner -->
+    <div class="section-panel-card" style="display: flex; align-items: center; justify-content: space-between; padding: 24px 32px;">
+        <div style="display: flex; align-items: center; gap: 24px;">
+            <div style="width: 72px; height: 72px; border-radius: 50%; background: #F4F5F7; border: 3px solid #17191D; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 700;">
+                {{ review.overall_score }}/10
+            </div>
+            <div>
+                <h2 style="font-size: 20px; margin-bottom: 4px;">Maintainability Score</h2>
+                <p style="font-size: 14px; color: var(--text-secondary);">Calculated across code modularity, documentation depth, and error handling.</p>
+            </div>
+        </div>
+
+        <span class="badge {{ 'badge-success' if review.status == 'approved' else 'badge-warning' }}" style="font-size: 14px; padding: 8px 18px;">
+            {{ review.status|capitalize }}
+        </span>
+    </div>
+
+    <!-- Category Observations -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+        <div class="section-panel-card">
+            <h3 style="font-size: 15px; margin-bottom: 8px;">Architecture & Modularity</h3>
+            <p style="font-size: 14px; line-height: 1.5; color: var(--text-secondary);">
+                {{ review.architecture_notes }}
+            </p>
+        </div>
+
+        <div class="section-panel-card">
+            <h3 style="font-size: 15px; margin-bottom: 8px;">Code Standards & Documentation</h3>
+            <p style="font-size: 14px; line-height: 1.5; color: var(--text-secondary);">
+                {{ review.maintainability_notes }}
+            </p>
+        </div>
+    </div>
+
+    <!-- Actionable Recommendations -->
+    <div class="section-panel-card">
+        <h3 style="font-size: 15px; margin-bottom: 14px;">Recommendations & Improvements</h3>
+        {% if review.recommendations %}
+            <ul style="padding-left: 20px; font-size: 13.5px; color: var(--text-primary); line-height: 1.8;">
+                {% for rec in review.recommendations %}
+                    <li>{{ rec }}</li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p style="font-size: 13.5px; color: var(--text-secondary);">No critical corrections needed. The generated application meets all standard guidelines.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

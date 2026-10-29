@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="DevGuardian AI — Autonomous Software Project Manager. Turn your ideas into complete software projects with an AI-powered multi-agent software development team.">
+    <title>{% block title %}DevGuardian AI — Autonomous Software Project Manager{% endblock %}</title>
+    
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='images/logo.svg') }}">
+    
+    <!-- Design System Stylesheets -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/launch_modal.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/agents_modal.css') }}">
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+    <!-- Flash message alerts -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-container">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category if category in ['success', 'error', 'warning', 'info'] else 'info' }}">
+                        <span>{{ message }}</span>
+                        <button type="button" onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;color:inherit;font-size:16px;">&times;</button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    {% if session.get('user_id') and not hide_sidebar and active_page != 'landing' %}
+        <!-- Dashboard Two-Column Shell -->
+        <div class="dashboard-layout">
+            <!-- Sidebar -->
+            <aside class="dashboard-sidebar">
+                <div>
+                    <div class="sidebar-header">
+                        <img src="{{ url_for('static', filename='images/logo.svg') }}" width="28" height="28" alt="DevGuardian Logo">
+                        <span class="sidebar-brand-name">DevGuardian AI</span>
+                    </div>
+                    
+                    <nav class="sidebar-nav">
+                        <a href="{{ url_for('dashboard') }}" class="sidebar-nav-item {{ 'active' if active_page == 'dashboard' else '' }}">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                            <span>Home</span>
+                        </a>
+                        <a href="{{ url_for('chat_page') }}" class="sidebar-nav-item {{ 'active' if active_page == 'chat' else '' }}">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                            <span>AI Chat</span>
+                        </a>
+                        <a href="{{ url_for('new_project') }}" class="sidebar-nav-item {{ 'active' if active_page == 'new_project' else '' }}">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+                            <span>Generate Project</span>
+                        </a>
+                        <a href="{{ url_for('projects_list') }}" class="sidebar-nav-item {{ 'active' if active_page == 'projects' else '' }}">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                            <span>My Projects</span>
+                        </a>
+                        <a href="{{ url_for('architecture_page') }}" class="sidebar-nav-item {{ 'active' if active_page == 'architecture' else '' }}">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3v12"></path><circle cx="18" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M18 9a9 9 0 0 1-9 9"></path></svg>
+                            <span>Architecture</span>
+                        </a>
+                        <a href="{{ url_for('documentation_page') }}" class="sidebar-nav-item {{ 'active' if active_page == 'documentation' else '' }}">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                            <span>Documentation</span>
+                        </a>
+                        <a href="{{ url_for('documentation_assistant_page') }}" class="sidebar-nav-item {{ 'active' if active_page == 'documentation_assistant' else '' }}">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><circle cx="11" cy="14" r="3"></circle><path d="M17 17l3 3"></path><path d="M12 7h.01"></path></svg>
+                            <span>Documentation Assistant</span>
+                        </a>
+                        <a href="{{ url_for('history_page') }}" class="sidebar-nav-item {{ 'active' if active_page == 'history' else '' }}">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+                            <span>Project History</span>
+                        </a>
+                        <a href="{{ url_for('settings_page') }}" class="sidebar-nav-item {{ 'active' if active_page == 'settings' else '' }}">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                            <span>Settings</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <!-- User Profile Bottom Bar -->
+                <div class="sidebar-footer">
+                    <a href="{{ url_for('profile_page') }}" class="user-profile-snippet" title="View Profile">
+                        <div class="user-avatar-circle">
+                            {{ session.get('user_name', 'User')[:1]|upper }}
+                        </div>
+                        <div class="user-info-text">
+                            <span class="user-display-name">{{ session.get('user_name', 'Developer') }}</span>
+                            <span class="user-role-badge">{{ session.get('user_role', 'Developer') }}</span>
+                        </div>
+                    </a>
+                    <a href="{{ url_for('logout') }}" class="logout-icon-btn" title="Sign Out">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                    </a>
+                </div>
+            </aside>
+
+            <!-- Main Content Area -->
+            <main class="dashboard-main">
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    {% else %}
+        <!-- Standalone Page (Landing, Login, Register, Errors) -->
+        {% block standalone_content %}{% endblock %}
+    {% endif %}
+
+    <!-- Cute & Relaxing Project Launch Popup Modal Component -->
+    {% include "components/launch_modal.html" %}
+
+    <!-- Cute & Relaxing Run All Agents Workflow Modal Component -->
+    {% include "components/agents_modal.html" %}
+
+</body>
+</html>

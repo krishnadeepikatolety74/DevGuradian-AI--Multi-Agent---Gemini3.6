@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block title %}Execution Logs — {{ project.name }} — DevGuardian AI{% endblock %}
+
+{% block content %}
+<div class="dashboard-topbar">
+    <div class="dashboard-title-area">
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+            <a href="{{ url_for('projects_list') }}" style="color: var(--text-secondary); text-decoration: none; font-size: 13px; font-weight: 600;">
+                &larr; Projects
+            </a>
+            <span style="color: #94a3b8;">/</span>
+            <span style="color: #64748b; font-size: 13px;">Execution Logs</span>
+        </div>
+        <h1>{{ project.name }}</h1>
+        <p>Independent application runtime logs, process diagnostics, and port monitoring.</p>
+    </div>
+    <div style="display: flex; align-items: center; gap: 10px;">
+        {% if proc_info.is_running and proc_info.local_url %}
+            <a href="{{ proc_info.local_url }}" target="_blank" class="btn btn-sm" style="background: #16a34a; color: white; text-decoration: none;">
+                Open App &#x2197;
+            </a>
+            <form action="{{ url_for('restart_project_action', project_id=project.id) }}" method="POST" style="display: inline;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <button type="submit" class="btn btn-secondary btn-sm" title="Restart Application Subprocess">
+                    &#x21bb; Restart
+                </button>
+            </form>
+            <form action="{{ url_for('stop_project_action', project_id=project.id) }}" method="POST" style="display: inline;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <button type="submit" class="btn btn-sm" style="background: #fee2e2; color: #dc2626; border: 1px solid #fecaca;">
+                    Stop Process
+                </button>
+            </form>
+        {% else %}
+            <form action="{{ url_for('run_project_app_action', project_id=project.id) }}" method="POST" style="display: inline;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <button type="submit" class="btn btn-primary btn-sm btn-run-project" data-project-id="{{ project.id }}" data-project-name="{{ project.name }}">
+                    Run Project
+                </button>
+            </form>
+        {% endif %}
+    </div>
+</div>
+
+<div class="dashboard-content-body" style="display: flex; flex-direction: column; gap: 20px;">
+    <!-- Process Diagnostics Summary -->
+    <div class="section-panel-card" style="padding: 18px 24px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px;">
+            <div>
+                <span style="font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 0.05em;">Execution Status</span>
+                <div style="margin-top: 4px; display: flex; align-items: center; gap: 8px;">
+                    {% if proc_info.status == 'Running' %}
+                        <span class="badge badge-success" style="background: #dcfce7; color: #166534;">● Running</span>
+                    {% elif proc_info.status == 'Starting' %}
+                        <span class="badge" style="background: #fef3c7; color: #b45309;">● Starting</span>
+                    {% elif proc_info.status == 'Port Conflict' %}
+                        <span class="badge" style="background: #ffedd5; color: #c2410c;">⚠ Port Conflict</span>
+                    {% elif proc_info.status in ['Failed', 'Health Check Failed'] %}
+                        <span class="badge badge-error">✕ {{ proc_info.status }}</span>
+                    {% else %}
+                        <span class="badge badge-neutral">○ Stopped</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div>
+                <span style="font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 0.05em;">Assigned Port</span>
+                <div style="margin-top: 4px;">
+                    <code style="font-size: 14px; font-weight: 700; background: #f1f5f9; padding: 2px 8px; border-radius: 4px; color: #0284c7;">
+                        {{ proc_info.port or project.assigned_port or 'Unassigned' }}
+                    </code>
+                </div>
+            </div>
+
+            <div>
+                <span style="font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 0.05em;">Process ID (PID)</span>
+                <div style="margin-top: 4px; font-size: 14px; font-weight: 600; color: #334155;">
+                    {{ proc_info.pid or 'None' }}
+                </div>
+            </div>
+
+            <div>
+                <span style="font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 0.05em;">Entry Point</span>
+                <div style="margin-top: 4px;">
+                    <code style="font-size: 13px; font-family: monospace; background: #e2e8f0; padding: 2px 6px; border-radius: 4px; color: #0f172a;">
+                        {{ proc_info.entry_point or project.entry_point or 'app.py' }}
+                    </code>
+                </div>
+            </div>
+
+            <div>
+                <span style="font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 0.05em;">Local URL</span>
+                <div style="margin-top: 4px;">
+                    {% if proc_info.local_url %}
+                        <a href="{{ proc_info.local_url }}" target="_blank" style="color: #0284c7; text-decoration: underline; font-weight: 600; font-size: 13px;">
+                            {{ proc_info.local_url }}
+                        </a>
+                    {% else %}
+                        <span style="font-size: 13px; color: #94a3b8;">Not Active</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Terminal Logs Output Card -->
+    <div class="section-panel-card" style="padding: 0; overflow: hidden; border: 1px solid #334155; background: #0f172a; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3);">
+        <!-- Terminal Header -->
+        <div style="background: #1e293b; padding: 12px 18px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #334155;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="width: 11px; height: 11px; border-radius: 50%; background: #ef4444; display: inline-block;"></span>
+                <span style="width: 11px; height: 11px; border-radius: 50%; background: #f59e0b; display: inline-block;"></span>
+                <span style="width: 11px; height: 11px; border-radius: 50%; background: #10b981; display: inline-block;"></span>
+                <span style="font-size: 12px; font-family: monospace; color: #94a3b8; margin-left: 10px;">
+                    stdout & stderr / {{ project.id }}_app.log
+                </span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <button onclick="window.location.reload();" class="btn btn-secondary btn-sm" style="background: #334155; color: #f8fafc; border: 1px solid #475569; font-size: 11px; padding: 4px 10px;">
+                    &#x21bb; Refresh Logs
+                </button>
+            </div>
+        </div>
+
+        <!-- Terminal Body -->
+        <div style="padding: 18px; max-height: 520px; overflow-y: auto; font-family: 'Consolas', 'Courier New', monospace; font-size: 13px; line-height: 1.6; color: #e2e8f0; white-space: pre-wrap; word-break: break-all;">
+{% if logs_data.logs %}
+{{ logs_data.logs }}
+{% else %}
+<span style="color: #64748b;">[System] No log entries recorded yet. Click "Run Project" to start this application.</span>
+{% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

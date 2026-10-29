@@ -1,0 +1,69 @@
+{
+  "version": "1.0.0",
+  "library_name": "DevGuardian AI Shared Reference Asset Library",
+  "description": "Permanent, reusable documentation screenshots shared across all existing and future projects.",
+  "assets": {
+    "google_ai_studio_home": {
+      "filename": "google_ai_studio_home.png",
+      "activity": "Activity 1.1",
+      "step": "Step 1 \u2014 Open the Provider's Official API Platform",
+      "caption": "Official Google AI Studio Platform Overview (https://aistudio.google.com/)",
+      "required_for": [
+        "gemini",
+        "google_ai"
+      ],
+      "is_shared_reference": true
+    },
+    "google_ai_studio_api_key_creation": {
+      "filename": "google_ai_studio_api_key_creation.png",
+      "activity": "Activity 1.1",
+      "step": "Step 2 \u2014 Create an API Key",
+      "caption": "Official Google AI Studio API Key Creation Interface",
+      "required_for": [
+        "gemini",
+        "google_ai"
+      ],
+      "is_shared_reference": true
+    },
+    "env_configuration_example": {
+      "filename": "env_configuration_example.png",
+      "activity": "Activity 1.1 / Activity 1.4",
+      "step": "Step 4 \u2014 Configure the Project Environment",
+      "caption": "Reference Environment File (.env) Configuration with Redacted Secrets",
+      "required_for": [
+        "all"
+      ],
+      "is_shared_reference": true
+    },
+    "config_py_api_configuration": {
+      "filename": "config_py_api_configuration.png",
+      "activity": "Activity 1.1 / Activity 1.4",
+      "step": "Step 5 \u2014 Load the Credentials at Startup",
+      "caption": "Reference Application Configuration (config.py) Environment Variable Ingestion",
+      "required_for": [
+        "all"
+      ],
+      "is_shared_reference": true
+    },
+    "ngrok_installation_setup": {
+      "filename": "ngrok_installation_setup.png",
+      "activity": "Activity 5.3",
+      "step": "Step 1 \u2014 Download & Install the Ngrok Agent",
+      "caption": "Official Ngrok Agent Installation Portal (https://ngrok.com/download)",
+      "required_for": [
+        "ngrok"
+      ],
+      "is_shared_reference": true
+    },
+    "ngrok_configuration_example": {
+      "filename": "ngrok_configuration_example.png",
+      "activity": "Activity 5.3",
+      "step": "Step 4 \u2014 Public URL & Tunnel Security Configuration",
+      "caption": "Reference Ngrok Public Hostname & Authtoken Environment Ingestion (config.py)",
+      "required_for": [
+        "ngrok"
+      ],
+      "is_shared_reference": true
+    }
+  }
+}

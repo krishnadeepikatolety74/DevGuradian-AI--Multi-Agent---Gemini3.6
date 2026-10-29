@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Link {{ provider|capitalize }} Account — DevGuardian AI{% endblock %}
+
+{% block standalone_content %}
+<div class="signin-screen">
+    <div class="signin-container" style="max-width: 460px; margin: 0 auto; display: block;">
+        <div class="signin-card" style="width: 100%; border: 1px solid var(--border); box-shadow: var(--shadow-md);">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <a href="{{ url_for('landing') }}" class="signin-card-logo" style="justify-content: center; margin-bottom: 12px;">
+                    <img src="{{ url_for('static', filename='images/logo.svg') }}" width="32" height="32" alt="DevGuardian AI Logo">
+                    <span>DevGuardian AI</span>
+                </a>
+                <h1 class="signin-card-title" style="font-size: 20px;">Link {{ provider|capitalize }} Account</h1>
+                <p class="signin-card-subtitle" style="font-size: 13.5px; margin-top: 6px;">
+                    An account with <strong>{{ email }}</strong> already exists. To prevent unauthorized access and protect your projects, please verify your existing password to link this {{ provider|capitalize }} login.
+                </p>
+            </div>
+
+            <form action="{{ url_for('oauth_link_confirm') }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label for="password" style="font-size: 12.5px; font-weight: 600; margin-bottom: 6px; display: block;">
+                        Your DevGuardian AI Password
+                    </label>
+                    <div class="input-with-icon">
+                        <span class="input-icon">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                        </span>
+                        <input type="password" id="password" name="password" class="form-control" placeholder="Enter password" required autofocus>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-signup-submit" style="width: 100%; margin-bottom: 12px;">
+                    <span>Confirm & Link Account</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </button>
+            </form>
+
+            <form action="{{ url_for('oauth_link_cancel') }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <button type="submit" class="btn btn-secondary" style="width: 100%; justify-content: center; font-size: 13px;">
+                    Cancel and Return to Sign In
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

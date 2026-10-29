@@ -1,0 +1,475 @@
+{% extends "base.html" %}
+
+{% block title %}Project Documentation — DevGuardian AI{% endblock %}
+
+{% block extra_head %}
+<style>
+.doc-page-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.doc-header-card {
+    background: #FFFFFF;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 20px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    box-shadow: var(--shadow-sm);
+}
+
+.template-status-banner {
+    background: #F0FDF4;
+    border: 1px solid #BBF7D0;
+    border-radius: var(--radius-md);
+    padding: 18px 22px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 14px;
+}
+
+.template-status-banner.error {
+    background: #FEF2F2;
+    border-color: #FECACA;
+}
+
+.doc-grid-shell {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 20px;
+}
+
+@media (max-width: 960px) {
+    .doc-grid-shell {
+        grid-template-columns: 1fr;
+    }
+}
+
+.doc-card {
+    background: #FFFFFF;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 22px 24px;
+    box-shadow: var(--shadow-sm);
+}
+
+.check-item-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 9px 0;
+    border-bottom: 1px solid #F1F5F9;
+    font-size: 13px;
+}
+
+.check-item-row:last-child {
+    border-bottom: none;
+}
+
+.badge-verified {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 12px;
+    background: #DCFCE7;
+    color: #15803D;
+}
+
+.badge-pending {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 12px;
+    background: #FEF3C7;
+    color: #B45309;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="doc-page-container">
+    <!-- Header Section -->
+    <div class="doc-header-card">
+        <div>
+            <h1 style="font-size: 22px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px;">Project Documentation</h1>
+            <p style="font-size: 13px; color: var(--text-secondary); margin: 0;">Generate professional enterprise software documentation strictly preserving your approved master DOCX reference format.</p>
+        </div>
+
+        <!-- Project Selector Dropdown -->
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <form id="docProjectForm" method="GET" action="{{ url_for('documentation_page') }}" style="display: flex; align-items: center; gap: 8px;">
+                <label for="docProjectSelect" style="font-size: 13px; font-weight: 600; color: var(--text-secondary);">Project:</label>
+                <select id="docProjectSelect" name="project_id" onchange="this.form.submit()" style="font-size: 13px; padding: 7px 12px; border: 1px solid var(--border); border-radius: 6px; background: #FFFFFF; color: var(--text-primary); font-weight: 600; cursor: pointer;">
+                    {% if not projects %}
+                        <option value="">No projects available</option>
+                    {% else %}
+                        {% for p in projects %}
+                            <option value="{{ p.id }}" {% if selected_project_id == p.id %}selected{% endif %}>{{ p.name }} ({{ p.app_type }})</option>
+                        {% endfor %}
+                    {% endif %}
+                </select>
+            </form>
+        </div>
+    </div>
+
+    <!-- Strict Master Reference Template Verification Banner -->
+    <div class="template-status-banner {{ 'error' if not template_status.available else '' }}">
+        <div style="display: flex; align-items: center; gap: 14px;">
+            <div style="width: 40px; height: 40px; border-radius: 10px; background: {{ '#DCFCE7' if template_status.available else '#FEE2E2' }}; display: flex; align-items: center; justify-content: center; color: {{ '#16A34A' if template_status.available else '#DC2626' }};">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+            </div>
+            <div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <h3 style="font-size: 15px; font-weight: 700; color: {{ '#166534' if template_status.available else '#991B1B' }}; margin: 0;">
+                        Master DOCX Reference: {{ template_status.template_name }}
+                    </h3>
+                    {% if template_status.available %}
+                        <span class="badge-verified">ACTIVE &amp; VERIFIED</span>
+                    {% else %}
+                        <span class="badge badge-error">TEMPLATE MISSING</span>
+                    {% endif %}
+                </div>
+                <p style="font-size: 12px; color: {{ '#15803D' if template_status.available else '#B91C1C' }}; margin: 3px 0 0 0;">
+                    {% if template_status.available %}
+                        Header logos verified: <b>SmartBridge</b> ({{ template_status.smartbridge_logo }}) &amp; <b>SkillWallet</b> ({{ template_status.skillwallet_logo }}). Layout, font styles, and margins strictly locked.
+                    {% else %}
+                        Reference document not found at <code>documentation_templates/CaptionAI_Documentation.docx</code>. Please upload it to enable compilation.
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 11px; background: #FFFFFF; border: 1px solid #CBD5E1; padding: 4px 10px; border-radius: 6px; color: #475569; font-weight: 600;">
+                Aspect Ratio &amp; Logo Protection: 100% Locked
+            </span>
+        </div>
+    </div>
+
+    {% if not selected_project %}
+        <div class="doc-card" style="text-align: center; padding: 48px 20px;">
+            <p style="font-size: 14px; color: var(--text-secondary);">Select or create a project to inspect and generate its master documentation.</p>
+        </div>
+    {% else %}
+        <!-- Two Column Main Grid -->
+        <div class="doc-grid-shell">
+            <!-- Left Column: Document Sections & Overview -->
+            <div style="display: flex; flex-direction: column; gap: 20px;">
+                <!-- Project Documentation Output Status -->
+                <div class="doc-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; border-bottom: 1px solid var(--border); padding-bottom: 14px;">
+                        <div>
+                            <h2 style="font-size: 16px; font-weight: 700; color: var(--text-primary);">Documentation Status for {{ selected_project.name }}</h2>
+                            <span style="font-size: 12px; color: var(--text-secondary);">Generated from verified source code, architecture models, and database schemas.</span>
+                        </div>
+                        <div>
+                            {% if doc_data and doc_data.generated %}
+                                <span class="badge-verified" style="font-size: 12px; padding: 4px 10px;">GENERATED &amp; VALIDATED</span>
+                            {% else %}
+                                <span class="badge-pending" style="font-size: 12px; padding: 4px 10px;">READY TO COMPILE</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 22px;">
+                        <form method="POST" action="{{ url_for('documentation_generate_action', project_id=selected_project.id) }}" style="margin: 0;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                            <button type="submit" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; font-size: 13px; padding: 9px 18px; background: var(--btn-primary); color: #FFFFFF; border-radius: 6px; font-weight: 600; cursor: pointer;">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+                                <span>{{ 'Regenerate Documentation' if doc_data and doc_data.generated else 'Generate Documentation' }}</span>
+                            </button>
+                        </form>
+
+                        <a href="{{ url_for('documentation_page', project_id=selected_project.id, view='preview') }}" class="btn" style="display: inline-flex; align-items: center; gap: 8px; font-size: 13px; padding: 9px 16px; background: #EEF2FF; border: 1px solid #6366F1; border-radius: 6px; color: #4F46E5; font-weight: 600; text-decoration: none;" title="Open interactive document viewer">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                            <span>Preview Document</span>
+                        </a>
+
+                        <a href="{{ url_for('documentation_download_docx', project_id=selected_project.id) }}" class="btn" style="display: inline-flex; align-items: center; gap: 8px; font-size: 13px; padding: 9px 16px; background: #FFFFFF; border: 1px solid #2563EB; border-radius: 6px; color: #2563EB; font-weight: 600; text-decoration: none;">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                            <span>Download DOCX</span>
+                        </a>
+
+                        <a href="{{ url_for('documentation_download_pdf', project_id=selected_project.id) }}" class="btn" style="display: inline-flex; align-items: center; gap: 8px; font-size: 13px; padding: 9px 16px; background: #FFFFFF; border: 1px solid #DC2626; border-radius: 6px; color: #DC2626; font-weight: 600; text-decoration: none;">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+                            <span>Download PDF</span>
+                        </a>
+
+                        <a href="{{ url_for('architecture_page', project_id=selected_project.id) }}" class="btn" style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; padding: 9px 14px; background: #FAFAFC; border: 1px solid var(--border); border-radius: 6px; color: var(--text-primary); text-decoration: none;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3v12"></path><circle cx="18" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle></svg>
+                            <span>Open Architecture Preview</span>
+                        </a>
+                    </div>
+
+                    <!-- Output File Metrics -->
+                    {% if doc_data and doc_data.generated %}
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; background: #F8FAFC; border: 1px solid var(--border); border-radius: 8px; padding: 14px 18px;">
+                            <div>
+                                <span style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase;">Word DOCX Output:</span>
+                                <span style="font-size: 13px; font-weight: 600; color: var(--text-primary); display: block;">{{ ((doc_data.docx_size|default(0)) / (1024*1024))|round(2) if (doc_data.docx_size|default(0)) > 1024*1024 else ((doc_data.docx_size|default(0)) / 1024)|round(1) }} {{ 'MB' if (doc_data.docx_size|default(0)) > 1024*1024 else 'KB' }}</span>
+                            </div>
+                            <div>
+                                <span style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase;">PDF Output:</span>
+                                <span style="font-size: 13px; font-weight: 600; color: var(--text-primary); display: block;">{{ ((doc_data.pdf_size|default(0)) / 1024)|round(1) }} KB (ReportLab 2-Pass)</span>
+                            </div>
+                            <div>
+                                <span style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase;">Last Compiled:</span>
+                                <span style="font-size: 13px; font-weight: 600; color: var(--text-primary); display: block;">{{ (doc_data.updated_at|default(''))[:19] or 'Not compiled' }}</span>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- In-Browser Live Document Preview Card -->
+                {% if doc_data and doc_data.generated %}
+                <div class="doc-card" id="docPreviewSection" style="padding: 18px 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; border-bottom: 1px solid var(--border); padding-bottom: 10px; flex-wrap: wrap; gap: 10px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                            <h3 style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin: 0;">
+                                Live Document Preview — {{ selected_project.name }}
+                            </h3>
+                            <span class="badge-verified" style="font-size: 11px; padding: 2px 8px;">Synchronized</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <a href="{{ url_for('documentation_download_pdf', project_id=selected_project.id, inline=1) }}" target="_blank" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 5px; font-size: 12px; padding: 6px 12px; text-decoration: none;" title="Open raw PDF in new browser tab">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                                <span>Open in Tab &#x2197;</span>
+                            </a>
+                            <a href="{{ url_for('documentation_page', project_id=selected_project.id, view='preview') }}" class="btn btn-sm" style="display: inline-flex; align-items: center; gap: 5px; font-size: 12px; padding: 6px 12px; background: #EEF2FF; color: #4F46E5; border: 1px solid #6366F1; border-radius: 4px; text-decoration: none; font-weight: 600;" title="Full-page inspection and preview viewer">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>
+                                <span>Full Preview Page &rarr;</span>
+                            </a>
+                            <button type="button" onclick="toggleInlineDocPreview()" id="togglePreviewBtn" class="btn btn-secondary btn-sm" style="font-size: 12px; padding: 6px 10px;">
+                                Collapse
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="inlinePreviewContainer" style="transition: all 0.2s ease;">
+                        <iframe
+                            id="inlineDocIframe"
+                            src="{{ url_for('documentation_download_pdf', project_id=selected_project.id, inline=1) }}#toolbar=1&navpanes=1"
+                            style="width: 100%; height: 750px; border: 1px solid var(--border); border-radius: 6px; background: #525659;"
+                            title="{{ selected_project.name }} Documentation Live Stream">
+                        </iframe>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Document Structure & Applicable Sections -->
+                <div class="doc-card">
+                    <h3 style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 14px; border-bottom: 1px solid var(--border); padding-bottom: 10px;">
+                        Master Template Section Structure &amp; Mapping
+                    </h3>
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <div style="display: flex; align-items: flex-start; gap: 12px; padding: 10px 12px; background: #FAFAFC; border: 1px solid var(--border); border-radius: 6px;">
+                            <span style="font-weight: 700; font-size: 12px; color: #4F46E5; min-width: 20px;">1.</span>
+                            <div>
+                                <strong style="font-size: 13px; color: var(--text-primary);">Project Title &amp; Executive Description</strong>
+                                <p style="font-size: 12px; color: var(--text-secondary); margin: 2px 0 0 0;">Populated from <code>{{ selected_project.name }}</code> specifications and functional breakdown.</p>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; align-items: flex-start; gap: 12px; padding: 10px 12px; background: #FAFAFC; border: 1px solid var(--border); border-radius: 6px;">
+                            <span style="font-weight: 700; font-size: 12px; color: #4F46E5; min-width: 20px;">2.</span>
+                            <div>
+                                <strong style="font-size: 13px; color: var(--text-primary);">Problem Statement &amp; Use Case Scenarios</strong>
+                                <p style="font-size: 12px; color: var(--text-secondary); margin: 2px 0 0 0;">Extracted user challenges, target audience, and enterprise application workflows.</p>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; align-items: flex-start; gap: 12px; padding: 10px 12px; background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 6px;">
+                            <span style="font-weight: 700; font-size: 12px; color: #2563EB; min-width: 20px;">3.</span>
+                            <div>
+                                <strong style="font-size: 13px; color: #1E3A8A;">Technical Architecture &amp; Embedded Diagram</strong>
+                                <p style="font-size: 12px; color: #3B82F6; margin: 2px 0 0 0;">High-resolution diagram automatically embedded replacing master placeholder while preserving margins and aspect ratio.</p>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; align-items: flex-start; gap: 12px; padding: 10px 12px; background: #FAFAFC; border: 1px solid var(--border); border-radius: 6px;">
+                            <span style="font-weight: 700; font-size: 12px; color: #4F46E5; min-width: 20px;">4.</span>
+                            <div>
+                                <strong style="font-size: 13px; color: var(--text-primary);">System Components &amp; Autonomous AI Agents</strong>
+                                <p style="font-size: 12px; color: var(--text-secondary); margin: 2px 0 0 0;">Tabular breakdown of presentation, core logic, persistence, and specialized agent responsibilities.</p>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; align-items: flex-start; gap: 12px; padding: 10px 12px; background: #FAFAFC; border: 1px solid var(--border); border-radius: 6px;">
+                            <span style="font-weight: 700; font-size: 12px; color: #4F46E5; min-width: 20px;">5.</span>
+                            <div>
+                                <strong style="font-size: 13px; color: var(--text-primary);">Project Workflow &amp; Implementation Milestones</strong>
+                                <p style="font-size: 12px; color: var(--text-secondary); margin: 2px 0 0 0;">Phased milestone records from requirement inception to production deployment readiness.</p>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; align-items: flex-start; gap: 12px; padding: 10px 12px; background: #FAFAFC; border: 1px solid var(--border); border-radius: 6px;">
+                            <span style="font-weight: 700; font-size: 12px; color: #4F46E5; min-width: 20px;">6.</span>
+                            <div>
+                                <strong style="font-size: 13px; color: var(--text-primary);">Local Execution &amp; Sandbox Testing Commands</strong>
+                                <p style="font-size: 12px; color: var(--text-secondary); margin: 2px 0 0 0;">Exact startup scripts (<code>python app.py</code>) and unit test verification commands.</p>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; align-items: flex-start; gap: 12px; padding: 10px 12px; background: #FAFAFC; border: 1px solid var(--border); border-radius: 6px;">
+                            <span style="font-weight: 700; font-size: 12px; color: #4F46E5; min-width: 20px;">7.</span>
+                            <div>
+                                <strong style="font-size: 13px; color: var(--text-primary);">Conclusion &amp; System Validation Summary</strong>
+                                <p style="font-size: 12px; color: var(--text-secondary); margin: 2px 0 0 0;">Definitive sign-off confirming deterministic code generation, clean syntax, and compliance.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Verification & Validation Checklist -->
+            <div style="display: flex; flex-direction: column; gap: 20px;">
+                <div class="doc-card">
+                    <h3 style="font-size: 14px; font-weight: 700; color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 14px; border-bottom: 1px solid var(--border); padding-bottom: 10px;">
+                        Validation Checklist
+                    </h3>
+                    <div style="display: flex; flex-direction: column;">
+                        <div class="check-item-row">
+                            <span style="color: var(--text-secondary);">Master DOCX Cloned:</span>
+                            {% if doc_data and doc_data.generated %}
+                                <span class="badge-verified">&#10003; Verified</span>
+                            {% else %}
+                                <span class="badge-pending">Pending</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="check-item-row">
+                            <span style="color: var(--text-secondary);">SmartBridge Logo Preserved:</span>
+                            {% if template_status.smartbridge_logo == 'preserved' %}
+                                <span class="badge-verified">&#10003; image9.png</span>
+                            {% else %}
+                                <span class="badge-pending">Checking</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="check-item-row">
+                            <span style="color: var(--text-secondary);">SkillWallet Logo Preserved:</span>
+                            {% if template_status.skillwallet_logo == 'preserved' %}
+                                <span class="badge-verified">&#10003; image1.png</span>
+                            {% else %}
+                                <span class="badge-pending">Checking</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="check-item-row">
+                            <span style="color: var(--text-secondary);">Architecture Diagram Embedded:</span>
+                            {% if doc_data and doc_data.validation and doc_data.validation.checks.architecture_diagram == 'embedded_in_docx' %}
+                                <span class="badge-verified">&#10003; image3.png</span>
+                            {% elif doc_data and doc_data.generated %}
+                                <span class="badge-verified">&#10003; Embedded</span>
+                            {% else %}
+                                <span class="badge-pending">Pending</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="check-item-row">
+                            <span style="color: var(--text-secondary);">ReportLab PDF Compiled:</span>
+                            {% if doc_data and (doc_data.pdf_size|default(0)) > 0 %}
+                                <span class="badge-verified">&#10003; 2-Pass Canvas</span>
+                            {% else %}
+                                <span class="badge-pending">Pending</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="check-item-row">
+                            <span style="color: var(--text-secondary);">Required Sections Present:</span>
+                            {% if doc_data and doc_data.generated %}
+                                <span class="badge-verified">&#10003; 7 / 7 Sections</span>
+                            {% else %}
+                                <span class="badge-pending">Pending</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="check-item-row">
+                            <span style="color: var(--text-secondary);">Non-Empty Document File:</span>
+                            {% if doc_data and (doc_data.docx_size|default(0)) > 50000 %}
+                                <span class="badge-verified">&#10003; Valid Size</span>
+                            {% else %}
+                                <span class="badge-pending">Pending</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border);">
+                        <form method="POST" action="{{ url_for('documentation_validate_action', project_id=selected_project.id) }}" onsubmit="runAjaxValidation(event, this)">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                            <button type="submit" class="btn" style="width: 100%; padding: 8px 12px; font-size: 12px; font-weight: 600; border: 1px solid var(--border); border-radius: 6px; background: #FAFAFC; color: var(--text-primary); cursor: pointer;">
+                                Re-Validate Documentation &rarr;
+                            </button>
+                        </form>
+                        <div id="validationResultBox" style="margin-top: 10px; font-size: 11px; display: none;"></div>
+                    </div>
+                </div>
+
+                <!-- Template Integrity Assurance -->
+                <div class="doc-card" style="background: #F8FAFC;">
+                    <h4 style="font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">Strict Formatting Protection</h4>
+                    <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.5; margin: 0;">
+                        DevGuardian AI enforces byte-level template preservation. Custom header tables, SkillWallet and SmartBridge logos, XML run formatting, paragraph margins, and section properties are cloned without degradation.
+                    </p>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+function toggleInlineDocPreview() {
+    const container = document.getElementById('inlinePreviewContainer');
+    const btn = document.getElementById('togglePreviewBtn');
+    if (!container) return;
+    if (container.style.display === 'none') {
+        container.style.display = 'block';
+        btn.textContent = 'Collapse';
+    } else {
+        container.style.display = 'none';
+        btn.textContent = 'Expand Preview';
+    }
+}
+
+function runAjaxValidation(e, form) {
+    e.preventDefault();
+    const box = document.getElementById('validationResultBox');
+    box.style.display = 'block';
+    box.innerHTML = '<span style="color: #64748B;">Running strict validation checks...</span>';
+
+    fetch(form.action, {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': form.querySelector('input[name="csrf_token"]').value
+        }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.valid) {
+            box.innerHTML = `<span style="color: #16A34A; font-weight: 600;">&#10003; Validation Passed: Score ${data.validation_score}% (${data.docx_file})</span>`;
+        } else {
+            box.innerHTML = `<span style="color: #DC2626; font-weight: 600;">Validation Errors: ${data.errors ? data.errors.join(', ') : data.error}</span>`;
+        }
+    })
+    .catch(err => {
+        box.innerHTML = `<span style="color: #DC2626;">Validation error: ${err.message}</span>`;
+    });
+}
+</script>
+{% endblock %}

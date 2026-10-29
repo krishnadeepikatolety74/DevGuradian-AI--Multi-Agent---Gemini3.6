@@ -1,0 +1,633 @@
+/* =====================================================================
+   DEVGUARDIAN AI — RUN ALL AGENTS CUTE & RELAXING WORKFLOW MODAL
+   Soft pastel palette: Lavender, Baby Blue, Blush Pink, Warm White
+   Robot mascot, dynamic agent list, progress bar, & smooth animations
+   ===================================================================== */
+
+:root {
+    --agents-lavender-50: #F5F3FF;
+    --agents-lavender-100: #EDE9FE;
+    --agents-lavender-200: #DDD6FE;
+    --agents-lavender-300: #C4B5FD;
+    --agents-lavender-400: #A78BFA;
+    --agents-lavender-600: #7C3AED;
+    --agents-blue-50: #F0F9FF;
+    --agents-blue-100: #E0F2FE;
+    --agents-blue-400: #38BDF8;
+    --agents-pink-50: #FDF2F8;
+    --agents-pink-100: #FCE7F3;
+    --agents-pink-400: #F472B6;
+    --agents-pink-500: #EC4899;
+    --agents-text-primary: #1E1B4B;
+    --agents-text-secondary: #475569;
+    --agents-text-muted: #64748B;
+    --agents-success: #10B981;
+    --agents-success-bg: #ECFDF5;
+    --agents-error: #EF4444;
+    --agents-error-bg: #FEF2F2;
+}
+
+/* Modal Backdrop */
+.agents-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 10001;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(15, 23, 42, 0.54);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.3s ease;
+}
+
+.agents-modal-backdrop.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Modal Card */
+.agents-modal-card {
+    position: relative;
+    width: 100%;
+    max-width: 680px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    background: rgba(255, 255, 255, 0.97);
+    border-radius: 28px;
+    box-shadow: 
+        0 25px 60px -15px rgba(124, 58, 237, 0.22),
+        0 15px 35px -10px rgba(244, 114, 182, 0.18),
+        0 0 0 1px rgba(221, 214, 254, 0.85);
+    padding: 30px 28px 24px;
+    text-align: center;
+    overflow: hidden;
+    transform: scale(0.92) translateY(12px);
+    transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+}
+
+.agents-modal-backdrop.active .agents-modal-card {
+    transform: scale(1) translateY(0);
+}
+
+/* Background Soft Ambient Glows */
+.agents-ambient-glow {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(48px);
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.65;
+}
+
+.agents-ambient-glow.top-left {
+    top: -40px;
+    left: -40px;
+    width: 180px;
+    height: 180px;
+    background: radial-gradient(circle, rgba(244, 114, 182, 0.35) 0%, rgba(253, 242, 248, 0) 70%);
+}
+
+.agents-ambient-glow.top-right {
+    top: -40px;
+    right: -40px;
+    width: 180px;
+    height: 180px;
+    background: radial-gradient(circle, rgba(167, 139, 250, 0.35) 0%, rgba(245, 243, 255, 0) 70%);
+}
+
+.agents-ambient-glow.bottom-center {
+    bottom: -60px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 320px;
+    height: 160px;
+    background: radial-gradient(circle, rgba(56, 189, 248, 0.25) 0%, rgba(224, 242, 254, 0) 70%);
+}
+
+/* Close Button (Allows background execution without cancelling) */
+.agents-close-btn {
+    position: absolute;
+    top: 18px;
+    right: 20px;
+    z-index: 10;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: rgba(245, 243, 255, 0.85);
+    border: 1px solid var(--agents-lavender-200);
+    color: var(--agents-text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    transition: all 0.2s ease;
+}
+
+.agents-close-btn:hover {
+    background: #EDE9FE;
+    color: var(--agents-text-primary);
+    transform: scale(1.06);
+}
+
+/* Project Badge Pill */
+.agents-project-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 14px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, rgba(253, 242, 248, 0.9) 0%, rgba(237, 233, 254, 0.9) 100%);
+    border: 1px solid var(--agents-lavender-200);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--agents-lavender-600);
+    margin: 0 auto 10px;
+    position: relative;
+    z-index: 2;
+    box-shadow: 0 2px 6px rgba(139, 92, 246, 0.08);
+}
+
+/* Mascot SVG Illustration */
+.agents-mascot-wrapper {
+    position: relative;
+    width: 140px;
+    height: 110px;
+    margin: 0 auto 12px;
+    z-index: 2;
+}
+
+.agents-mascot-svg {
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 10px 18px rgba(139, 92, 246, 0.16));
+    animation: robotFloat 3.6s ease-in-out infinite;
+}
+
+/* Heading & Subtitle */
+.agents-modal-title {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--agents-text-primary);
+    margin: 0 0 4px 0;
+    letter-spacing: -0.02em;
+    position: relative;
+    z-index: 2;
+    transition: all 0.3s ease;
+}
+
+.agents-modal-subtitle {
+    font-size: 13px;
+    color: var(--agents-text-secondary);
+    margin: 0 0 16px 0;
+    line-height: 1.45;
+    position: relative;
+    z-index: 2;
+}
+
+/* Progress Section */
+.agents-progress-container {
+    margin: 0 0 14px 0;
+    position: relative;
+    z-index: 2;
+}
+
+.agents-progress-track {
+    width: 100%;
+    height: 9px;
+    background: #EDE9FE;
+    border-radius: 999px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: inset 0 1px 3px rgba(124, 58, 237, 0.1);
+}
+
+.agents-progress-bar {
+    height: 100%;
+    width: 0%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #F472B6 0%, #A78BFA 50%, #38BDF8 100%);
+    background-size: 200% 100%;
+    transition: width 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: progressShimmer 2.8s linear infinite;
+    box-shadow: 0 0 12px rgba(167, 139, 250, 0.45);
+}
+
+.agents-progress-bar.completed {
+    background: linear-gradient(90deg, #34D399 0%, #10B981 100%);
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.45);
+}
+
+.agents-progress-bar.failed {
+    background: linear-gradient(90deg, #F87171 0%, #EF4444 100%);
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.4);
+}
+
+.agents-progress-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 6px;
+    font-size: 11.5px;
+    color: var(--agents-text-muted);
+    font-weight: 500;
+}
+
+/* Live Friendly Status Message */
+.agents-status-live {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--agents-lavender-600);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    position: relative;
+    z-index: 2;
+    min-height: 22px;
+}
+
+/* Animated Loading Dots */
+.agents-dots span {
+    display: inline-block;
+    animation: dotPulse 1.4s infinite ease-in-out both;
+}
+.agents-dots span:nth-child(1) { animation-delay: 0.0s; }
+.agents-dots span:nth-child(2) { animation-delay: 0.2s; }
+.agents-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+/* Scrollable Agents List */
+.agents-list-scrollable {
+    flex: 1 1 auto;
+    max-height: 250px;
+    overflow-y: auto;
+    padding: 4px 6px;
+    margin-bottom: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    position: relative;
+    z-index: 2;
+    text-align: left;
+}
+
+.agents-list-scrollable::-webkit-scrollbar {
+    width: 6px;
+}
+.agents-list-scrollable::-webkit-scrollbar-thumb {
+    background: #DDD6FE;
+    border-radius: 4px;
+}
+
+/* Individual Agent Item Card */
+.agent-item-card {
+    background: #FFFFFF;
+    border: 1px solid var(--agents-lavender-100);
+    border-radius: 14px;
+    padding: 10px 14px;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(124, 58, 237, 0.03);
+}
+
+.agent-item-card:hover {
+    border-color: var(--agents-lavender-300);
+    box-shadow: 0 4px 10px rgba(124, 58, 237, 0.08);
+}
+
+.agent-item-card.running {
+    border-color: #93C5FD;
+    background: #F8FAFC;
+    box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+}
+
+.agent-item-card.completed {
+    border-color: #D1FAE5;
+    background: #F0FDF4;
+}
+
+.agent-item-card.failed {
+    border-color: #FECACA;
+    background: #FEF2F2;
+}
+
+.agent-item-card.skipped {
+    opacity: 0.75;
+    background: #F8FAFC;
+}
+
+.agent-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.agent-card-identity {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.agent-card-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: #F5F3FF;
+    border: 1px solid var(--agents-lavender-200);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+}
+
+.agent-card-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--agents-text-primary);
+}
+
+.agent-status-badge {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.agent-status-badge.waiting {
+    background: #F1F5F9;
+    color: #64748B;
+    border: 1px solid #E2E8F0;
+}
+
+.agent-status-badge.in_progress,
+.agent-status-badge.running {
+    background: #EFF6FF;
+    color: #2563EB;
+    border: 1px solid #BFDBFE;
+    animation: badgePulse 1.8s infinite ease-in-out;
+}
+
+.agent-status-badge.completed {
+    background: #ECFDF5;
+    color: #059669;
+    border: 1px solid #A7F3D0;
+}
+
+.agent-status-badge.failed {
+    background: #FEF2F2;
+    color: #DC2626;
+    border: 1px solid #FECACA;
+}
+
+.agent-status-badge.skipped,
+.agent-status-badge.blocked {
+    background: #F8FAFC;
+    color: #94A3B8;
+    border: 1px solid #E2E8F0;
+}
+
+.agent-card-body {
+    margin-top: 5px;
+    font-size: 11.5px;
+    color: var(--agents-text-secondary);
+    line-height: 1.4;
+}
+
+.agent-card-meta-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 6px;
+}
+
+.agent-chip {
+    font-size: 10.5px;
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: #EDE9FE;
+    color: var(--agents-lavender-600);
+    font-weight: 600;
+}
+
+.agent-chip.files {
+    background: #EFF6FF;
+    color: #1D4ED8;
+}
+
+.agent-chip.validation {
+    background: #ECFDF5;
+    color: #047857;
+}
+
+/* SUCCESS SUMMARY VIEW CARD */
+.agents-success-card {
+    display: none;
+    background: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    border-radius: 18px;
+    padding: 14px 16px;
+    margin-bottom: 14px;
+    text-align: left;
+    position: relative;
+    z-index: 2;
+    animation: fadeInScale 0.35s ease;
+}
+
+.agents-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.agents-summary-box {
+    background: #FFFFFF;
+    border: 1px solid var(--agents-lavender-100);
+    border-radius: 10px;
+    padding: 8px 10px;
+    text-align: center;
+}
+
+.agents-summary-val {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--agents-text-primary);
+}
+
+.agents-summary-lbl {
+    font-size: 10.5px;
+    color: var(--agents-text-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+/* FAILURE VIEW CARD */
+.agents-failure-card {
+    display: none;
+    background: #FEF2F2;
+    border: 1px solid #FECACA;
+    border-radius: 18px;
+    padding: 14px 16px;
+    margin-bottom: 14px;
+    text-align: left;
+    position: relative;
+    z-index: 2;
+    animation: fadeInScale 0.35s ease;
+}
+
+.agents-failure-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #991B1B;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+}
+
+.agents-failure-desc {
+    font-size: 12px;
+    color: #B91C1C;
+    line-height: 1.4;
+    margin-bottom: 8px;
+}
+
+.agents-failure-guide {
+    font-size: 11px;
+    color: var(--agents-text-secondary);
+    background: #FFFFFF;
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid #FCA5A5;
+}
+
+/* Action Button Toolbar */
+.agents-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+    flex-wrap: wrap;
+}
+
+.agents-btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 9px 20px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #7C3AED 0%, #4F46E5 100%);
+    color: #FFFFFF;
+    font-size: 13.5px;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    box-shadow: 0 4px 14px rgba(124, 58, 237, 0.32);
+    transition: all 0.2s ease;
+}
+
+.agents-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(124, 58, 237, 0.42);
+    color: #FFFFFF;
+}
+
+.agents-btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: 999px;
+    background: #F5F3FF;
+    color: var(--agents-lavender-600);
+    border: 1px solid var(--agents-lavender-200);
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.agents-btn-secondary:hover {
+    background: #EDE9FE;
+    color: #6D28D9;
+}
+
+.agents-btn-ghost {
+    background: transparent;
+    border: none;
+    color: var(--agents-text-muted);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 6px 12px;
+    border-radius: 999px;
+    transition: color 0.2s ease;
+}
+
+.agents-btn-ghost:hover {
+    color: var(--agents-text-primary);
+}
+
+.agents-background-note {
+    font-size: 11px;
+    color: var(--agents-text-muted);
+    margin-top: 10px;
+    display: block;
+    position: relative;
+    z-index: 2;
+}
+
+/* Animations */
+@keyframes badgePulse {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.4);
+    }
+    50% {
+        box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.15);
+    }
+}
+
+/* Accessibility & Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    .agents-mascot-svg,
+    .agents-progress-bar,
+    .agents-dots span,
+    .agent-status-badge.in_progress {
+        animation: none !important;
+        transition: none !important;
+    }
+    .agents-modal-card {
+        transform: none !important;
+        transition: none !important;
+    }
+}
+
+/* Mobile Responsive */
+@media (max-width: 600px) {
+    .agents-modal-card {
+        padding: 22px 16px;
+        border-radius: 20px;
+    }
+    .agents-modal-title {
+        font-size: 18px;
+    }
+    .agents-list-scrollable {
+        max-height: 200px;
+    }
+}

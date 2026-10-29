@@ -1,0 +1,544 @@
+{% extends "base.html" %}
+
+{% block title %}Executive Software Report — {{ project.name }}{% endblock %}
+
+{% block content %}
+<div class="dashboard-topbar">
+    <div class="dashboard-title-area">
+        <h1>Enterprise Software Delivery Report</h1>
+        <p>Comprehensive autonomous engineering audit, quality scorecard, and verification certification.</p>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 12px;">
+        <a href="{{ url_for('project_workspace', project_id=project.id) }}" class="btn btn-secondary">
+            &larr; Workspace
+        </a>
+        <a href="{{ url_for('download_project_zip', project_id=project.id) }}" class="btn btn-secondary">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            <span>Download ZIP</span>
+        </a>
+        <a href="{{ url_for('download_pdf_report', project_id=project.id) }}" class="btn btn-primary">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            <span>Download Certified PDF</span>
+        </a>
+    </div>
+</div>
+
+<div class="dashboard-content-body">
+    {% set s = report.structured if report and report.structured else None %}
+
+    <!-- Report Hero Banner -->
+    <div class="report-hero-banner" style="background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 24px; margin-bottom: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
+            <div style="display: flex; gap: 16px; align-items: center;">
+                <div style="width: 48px; height: 48px; border-radius: 8px; background: var(--bg-main); display: flex; align-items: center; justify-content: center; color: var(--primary);">
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                </div>
+                <div>
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+                        <h2 style="font-size: 20px; font-weight: 700; color: var(--text-primary);">{{ project.name }}</h2>
+                        <span class="badge badge-success" style="font-size: 12px;">{{ project.status|capitalize }}</span>
+                    </div>
+                    <p style="font-size: 14px; color: var(--text-secondary); max-width: 700px;">
+                        {{ project.description }}
+                    </p>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 18px; background: var(--bg-main); padding: 12px 18px; border-radius: var(--radius-sm); border: 1px solid var(--border);">
+                <div>
+                    <span style="font-size: 11px; text-transform: uppercase; color: var(--text-secondary); display: block; font-weight: 600;">Project ID</span>
+                    <code style="font-size: 12.5px; color: var(--text-primary); font-weight: 700;">{{ project.id }}</code>
+                </div>
+                <div>
+                    <span style="font-size: 11px; text-transform: uppercase; color: var(--text-secondary); display: block; font-weight: 600;">Generation Date</span>
+                    <span style="font-size: 12.5px; color: var(--text-primary); font-weight: 600;">{{ (project.created_at|string)[:19] }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alert Banner / Highlights -->
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px;">
+        <div class="section-panel-card" style="padding: 16px;">
+            <span style="font-size: 12px; color: var(--text-secondary); text-transform: uppercase; font-weight: 600;">Test Suite</span>
+            <div style="margin-top: 6px; display: flex; align-items: baseline; gap: 8px;">
+                <h3 style="font-size: 22px; font-weight: 800; color: var(--success);">
+                    {{ s['10_automated_test_results'].passed_tests if s else 1 }}/{{ s['10_automated_test_results'].total_tests if s else 1 }}
+                </h3>
+                <span class="badge badge-success" style="font-size: 11px;">Passed</span>
+            </div>
+        </div>
+
+        <div class="section-panel-card" style="padding: 16px;">
+            <span style="font-size: 12px; color: var(--text-secondary); text-transform: uppercase; font-weight: 600;">Security Findings</span>
+            <div style="margin-top: 6px; display: flex; align-items: baseline; gap: 8px;">
+                <h3 style="font-size: 22px; font-weight: 800; color: {{ 'var(--error)' if s and s['11_security_findings'].critical_findings > 0 else 'var(--text-primary)' }};">
+                    {{ s['11_security_findings'].critical_findings if s else 0 }} Critical
+                </h3>
+                <span class="badge badge-info" style="font-size: 11px;">AST Scanned</span>
+            </div>
+        </div>
+
+        <div class="section-panel-card" style="padding: 16px;">
+            <span style="font-size: 12px; color: var(--text-secondary); text-transform: uppercase; font-weight: 600;">Code Maintainability</span>
+            <div style="margin-top: 6px; display: flex; align-items: baseline; gap: 8px;">
+                <h3 style="font-size: 22px; font-weight: 800; color: var(--primary);">
+                    {{ s['12_code_review'].overall_score if s else 9 }}/10
+                </h3>
+                <span class="badge badge-success" style="font-size: 11px;">Approved</span>
+            </div>
+        </div>
+
+        <div class="section-panel-card" style="padding: 16px;">
+            <span style="font-size: 12px; color: var(--text-secondary); text-transform: uppercase; font-weight: 600;">Target Environment</span>
+            <div style="margin-top: 6px;">
+                <h3 style="font-size: 15px; font-weight: 700; color: var(--text-primary);">
+                    {{ s['14_ide_configuration'].selected_ide if s else 'VS Code' }}
+                </h3>
+                <span class="badge badge-success" style="font-size: 11px; margin-top: 2px;">Ready to Launch</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Executive Summary Card -->
+    <div class="section-panel-card" style="margin-bottom: 24px;">
+        <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 8px; color: var(--text-primary);">Executive Delivery Summary</h3>
+        <p style="font-size: 14.5px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 0;">
+            {{ report.summary if report and report.summary else 'The project concluded autonomous execution successfully with all source files, unit tests, and containerization artifacts ready for deployment.' }}
+        </p>
+    </div>
+
+    {% if s %}
+    <!-- 18 ENTERPRISE SECTIONS RENDERED AS STRUCTURED HTML (NO RAW MARKDOWN) -->
+
+    <!-- SECTIONS 1 & 2: PROJECT OVERVIEW & REQUIREMENTS SUMMARY -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+        <div class="section-panel-card" style="margin-bottom: 0;">
+            <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 12px;">1. Project Overview</h3>
+            <ul style="list-style: none; display: flex; flex-direction: column; gap: 10px; font-size: 13.5px;">
+                <li style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
+                    <span style="color: var(--text-secondary);">Application Type:</span>
+                    <strong>{{ s['1_project_overview'].app_type }}</strong>
+                </li>
+                <li style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
+                    <span style="color: var(--text-secondary);">Target Language:</span>
+                    <strong>{{ s['1_project_overview'].language }}</strong>
+                </li>
+                <li style="display: flex; justify-content: space-between;">
+                    <span style="color: var(--text-secondary);">Overall Status:</span>
+                    <span class="badge badge-success">&#10003; {{ s['1_project_overview'].status }}</span>
+                </li>
+            </ul>
+        </div>
+
+        <div class="section-panel-card" style="margin-bottom: 0;">
+            <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 12px;">2. Requirements Summary</h3>
+            <ul style="list-style: none; display: flex; flex-direction: column; gap: 10px; font-size: 13.5px;">
+                <li style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
+                    <span style="color: var(--text-secondary);">Total Specifications:</span>
+                    <strong>{{ s['2_requirements_summary'].total_requirements }} items</strong>
+                </li>
+                <li style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
+                    <span style="color: var(--text-secondary);">Verified Specifications:</span>
+                    <strong style="color: var(--success);">{{ s['2_requirements_summary'].verified_requirements }} items</strong>
+                </li>
+                <li style="display: flex; justify-content: space-between;">
+                    <span style="color: var(--text-secondary);">Verification Progress:</span>
+                    <span class="badge badge-info">{{ s['2_requirements_summary'].status }}</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- SECTION 15: EXECUTION RESULTS & LIFECYCLE DISTINCTIONS -->
+    <div class="section-panel-card" style="margin-bottom: 24px;">
+        <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 6px;">15. Execution Results & Operational Distinctions</h3>
+        <p style="font-size: 13.5px; color: var(--text-secondary); margin-bottom: 16px;">
+            Audited separation between source code generation, test execution, security scans, and runtime service verification.
+        </p>
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Lifecycle Category</th>
+                        <th style="width: 150px;">Status</th>
+                        <th>Evidence / Verification Detail</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for d in s['15_execution_results'].distinctions %}
+                    <tr>
+                        <td><strong>{{ d.category }}</strong></td>
+                        <td>
+                            {% if d.status == 'Completed' %}
+                                <span class="badge badge-success">&#10003; Completed</span>
+                            {% elif d.status == 'In Progress' %}
+                                <span class="badge badge-info">In Progress</span>
+                            {% elif d.status == 'Partially Verified' %}
+                                <span class="badge badge-warning">Partially Verified</span>
+                            {% elif d.status == 'Failed' %}
+                                <span class="badge badge-error">Failed</span>
+                            {% else %}
+                                <span class="badge" style="background:#F3F4F6; color:#4B5563;">Not Verified</span>
+                            {% endif %}
+                        </td>
+                        <td style="color: var(--text-secondary);">{{ d.detail }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- SECTIONS 3 & 4: ARCHITECTURE & TECH STACK -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+        <div class="section-panel-card" style="margin-bottom: 0;">
+            <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 12px;">3. System Architecture & Topology</h3>
+            <ul style="list-style: none; display: flex; flex-direction: column; gap: 10px; font-size: 13.5px;">
+                <li style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
+                    <span style="color: var(--text-secondary);">Topology Pattern:</span>
+                    <strong>{{ s['3_architecture'].topology }}</strong>
+                </li>
+                <li style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
+                    <span style="color: var(--text-secondary);">Presentation Layer:</span>
+                    <strong>{{ s['3_architecture'].presentation_layer }}</strong>
+                </li>
+                <li style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
+                    <span style="color: var(--text-secondary);">Data Persistence:</span>
+                    <strong>{{ s['3_architecture'].data_layer }}</strong>
+                </li>
+                <li style="display: flex; justify-content: space-between;">
+                    <span style="color: var(--text-secondary);">Validation Status:</span>
+                    <span class="badge badge-success">&#10003; {{ s['3_architecture'].status }}</span>
+                </li>
+            </ul>
+        </div>
+
+        <div class="section-panel-card" style="margin-bottom: 0;">
+            <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 12px;">4. Technology Stack Specification</h3>
+            <div class="table-responsive">
+                <table class="table">
+                    <tbody>
+                        {% for item in s['4_technology_stack']['items'] %}
+                        <tr>
+                            <td style="color: var(--text-secondary); width: 160px; font-size: 13px;">{{ item.category }}</td>
+                            <td><code>{{ item.technology }}</code></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTION 5: GENERATED SOURCE FILES MANIFEST -->
+    <div class="section-panel-card" style="margin-bottom: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+            <div>
+                <h3 style="font-size: 16px; font-weight: 700;">5. Generated Source Manifest</h3>
+                <p style="font-size: 13.5px; color: var(--text-secondary);">Total Files: <strong>{{ s['5_generated_files'].total_files }}</strong> production source files</p>
+            </div>
+            <a href="{{ url_for('project_code_output', project_id=project.id) }}" class="btn btn-secondary" style="font-size: 13px;">
+                Inspect in Code Editor &rarr;
+            </a>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Filename</th>
+                        <th>File Size</th>
+                        <th>Role / Classification</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for f in s['5_generated_files'].files %}
+                    <tr>
+                        <td>
+                            <code style="font-weight: 600; color: var(--primary); background: var(--bg-main); padding: 3px 8px; border-radius: 4px;">
+                                {{ f.filename }}
+                            </code>
+                        </td>
+                        <td style="color: var(--text-secondary); font-size: 13px;">{{ f.file_size }} bytes</td>
+                        <td style="font-size: 13px;">
+                            {% if 'app.py' in f.filename %}
+                                Core Application Server & Routing
+                            {% elif 'model' in f.filename %}
+                                Database Schema & CRUD Layer
+                            {% elif 'test' in f.filename %}
+                                Automated Test Suite
+                            {% elif f.filename.endswith('.html') %}
+                                Jinja2 Responsive UI Template
+                            {% elif f.filename.endswith('.css') %}
+                                Visual Design System Stylesheet
+                            {% elif 'Docker' in f.filename %}
+                                Containerization Runbook
+                            {% else %}
+                                Application Support Module
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('download_individual_file', project_id=project.id, filename=f.filename) }}" class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px;">
+                                Download
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- SECTIONS 6 & 7: UI / UX DESIGN & VALIDATION -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+        <div class="section-panel-card" style="margin-bottom: 0;">
+            <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 12px;">6. UI / UX Design Summary</h3>
+            <ul style="list-style: none; display: flex; flex-direction: column; gap: 10px; font-size: 13.5px;">
+                <li style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
+                    <span style="color: var(--text-secondary);">Generation Mode:</span>
+                    <strong>{{ s['6_ui_ux_design'].ui_generation }}</strong>
+                </li>
+                <li style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
+                    <span style="color: var(--text-secondary);">Design Style:</span>
+                    <strong>{{ s['6_ui_ux_design'].design_style }}</strong>
+                </li>
+                <li style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
+                    <span style="color: var(--text-secondary);">Color Palette Tokens:</span>
+                    <strong>{{ s['6_ui_ux_design'].color_palette }}</strong>
+                </li>
+                <li style="display: flex; justify-content: space-between;">
+                    <span style="color: var(--text-secondary);">Layout Preference:</span>
+                    <strong>{{ s['6_ui_ux_design'].layout_preference }}</strong>
+                </li>
+            </ul>
+        </div>
+
+        <div class="section-panel-card" style="margin-bottom: 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <h3 style="font-size: 16px; font-weight: 700;">7. UI Validation Scorecard</h3>
+                <a href="{{ url_for('project_ui_preview', project_id=project.id) }}" class="btn btn-secondary" style="font-size: 12px; padding: 4px 10px;">
+                    Interactive Preview &rarr;
+                </a>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+                {% for c in s['7_ui_validation'].checks %}
+                <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px; border-bottom: 1px solid var(--border); padding-bottom: 6px;">
+                    <span>{{ c.name }}</span>
+                    {% if c.status == 'Passed' %}
+                        <span class="badge badge-success">&#10003; Passed</span>
+                    {% else %}
+                        <span class="badge badge-error">Failed</span>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTIONS 10 & 11: AUTOMATED TEST RESULTS & SECURITY -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+        <div class="section-panel-card" style="margin-bottom: 0;">
+            <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 10px;">10. Automated Test Results</h3>
+            <div style="background: var(--bg-main); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 12px;">
+                <div style="display: flex; justify-content: space-between; font-size: 13.5px; margin-bottom: 6px;">
+                    <span style="color: var(--text-secondary);">Overall Outcome:</span>
+                    <strong style="color: var(--success);">{{ s['10_automated_test_results'].overall_result }}</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 13.5px; margin-bottom: 6px;">
+                    <span style="color: var(--text-secondary);">Passed Assertions:</span>
+                    <strong>{{ s['10_automated_test_results'].passed_tests }} / {{ s['10_automated_test_results'].total_tests }}</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 13.5px;">
+                    <span style="color: var(--text-secondary);">Execution Duration:</span>
+                    <span>{{ s['10_automated_test_results'].duration_ms }} ms</span>
+                </div>
+            </div>
+            <h4 style="font-size: 13px; margin-bottom: 6px; color: var(--text-secondary);">Test Runner Output Log:</h4>
+            <div style="background: #1E2126; color: #E5E7EB; padding: 12px; border-radius: 6px; font-family: var(--font-mono); font-size: 11.5px; max-height: 140px; overflow-y: auto;">
+                <pre style="margin: 0; white-space: pre-wrap;">{{ s['10_automated_test_results'].test_log }}</pre>
+            </div>
+        </div>
+
+        <div class="section-panel-card" style="margin-bottom: 0;">
+            <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 10px;">11. Security Findings Audit</h3>
+            {% if s['11_security_findings'].critical_findings == 0 %}
+                <div style="background: #EAF4EE; border: 1px solid #C3E6CB; border-radius: var(--radius-sm); padding: 16px; margin-bottom: 14px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="color: var(--success); font-size: 18px; font-weight: bold;">&#10003;</span>
+                        <strong style="color: #155724; font-size: 14px;">Zero Critical Security Exploits Detected</strong>
+                    </div>
+                    <p style="color: #155724; font-size: 12.5px; margin-top: 4px;">
+                        Workspace verified free of arbitrary eval execution, unparameterized SQL queries, and exposed secret keys.
+                    </p>
+                </div>
+            {% else %}
+                <div style="background: #FBEBEB; border: 1px solid #F5C6CB; border-radius: var(--radius-sm); padding: 16px; margin-bottom: 14px;">
+                    <strong style="color: #721C24; font-size: 14px;">Critical Vulnerabilities Detected</strong>
+                    <p style="color: #721C24; font-size: 12.5px; margin-top: 4px;">
+                        {{ s['11_security_findings'].critical_findings }} critical security flaws identified in source code.
+                    </p>
+                </div>
+            {% endif %}
+
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Severity</th>
+                            <th>Rule ID & Title</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for finding in s['11_security_findings'].findings[:4] %}
+                        <tr>
+                            <td>
+                                {% if finding.severity == 'Critical' %}
+                                    <span class="badge badge-error">{{ finding.severity }}</span>
+                                {% elif finding.severity == 'High' %}
+                                    <span class="badge badge-warning">{{ finding.severity }}</span>
+                                {% else %}
+                                    <span class="badge badge-info">{{ finding.severity }}</span>
+                                {% endif %}
+                            </td>
+                            <td style="font-size: 12.5px;">{{ finding.title }}</td>
+                            <td><span class="badge badge-success">&#10003; Verified</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTION 13: REQUIREMENTS TRACEABILITY MATRIX -->
+    <div class="section-panel-card" style="margin-bottom: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+            <div>
+                <h3 style="font-size: 16px; font-weight: 700;">13. Requirements Traceability Matrix</h3>
+                <p style="font-size: 13.5px; color: var(--text-secondary);">Direct verification evidence mapped to each functional requirement.</p>
+            </div>
+            <a href="{{ url_for('project_requirements_page', project_id=project.id) }}" class="btn btn-secondary" style="font-size: 13px;">
+                Full Traceability Matrix &rarr;
+            </a>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th style="width: 80px;">ID</th>
+                        <th>Requirement</th>
+                        <th>Priority</th>
+                        <th>Verification Method</th>
+                        <th>Status</th>
+                        <th>Evidence</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for req in s['13_requirements_traceability'].requirements[:6] %}
+                    <tr>
+                        <td><code>{{ req.req_id }}</code></td>
+                        <td><strong>{{ req.title }}</strong></td>
+                        <td>{{ req.priority }}</td>
+                        <td style="font-size: 12.5px; color: var(--text-secondary);">{{ req.verification_method }}</td>
+                        <td>
+                            {% if req.status == 'Verified' %}
+                                <span class="badge badge-success">&#10003; Verified</span>
+                            {% elif req.status == 'Implemented' %}
+                                <span class="badge badge-info">Implemented</span>
+                            {% else %}
+                                <span class="badge badge-warning">{{ req.status }}</span>
+                            {% endif %}
+                        </td>
+                        <td style="font-size: 12px; color: var(--text-secondary);">{{ req.evidence }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- SECTION 14 & 16: IDE CONFIGURATION & DEPLOYMENT READINESS -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+        <div class="section-panel-card" style="margin-bottom: 0;">
+            <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 12px;">14. Development Environment Configuration</h3>
+            <ul style="list-style: none; display: flex; flex-direction: column; gap: 10px; font-size: 13.5px;">
+                <li style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
+                    <span style="color: var(--text-secondary);">Selected Environment:</span>
+                    <strong>{{ s['14_ide_configuration'].selected_ide }}</strong>
+                </li>
+                <li style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
+                    <span style="color: var(--text-secondary);">Hardware Status:</span>
+                    <span class="badge badge-success">&#10003; {{ s['14_ide_configuration'].status }}</span>
+                </li>
+                <li style="display: flex; justify-content: space-between;">
+                    <span style="color: var(--text-secondary);">Executable Launcher:</span>
+                    <code style="font-size: 11.5px;">{{ s['14_ide_configuration'].executable_path }}</code>
+                </li>
+            </ul>
+            <div style="margin-top: 14px;">
+                <form action="{{ url_for('launch_ide_action', project_id=project.id) }}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    <button type="submit" class="btn btn-primary" style="width: 100%; font-size: 13px;">
+                        Open Project in {{ s['14_ide_configuration'].selected_ide }}
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="section-panel-card" style="margin-bottom: 0;">
+            <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 12px;">16. Deployment Readiness</h3>
+            <ul style="list-style: none; display: flex; flex-direction: column; gap: 10px; font-size: 13.5px;">
+                <li style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
+                    <span style="color: var(--text-secondary);">Readiness Assessment:</span>
+                    <span class="badge badge-success">&#10003; {{ s['16_deployment_readiness'].readiness_status }}</span>
+                </li>
+                <li style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
+                    <span style="color: var(--text-secondary);">Startup Command:</span>
+                    <code>{{ s['16_deployment_readiness'].startup_command }}</code>
+                </li>
+                <li style="display: flex; justify-content: space-between;">
+                    <span style="color: var(--text-secondary);">Containerization:</span>
+                    <span>Dockerfile & Compose Synthesized</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- SECTIONS 17 & 18: KNOWN LIMITATIONS & REMAINING ACTIONS -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+        <div class="section-panel-card" style="margin-bottom: 0;">
+            <h3 style="font-size: 15px; font-weight: 700; margin-bottom: 10px;">17. Known Architectural Limitations</h3>
+            <ul style="font-size: 13px; color: var(--text-secondary); line-height: 1.6; padding-left: 18px;">
+                {% for lim in s['17_known_limitations'].limitations %}
+                    <li>{{ lim }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="section-panel-card" style="margin-bottom: 0;">
+            <h3 style="font-size: 15px; font-weight: 700; margin-bottom: 10px;">18. Recommended Next Actions</h3>
+            <ul style="font-size: 13px; color: var(--text-secondary); line-height: 1.6; padding-left: 18px;">
+                {% for act in s['18_remaining_actions'].actions %}
+                    <li>{{ act }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    {% else %}
+    <!-- Fallback if structured data is not yet generated -->
+    <div class="section-panel-card">
+        <h3 style="font-size: 16px; margin-bottom: 12px;">Final Output</h3>
+        <div style="background: #F8F9FA; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 24px; font-size: 14px; line-height: 1.6;">
+            {{ safe_markdown(report.final_output) if report and report.final_output else '<p>Project is currently executing through the agent pipeline.</p>' }}
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

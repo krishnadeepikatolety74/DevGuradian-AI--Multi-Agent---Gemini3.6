@@ -1,0 +1,625 @@
+{% extends "base.html" %}
+
+{% block title %}Project Architecture — DevGuardian AI{% endblock %}
+
+{% block extra_head %}
+<style>
+.arch-page-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.arch-header-card {
+    background: #FFFFFF;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 20px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    box-shadow: var(--shadow-sm);
+}
+
+.arch-viewer-shell {
+    background: #FFFFFF;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+}
+
+.arch-viewer-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 16px;
+    background: #FAFAFB;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.arch-canvas-viewport {
+    min-height: 560px;
+    height: 620px;
+    background: #FFFFFF;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: grab;
+}
+
+.arch-canvas-viewport:active {
+    cursor: grabbing;
+}
+
+.arch-svg-container {
+    transform-origin: center center;
+    transition: transform 0.15s ease-out;
+    max-width: 96%;
+    max-height: 96%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.arch-svg-container svg {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+.summary-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+}
+
+.summary-card {
+    background: #FFFFFF;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 20px 22px;
+    box-shadow: var(--shadow-sm);
+}
+
+.component-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11.5px;
+    font-weight: 600;
+    padding: 4px 9px;
+    border-radius: 4px;
+    background: #EFF6FF;
+    color: #1E40AF;
+    border: 1px solid #BFDBFE;
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 12px;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+}
+
+.status-badge-implemented {
+    background: #DCFCE7;
+    color: #166534;
+    border: 1px solid #BBF7D0;
+}
+
+.status-badge-proposed {
+    background: #FEF3C7;
+    color: #92400E;
+    border: 1px solid #FDE68A;
+}
+
+.comp-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-top: 10px;
+}
+
+.comp-table th {
+    background: #F8FAFC;
+    color: var(--text-secondary);
+    font-weight: 600;
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.comp-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid #F1F5F9;
+    color: var(--text-primary);
+    vertical-align: top;
+}
+
+.comp-table tr:hover {
+    background: #F8FAFC;
+}
+
+/* Modal styles for View Source */
+.source-modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(15, 23, 42, 0.6);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.source-modal-box {
+    background: #FFFFFF;
+    border-radius: var(--radius-lg);
+    width: 100%;
+    max-width: 820px;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="arch-page-container">
+    <!-- Header Section -->
+    <div class="arch-header-card">
+        <div>
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+                <h1 style="font-size: 22px; font-weight: 700; color: var(--text-primary); margin: 0;">Project Architecture</h1>
+                {% if selected_project %}
+                    <span style="font-family: monospace; font-size: 11.5px; padding: 3px 8px; border-radius: 6px; background: #F1F5F9; color: #475569; font-weight: 600; border: 1px solid #CBD5E1;">{{ selected_project.id }}</span>
+                    <span style="font-size: 11.5px; padding: 3px 8px; border-radius: 6px; background: #EFF6FF; color: #1D4ED8; font-weight: 600;">{{ selected_project.app_type }}</span>
+                {% endif %}
+            </div>
+            <p style="font-size: 13px; color: var(--text-secondary); margin: 0;">
+                Genuinely project-specific architecture extracted directly from source code, AST inspection, database models, and routes.
+            </p>
+        </div>
+
+        <!-- Project Selector Dropdown -->
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <form id="archProjectForm" method="GET" action="{{ url_for('architecture_page') }}" style="display: flex; align-items: center; gap: 8px;">
+                <label for="archProjectSelect" style="font-size: 13px; font-weight: 600; color: var(--text-secondary);">Project:</label>
+                <select id="archProjectSelect" name="project_id" onchange="this.form.submit()" style="font-size: 13px; padding: 7px 12px; border: 1px solid var(--border); border-radius: 6px; background: #FFFFFF; color: var(--text-primary); font-weight: 600; cursor: pointer;">
+                    {% if not projects %}
+                        <option value="">No projects available</option>
+                    {% else %}
+                        {% for p in projects %}
+                            <option value="{{ p.id }}" {% if selected_project_id == p.id %}selected{% endif %}>{{ p.name }} ({{ p.app_type }})</option>
+                        {% endfor %}
+                    {% endif %}
+                </select>
+                <input type="hidden" name="type" value="{{ diagram_type }}">
+            </form>
+        </div>
+    </div>
+
+    {% if not selected_project %}
+        <!-- Empty State When No Projects Exist -->
+        <div class="section-panel-card" style="background: #FFFFFF; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 48px 24px; text-align: center;">
+            <div style="width: 56px; height: 56px; border-radius: 16px; background: #E0F2FE; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; color: #0284C7;">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3v12"></path><circle cx="18" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M18 9a9 9 0 0 1-9 9"></path></svg>
+            </div>
+            <h3 style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">No Projects Generated Yet</h3>
+            <p style="font-size: 14px; color: var(--text-secondary); max-width: 440px; margin: 0 auto 18px;">Create your first software project to inspect, validate, and export its architectural diagrams.</p>
+            <a href="{{ url_for('new_project') }}" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; font-size: 13px; padding: 9px 18px; background: var(--btn-primary); color: #FFFFFF; text-decoration: none; border-radius: var(--radius-sm); font-weight: 600;">
+                <span>Generate Project</span> &rarr;
+            </a>
+        </div>
+    {% else %}
+
+        {% if arch_data and arch_data.summary and arch_data.summary.status == 'proposed' %}
+            <!-- Informative Notice for Projects with Minimal Source Code -->
+            <div style="background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 8px; padding: 12px 18px; display: flex; align-items: center; gap: 12px;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                <div style="font-size: 13px; color: #92400E;">
+                    <strong>Preliminary Architecture Notice:</strong> This project contains minimal source files. The diagram is synthesized from declared project specifications and highlighted with proposed component boundaries.
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- Architecture Viewer Shell -->
+        <div class="arch-viewer-shell">
+            <!-- Toolbar -->
+            <div class="arch-viewer-toolbar">
+                <!-- Diagram Type Selector -->
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">Diagram Type:</span>
+                    <form method="GET" action="{{ url_for('architecture_page') }}" style="margin: 0;">
+                        <input type="hidden" name="project_id" value="{{ selected_project_id }}">
+                        <select name="type" onchange="this.form.submit()" style="font-size: 12px; padding: 5px 10px; border: 1px solid var(--border); border-radius: 6px; background: #FFFFFF; color: var(--text-primary); font-weight: 600; cursor: pointer;">
+                            <option value="system" {% if diagram_type == 'system' %}selected{% endif %}>System Architecture</option>
+                            <option value="component" {% if diagram_type == 'component' %}selected{% endif %}>Component Architecture</option>
+                            <option value="data_flow" {% if diagram_type == 'data_flow' %}selected{% endif %}>Data Flow Diagram</option>
+                            <option value="agent" {% if diagram_type == 'agent' %}selected{% endif %}>AI Agent Architecture</option>
+                            <option value="database" {% if diagram_type == 'database' %}selected{% endif %}>Database ER Diagram</option>
+                            <option value="deployment" {% if diagram_type == 'deployment' %}selected{% endif %}>Deployment Architecture</option>
+                        </select>
+                    </form>
+                </div>
+
+                <!-- Zoom & Viewport Controls -->
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    <button type="button" class="btn" onclick="zoomIn()" style="padding: 5px 9px; border: 1px solid var(--border); border-radius: 4px; background: #FFFFFF; cursor: pointer;" title="Zoom In">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
+                    </button>
+                    <button type="button" class="btn" onclick="zoomOut()" style="padding: 5px 9px; border: 1px solid var(--border); border-radius: 4px; background: #FFFFFF; cursor: pointer;" title="Zoom Out">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
+                    </button>
+                    <button type="button" class="btn" onclick="resetZoom()" style="padding: 5px 9px; border: 1px solid var(--border); border-radius: 4px; background: #FFFFFF; font-size: 11px; cursor: pointer;" title="Fit to View">
+                        <span>Fit View</span>
+                    </button>
+                    <button type="button" class="btn" onclick="toggleFullscreen()" style="padding: 5px 9px; border: 1px solid var(--border); border-radius: 4px; background: #FFFFFF; cursor: pointer;" title="Fullscreen">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+                    </button>
+                </div>
+
+                <!-- Export & Regeneration Actions -->
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <button type="button" onclick="openSourceModal()" class="btn" style="padding: 5px 10px; border: 1px solid var(--border); border-radius: 6px; background: #FFFFFF; font-size: 12px; color: var(--text-primary); cursor: pointer;" title="Inspect Intermediate Model">
+                        <span>View Source</span>
+                    </button>
+
+                    <!-- Regenerate Button -->
+                    <form method="POST" action="{{ url_for('architecture_generate_action', project_id=selected_project.id) }}" style="margin: 0;">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        <input type="hidden" name="diagram_type" value="{{ diagram_type }}">
+                        <button type="submit" id="regenerateArchBtn" class="btn" style="padding: 5px 12px; border: 1px solid #93C5FD; border-radius: 6px; background: #EFF6FF; color: #1D4ED8; font-size: 12px; font-weight: 600; cursor: pointer;">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 3px;"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+                            <span>Regenerate Architecture</span>
+                        </button>
+                    </form>
+
+                    <!-- Download PNG Button -->
+                    <a href="{{ url_for('architecture_export_file', project_id=selected_project.id, fmt='png', type=diagram_type) }}" class="btn btn-secondary" style="padding: 5px 12px; border: 1px solid var(--border); border-radius: 6px; background: #FFFFFF; color: var(--text-primary); font-size: 12px; font-weight: 600; text-decoration: none;">
+                        <span>Download PNG</span>
+                    </a>
+
+                    <!-- Download SVG Button -->
+                    <a href="{{ url_for('architecture_export_file', project_id=selected_project.id, fmt='svg', type=diagram_type) }}" class="btn btn-primary" style="padding: 5px 12px; border-radius: 6px; background: var(--btn-primary); color: #FFFFFF; font-size: 12px; font-weight: 600; text-decoration: none;">
+                        <span>Download SVG</span>
+                    </a>
+
+                    <!-- Download JSON Button -->
+                    <a href="{{ url_for('architecture_export_file', project_id=selected_project.id, fmt='json', type=diagram_type) }}" class="btn" style="padding: 5px 12px; border: 1px solid #CBD5E1; border-radius: 6px; background: #F8FAFC; color: #334155; font-size: 12px; font-weight: 600; text-decoration: none;">
+                        <span>Download JSON</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Canvas Viewport -->
+            <div class="arch-canvas-viewport" id="canvasViewport" onmousedown="startPan(event)" onmousemove="doPan(event)" onmouseup="endPan()" onmouseleave="endPan()" onwheel="handleWheel(event)">
+                <div class="arch-svg-container" id="svgContainer">
+                    {% if arch_data and arch_data.svg_content %}
+                        {{ arch_data.svg_content|safe }}
+                    {% elif arch_data and arch_data.png_path %}
+                        <img src="{{ url_for('architecture_export_file', project_id=selected_project.id, fmt='png', type=diagram_type) }}" alt="Architecture Diagram" style="max-width: 100%; height: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.06); border-radius: 8px;">
+                    {% else %}
+                        <div style="text-align: center; padding: 40px;">
+                            <p style="font-size: 14px; color: var(--text-secondary);">No architecture diagram rendered yet.</p>
+                            <form method="POST" action="{{ url_for('architecture_generate_action', project_id=selected_project.id) }}" style="margin-top: 12px;">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                <input type="hidden" name="diagram_type" value="{{ diagram_type }}">
+                                <button type="submit" class="btn btn-primary" style="padding: 8px 16px; border-radius: 6px; font-size: 13px;">Generate Architecture Now</button>
+                            </form>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Architecture Metadata & Diagnostics Grid -->
+        <div class="summary-cards-grid">
+            <!-- 1. Architecture Overview -->
+            <div class="summary-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                    <h3 style="font-size: 13px; font-weight: 700; color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.5px; margin: 0;">System Overview</h3>
+                    {% if arch_data and arch_data.summary and arch_data.summary.status == 'implemented' %}
+                        <span class="status-badge status-badge-implemented">&check; Implemented</span>
+                    {% else %}
+                        <span class="status-badge status-badge-proposed">&bull; Proposed</span>
+                    {% endif %}
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 8px; font-size: 13px;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: var(--text-secondary);">Project ID:</span>
+                        <span style="font-weight: 600; font-family: monospace; color: var(--text-primary);">{{ selected_project.id }}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: var(--text-secondary);">Pattern:</span>
+                        <span style="font-weight: 600; color: #2563EB;">{{ arch_data.pattern if arch_data and arch_data.pattern else 'Modular Web Architecture' }}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: var(--text-secondary);">Components:</span>
+                        <span style="font-weight: 600; color: var(--text-primary);">{{ arch_data.components_count if arch_data else 0 }} mapped</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: var(--text-secondary);">Connections:</span>
+                        <span style="font-weight: 600; color: var(--text-primary);">{{ arch_data.connections_count if arch_data else 0 }} flows</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: var(--text-secondary);">Last Generated:</span>
+                        <span style="font-weight: 600; color: var(--text-primary); font-size: 12px;">{{ arch_data.last_updated if arch_data and arch_data.last_updated else 'Just now' }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Technologies Detected From Source Code -->
+            <div class="summary-card">
+                <h3 style="font-size: 13px; font-weight: 700; color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 14px 0;">Technologies Detected</h3>
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <div>
+                        <span style="font-size: 12px; color: var(--text-secondary); display: block; margin-bottom: 6px;">Frameworks & Libraries:</span>
+                        <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                            {% if arch_data and arch_data.technologies %}
+                                {% for tech in arch_data.technologies %}
+                                    <span class="component-tag">{{ tech }}</span>
+                                {% endfor %}
+                            {% else %}
+                                <span class="component-tag">{{ selected_project.language }}</span>
+                                <span class="component-tag">HTML5 / Jinja2</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div>
+                        <span style="font-size: 12px; color: var(--text-secondary); display: block; margin-bottom: 6px;">Database & Storage:</span>
+                        <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                            {% if arch_data and arch_data.summary and arch_data.summary.database %}
+                                <span class="component-tag" style="background: #CFFAFE; color: #0E7490; border-color: #A5F3FC;">{{ arch_data.summary.database }}</span>
+                            {% else %}
+                                <span class="component-tag" style="background: #CFFAFE; color: #0E7490; border-color: #A5F3FC;">SQLite</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. External APIs & Inspected Source Files -->
+            <div class="summary-card">
+                <h3 style="font-size: 13px; font-weight: 700; color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 14px 0;">Integrations & Source Files</h3>
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <div>
+                        <span style="font-size: 12px; color: var(--text-secondary); display: block; margin-bottom: 6px;">External APIs & Boundaries:</span>
+                        <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                            {% if arch_data and arch_data.summary and arch_data.summary.external_integrations %}
+                                {% for ext in arch_data.summary.external_integrations %}
+                                    <span class="component-tag" style="background: #FEF3C7; color: #92400E; border-color: #FDE68A;">{{ ext }}</span>
+                                {% endfor %}
+                            {% else %}
+                                <span style="font-size: 12px; color: #64748B;">No external cloud APIs required (Self-contained)</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div>
+                        <span style="font-size: 12px; color: var(--text-secondary); display: block; margin-bottom: 6px;">Source Files Inspected:</span>
+                        <div style="display: flex; flex-wrap: wrap; gap: 4px; max-height: 80px; overflow-y: auto;">
+                            {% if arch_data and arch_data.source_files_inspected %}
+                                {% for f in arch_data.source_files_inspected %}
+                                    <span style="font-size: 11px; font-family: monospace; background: #F1F5F9; color: #334155; padding: 2px 6px; border-radius: 4px; border: 1px solid #E2E8F0;">{{ f }}</span>
+                                {% endfor %}
+                            {% else %}
+                                <span style="font-size: 11px; color: #64748B;">app.py</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Components & Responsibilities Breakdown -->
+        <div class="summary-card" style="margin-top: 4px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <div>
+                    <h3 style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin: 0 0 2px 0;">Architecture Components & Responsibilities</h3>
+                    <p style="font-size: 12.5px; color: var(--text-secondary); margin: 0;">Detailed inventory of modules, agents, databases, and pipelines derived from code analysis.</p>
+                </div>
+                <span style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">{{ arch_data.components|length if arch_data and arch_data.components else 0 }} Components Total</span>
+            </div>
+
+            <div style="overflow-x: auto;">
+                <table class="comp-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 26%;">Component Name</th>
+                            <th style="width: 14%;">Category</th>
+                            <th style="width: 14%;">Status</th>
+                            <th style="width: 32%;">Responsibilities</th>
+                            <th style="width: 14%;">Source Reference</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if arch_data and arch_data.components %}
+                            {% for c in arch_data.components %}
+                                <tr>
+                                    <td>
+                                        <strong style="color: #0F172A; display: block; font-size: 13px;">{{ c.name.split('\n')[0] }}</strong>
+                                        {% if c.name.split('\n')|length > 1 %}
+                                            <span style="font-size: 11.5px; color: #64748B;">{{ c.name.split('\n')[1] }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="component-tag" style="text-transform: capitalize;">{{ c.category }}</span>
+                                    </td>
+                                    <td>
+                                        {% if c.status == 'implemented' %}
+                                            <span class="status-badge status-badge-implemented">&check; Implemented</span>
+                                        {% else %}
+                                            <span class="status-badge status-badge-proposed">&bull; Proposed</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if c.responsibilities %}
+                                            <ul style="margin: 0; padding-left: 16px; font-size: 12px; color: #334155; line-height: 1.5;">
+                                                {% for resp in c.responsibilities %}
+                                                    <li>{{ resp }}</li>
+                                                {% endfor %}
+                                            </ul>
+                                        {% else %}
+                                            <span style="font-size: 12px; color: #64748B;">Core system subsystem</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span style="font-family: monospace; font-size: 11.5px; color: #2563EB;">{{ c.source_file if c.source_file else 'app.py' }}</span>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="5" style="text-align: center; color: var(--text-secondary); padding: 24px;">No components available.</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Connections & Data Flow Breakdown -->
+        {% if arch_data and arch_data.connections %}
+            <div class="summary-card" style="margin-top: 4px;">
+                <h3 style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin: 0 0 12px 0;">Connections & Data Flow Interfaces</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(310px, 1fr)); gap: 12px;">
+                    {% for conn in arch_data.connections %}
+                        <div style="background: #F8FAFC; border: 1px solid var(--border); border-radius: 6px; padding: 12px 14px; font-size: 12px;">
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                                <span style="font-family: monospace; font-weight: 700; color: #1E293B;">{{ conn.source }} &rarr; {{ conn.target }}</span>
+                                <span style="padding: 2px 7px; border-radius: 4px; background: #E0E7FF; color: #3730A3; font-weight: 600; font-size: 11px;">{{ conn.label }}</span>
+                            </div>
+                            <div style="color: var(--text-secondary); font-size: 12px;">
+                                <strong>Payload / Flow:</strong> {{ conn.data_flow if conn.data_flow else 'Direct invocation' }}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+
+    {% endif %}
+</div>
+
+<!-- Source Modal (Mermaid & JSON) -->
+<div class="source-modal-overlay" id="sourceModal" onclick="closeSourceModal(event)">
+    <div class="source-modal-box" onclick="event.stopPropagation()">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; border-bottom: 1px solid var(--border); background: #FAFAFC;">
+            <h3 style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin: 0;">Diagram Source & Intermediate Schema</h3>
+            <button type="button" onclick="closeSourceModalDirect()" style="background: none; border: none; font-size: 18px; cursor: pointer; color: #64748B;">&times;</button>
+        </div>
+        <div style="padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px;">
+            <div>
+                <h4 style="font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 6px;">Mermaid Flowchart Source</h4>
+                <pre style="background: #0F172A; color: #E2E8F0; padding: 14px; border-radius: 8px; font-family: monospace; font-size: 12px; overflow-x: auto; white-space: pre-wrap;">{{ arch_data.mermaid_source if arch_data else 'graph LR\n  A[Frontend] --> B[Backend]' }}</pre>
+            </div>
+            <div>
+                <h4 style="font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 6px;">JSON Schema Definition</h4>
+                <pre style="background: #0F172A; color: #E2E8F0; padding: 14px; border-radius: 8px; font-family: monospace; font-size: 11px; max-height: 240px; overflow-y: auto;">{{ arch_data|tojson(indent=2) if arch_data else '{}' }}</pre>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentZoom = 1;
+let isPanning = false;
+let startX = 0, startY = 0;
+let translateX = 0, translateY = 0;
+
+function updateTransform() {
+    const el = document.getElementById('svgContainer');
+    if (el) {
+        el.style.transform = `translate(${translateX}px, ${translateY}px) scale(${currentZoom})`;
+    }
+}
+
+function zoomIn() {
+    currentZoom = Math.min(currentZoom * 1.25, 4.0);
+    updateTransform();
+}
+
+function zoomOut() {
+    currentZoom = Math.max(currentZoom / 1.25, 0.4);
+    updateTransform();
+}
+
+function resetZoom() {
+    currentZoom = 1;
+    translateX = 0;
+    translateY = 0;
+    updateTransform();
+}
+
+function handleWheel(event) {
+    event.preventDefault();
+    if (event.deltaY < 0) {
+        zoomIn();
+    } else {
+        zoomOut();
+    }
+}
+
+function startPan(event) {
+    if (event.button !== 0) return;
+    isPanning = true;
+    startX = event.clientX - translateX;
+    startY = event.clientY - translateY;
+}
+
+function doPan(event) {
+    if (!isPanning) return;
+    translateX = event.clientX - startX;
+    translateY = event.clientY - startY;
+    updateTransform();
+}
+
+function endPan() {
+    isPanning = false;
+}
+
+function toggleFullscreen() {
+    const vp = document.getElementById('canvasViewport');
+    if (!document.fullscreenElement) {
+        vp.requestFullscreen().catch(err => {
+            alert(`Error attempting fullscreen: ${err.message}`);
+        });
+    } else {
+        document.exitFullscreen();
+    }
+}
+
+function openSourceModal() {
+    document.getElementById('sourceModal').style.display = 'flex';
+}
+
+function closeSourceModal(event) {
+    if (event.target === document.getElementById('sourceModal')) {
+        document.getElementById('sourceModal').style.display = 'none';
+    }
+}
+
+function closeSourceModalDirect() {
+    document.getElementById('sourceModal').style.display = 'none';
+}
+</script>
+{% endblock %}

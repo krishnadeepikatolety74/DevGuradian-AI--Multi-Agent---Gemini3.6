@@ -1,0 +1,928 @@
+{% extends "base.html" %}
+
+{% block title %}UI / UX Preview & Architecture — {{ project.name }}{% endblock %}
+
+{% block content %}
+<div class="dashboard-topbar">
+    <div class="dashboard-title-area">
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+            <a href="{{ url_for('projects_list') }}" style="color: var(--text-secondary); text-decoration: none; font-size: 13px;">Projects</a>
+            <span style="color: var(--border);">&sol;</span>
+            <span style="color: var(--text-secondary); font-size: 13px;">{{ project.name }}</span>
+            <span style="color: var(--border);">&sol;</span>
+            <span style="color: var(--primary); font-size: 13px; font-weight: 600;">UI &amp; UX Studio</span>
+        </div>
+        <h1 style="font-size: 22px; font-weight: 700; color: #0F172A; margin: 0 0 4px 0;">Interactive UI / UX Preview &amp; Design Architecture</h1>
+        <p style="margin: 0; font-size: 13px; color: #64748B;">Isolated viewport rendering, responsive design verification, and 15-category static UX inspection.</p>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 10px;">
+        <a href="{{ url_for('project_workspace', project_id=project.id) }}" class="btn btn-secondary btn-sm">
+            &larr; Workspace
+        </a>
+        <a href="{{ url_for('project_code_output', project_id=project.id) }}" class="btn btn-secondary btn-sm">
+            View Files
+        </a>
+        <form action="{{ url_for('run_ui_recommendations_analysis', project_id=project.id) }}" method="POST" style="display: inline;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <button type="submit" class="btn btn-primary btn-sm" title="Re-run 15-category UI/UX static audit">
+                &#9881; Run UI Audit
+            </button>
+        </form>
+    </div>
+</div>
+
+<div class="dashboard-content-body" style="padding-top: 16px;">
+    <!-- Navigation Tabs -->
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); margin-bottom: 20px; padding-bottom: 2px;">
+        <div style="display: flex; gap: 20px;">
+            <button type="button" onclick="switchMainTab('preview')" id="tab_btn_preview"
+                    style="background: none; border: none; padding: 10px 4px; font-size: 14px; font-weight: 600; cursor: pointer; color: {{ '#2563EB' if active_tab == 'preview' or active_tab not in ['recommendations', 'references'] else '#64748B' }}; border-bottom: 2px solid {{ '#2563EB' if active_tab == 'preview' or active_tab not in ['recommendations', 'references'] else 'transparent' }};">
+                &#128187; Live Viewport Studio
+            </button>
+            <button type="button" onclick="switchMainTab('recommendations')" id="tab_btn_recommendations"
+                    style="background: none; border: none; padding: 10px 4px; font-size: 14px; font-weight: 600; cursor: pointer; color: {{ '#2563EB' if active_tab == 'recommendations' else '#64748B' }}; border-bottom: 2px solid {{ '#2563EB' if active_tab == 'recommendations' else 'transparent' }};">
+                &#10024; UI / UX Recommendations
+                <span style="background: {{ '#2563EB' if active_tab == 'recommendations' else '#E2E8F0' }}; color: {{ '#FFFFFF' if active_tab == 'recommendations' else '#475569' }}; padding: 2px 7px; border-radius: 12px; font-size: 11px; margin-left: 6px;">
+                    {{ recommendations|length }}
+                </span>
+            </button>
+            <button type="button" onclick="switchMainTab('references')" id="tab_btn_references"
+                    style="background: none; border: none; padding: 10px 4px; font-size: 14px; font-weight: 600; cursor: pointer; color: {{ '#2563EB' if active_tab == 'references' else '#64748B' }}; border-bottom: 2px solid {{ '#2563EB' if active_tab == 'references' else 'transparent' }};">
+                &#128444; UI References &amp; Fidelity
+                <span style="background: {{ '#2563EB' if active_tab == 'references' else '#E2E8F0' }}; color: {{ '#FFFFFF' if active_tab == 'references' else '#475569' }}; padding: 2px 7px; border-radius: 12px; font-size: 11px; margin-left: 6px;">
+                    {{ references|length }}
+                </span>
+            </button>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 12px; font-size: 12px; color: #64748B;">
+            <span>Project: <strong>{{ project.id }}</strong></span>
+            <span>&bull;</span>
+            <span>Port: <strong style="color: #2563EB;">{{ assigned_port }}</strong></span>
+            <span>&bull;</span>
+            <span>Status:
+                {% if runtime_status and runtime_status.status == 'running' %}
+                    <span style="color: #16A34A; font-weight: 700;">&#9679; Running</span>
+                {% else %}
+                    <span style="color: #64748B;">&#9679; Stopped</span>
+                {% endif %}
+            </span>
+        </div>
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- TAB 1: LIVE VIEWPORT STUDIO (Middle Catalog + Right Live Viewport) -->
+    <!-- ================================================================= -->
+    <div id="tab_content_preview" style="display: {{ 'grid' if active_tab != 'recommendations' else 'none' }}; grid-template-columns: 310px 1fr; gap: 20px; align-items: start;">
+        
+        <!-- MIDDLE PANEL: GENERATED PAGE CATALOG -->
+        <div class="section-panel-card" style="padding: 18px; border-radius: 10px; border: 1px solid #E2E8F0; background: #FFFFFF; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <h3 style="font-size: 14px; font-weight: 700; color: #0F172A; margin: 0;">Generated Page Catalog</h3>
+                <span style="background: #F1F5F9; color: #475569; padding: 2px 8px; border-radius: 12px; font-size: 11.5px; font-weight: 600;">
+                    {{ pages|length }} Available
+                </span>
+            </div>
+
+            <!-- Search and Filter Bar -->
+            <div style="margin-bottom: 14px;">
+                <div style="position: relative; margin-bottom: 8px;">
+                    <input type="text" id="catalog_search_input" oninput="filterCatalog()" placeholder="Search templates..."
+                           style="width: 100%; box-sizing: border-box; padding: 7px 10px 7px 28px; font-size: 12.5px; border: 1px solid #CBD5E1; border-radius: 6px; background: #F8FAFC;">
+                    <span style="position: absolute; left: 9px; top: 8px; font-size: 12px; color: #94A3B8;">&#128269;</span>
+                </div>
+                
+                <div style="display: flex; gap: 6px;">
+                    <select id="catalog_category_filter" onchange="filterCatalog()"
+                            style="flex: 1; padding: 5px 8px; font-size: 11.5px; border: 1px solid #CBD5E1; border-radius: 6px; background: #FFFFFF; color: #334155;">
+                        <option value="ALL">All Categories</option>
+                        <option value="Layouts">Layouts</option>
+                        <option value="Authentication">Authentication</option>
+                        <option value="Dashboard">Dashboard</option>
+                        <option value="Forms">Forms</option>
+                        <option value="Reports">Reports</option>
+                        <option value="Other pages">Other pages</option>
+                    </select>
+
+                    <button type="button" onclick="resetCatalogFilters()" class="btn btn-secondary btn-sm" style="padding: 4px 8px; font-size: 11.5px;" title="Reset filter">
+                        Reset
+                    </button>
+                </div>
+            </div>
+
+            <!-- Page Item Groups -->
+            <div id="catalog_list_container" style="display: flex; flex-direction: column; gap: 14px; max-height: calc(100vh - 290px); overflow-y: auto; padding-right: 4px;">
+                
+                {% set categories = ["Layouts", "Authentication", "Dashboard", "Forms", "Reports", "Other pages"] %}
+                {% for cat in categories %}
+                    {% set cat_pages = pages | selectattr("category", "equalto", cat) | list %}
+                    {% if cat_pages %}
+                        <div class="catalog-group-section" data-category="{{ cat }}">
+                            <div style="font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center;">
+                                <span>{{ cat }}</span>
+                                <span style="font-size: 10px; color: #CBD5E1;">{{ cat_pages|length }}</span>
+                            </div>
+                            
+                            <div style="display: flex; flex-direction: column; gap: 4px;">
+                                {% for p in cat_pages %}
+                                    {% set is_active = (p.filename == current_page or p.slug == current_page or p.filename == 'templates/' ~ current_page) %}
+                                    <a href="{{ url_for('project_ui_preview', project_id=project.id, page=p.filename, auth=current_auth_mode) }}"
+                                       class="catalog-page-item"
+                                       data-name="{{ p.name|lower }}"
+                                       data-filename="{{ p.filename|lower }}"
+                                       data-category="{{ p.category }}"
+                                       style="display: block; padding: 8px 10px; border-radius: 6px; text-decoration: none; border: 1px solid {{ '#2563EB' if is_active else '#E2E8F0' }}; background: {{ '#EFF6FF' if is_active else '#FFFFFF' }}; transition: all 0.15s ease;">
+                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+                                            <span style="font-size: 13px; font-weight: {{ '700' if is_active else '600' }}; color: {{ '#1E40AF' if is_active else '#1E293B' }};">
+                                                {{ p.name }}
+                                            </span>
+                                            {% if is_active %}
+                                                <span style="font-size: 10.5px; background: #2563EB; color: #FFFFFF; padding: 1px 6px; border-radius: 10px; font-weight: 700;">Active</span>
+                                            {% elif not p.is_valid %}
+                                                <span style="font-size: 10.5px; background: #FEE2E2; color: #B91C1C; padding: 1px 6px; border-radius: 10px;" title="{{ p.syntax_error }}">Syntax Error</span>
+                                            {% endif %}
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #64748B;">
+                                            <span style="font-family: monospace; font-size: 10.5px;">{{ p.filename }}</span>
+                                            {% if p.dependencies %}
+                                                <span style="font-size: 10px; color: #94A3B8;">{{ p.dependencies|length }} deps</span>
+                                            {% endif %}
+                                        </div>
+                                    </a>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+
+            </div>
+        </div>
+
+        <!-- RIGHT PANEL: LIVE INTERACTIVE PREVIEW -->
+        <div class="section-panel-card" style="padding: 16px; border-radius: 10px; border: 1px solid #E2E8F0; background: #FFFFFF; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+            
+            <!-- Toolbar Bar -->
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #E2E8F0; padding-bottom: 12px; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+                
+                <!-- Viewport Controls -->
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    <span style="font-size: 12px; font-weight: 600; color: #475569; margin-right: 4px;">Device:</span>
+                    <button type="button" onclick="setDevice('desktop')" id="btn_device_desktop"
+                            class="btn btn-sm" style="font-size: 11.5px; padding: 5px 10px; background: #2563EB; color: #FFFFFF; border: 1px solid #2563EB;">
+                        &#128187; Desktop (1440&times;900)
+                    </button>
+                    <button type="button" onclick="setDevice('tablet')" id="btn_device_tablet"
+                            class="btn btn-sm btn-secondary" style="font-size: 11.5px; padding: 5px 10px;">
+                        &#128241; Tablet (768&times;1024)
+                    </button>
+                    <button type="button" onclick="setDevice('mobile')" id="btn_device_mobile"
+                            class="btn btn-sm btn-secondary" style="font-size: 11.5px; padding: 5px 10px;">
+                        &#128242; Mobile (375&times;812)
+                    </button>
+                </div>
+
+                <!-- Zoom Controls -->
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    <span style="font-size: 12px; font-weight: 600; color: #475569;">Scale:</span>
+                    <select id="preview_zoom_select" onchange="setZoom(this.value)"
+                            style="padding: 4px 8px; font-size: 11.5px; border: 1px solid #CBD5E1; border-radius: 4px; background: #FFFFFF;">
+                        <option value="fit" selected>Fit to Panel</option>
+                        <option value="1.0">100%</option>
+                        <option value="0.75">75%</option>
+                        <option value="0.5">50%</option>
+                    </select>
+                </div>
+
+                <!-- Auth Persona Toggle -->
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    <span style="font-size: 12px; font-weight: 600; color: #475569;">Context:</span>
+                    <a href="{{ url_for('project_ui_preview', project_id=project.id, page=current_page, auth='guest') }}"
+                       class="btn btn-sm {{ 'btn-primary' if current_auth_mode == 'guest' else 'btn-secondary' }}"
+                       style="padding: 4px 8px; font-size: 11.5px;" title="Preview as Unauthenticated Guest">
+                        Guest
+                    </a>
+                    <a href="{{ url_for('project_ui_preview', project_id=project.id, page=current_page, auth='authenticated') }}"
+                       class="btn btn-sm {{ 'btn-primary' if current_auth_mode == 'authenticated' else 'btn-secondary' }}"
+                       style="padding: 4px 8px; font-size: 11.5px;" title="Preview as Authenticated User">
+                        Logged In
+                    </a>
+                </div>
+
+                <!-- Action Controls -->
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    <button type="button" onclick="reloadPreview()" class="btn btn-secondary btn-sm" style="padding: 4px 8px; font-size: 11.5px;" title="Reload Iframe">
+                        &#8635; Reload
+                    </button>
+                    <button type="button" onclick="toggleFullScreen()" class="btn btn-secondary btn-sm" style="padding: 4px 8px; font-size: 11.5px;" title="Full Screen Preview">
+                        &#x26F6; Full Screen
+                    </button>
+                    <a href="{{ url_for('render_raw_preview_page', project_id=project.id, page=current_page, auth=current_auth_mode) }}" target="_blank"
+                       class="btn btn-secondary btn-sm" style="padding: 4px 8px; font-size: 11.5px;" title="Open isolated preview in new browser tab">
+                        &#8599; Full View
+                    </a>
+                </div>
+            </div>
+
+            <!-- Rendering Diagnostic Bar -->
+            <div style="display: flex; justify-content: space-between; align-items: center; background: #F8FAFC; border: 1px solid #E2E8F0; padding: 6px 12px; border-radius: 6px; margin-bottom: 12px; font-size: 12px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span id="render_status_badge" style="display: inline-flex; align-items: center; gap: 5px; font-weight: 600; color: #16A34A;">
+                        <span style="width: 7px; height: 7px; border-radius: 50%; background: #16A34A; display: inline-block;"></span>
+                        Ready
+                    </span>
+                    <span style="color: #CBD5E1;">&bull;</span>
+                    <span style="color: #64748B;">Rendering:</span>
+                    <code style="font-size: 11.5px; background: #FFFFFF; padding: 2px 6px; border: 1px solid #E2E8F0; border-radius: 4px; font-weight: 600; color: #1E293B;">
+                        {{ current_page }}
+                    </code>
+                </div>
+
+                <div style="font-size: 11.5px; color: #64748B;">
+                    Isolated Sandbox Mode &bull; Child Assets Protected
+                </div>
+            </div>
+
+            <!-- LIVE RUNTIME PROCESS CONTROLS & DIRECT PAGE NAVIGATION (MASTER PROMPT REQUIREMENT 5 & 10) -->
+            <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 12px; font-weight: 700; color: #334155;">Runtime Process:</span>
+                    {% if runtime_status and runtime_status.status == 'running' %}
+                        <span style="display: inline-flex; align-items: center; gap: 6px; background: #DCFCE7; color: #15803D; font-size: 11.5px; font-weight: 700; padding: 3px 10px; border-radius: 20px;">
+                            <span style="width: 7px; height: 7px; border-radius: 50%; background: #15803D; display: inline-block;"></span>
+                            LIVE (Port {{ assigned_port }})
+                        </span>
+                    {% else %}
+                        <span style="display: inline-flex; align-items: center; gap: 6px; background: #F1F5F9; color: #64748B; font-size: 11.5px; font-weight: 700; padding: 3px 10px; border-radius: 20px;">
+                            <span style="width: 7px; height: 7px; border-radius: 50%; background: #94A3B8; display: inline-block;"></span>
+                            STOPPED (Port {{ assigned_port }})
+                        </span>
+                    {% endif %}
+
+                    <!-- Runtime Action Buttons -->
+                    {% if runtime_status and runtime_status.status == 'running' %}
+                        <form action="{{ url_for('stop_project_application_alias', project_id=project.id) }}" method="POST" style="display: inline;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                            <button type="submit" class="btn btn-secondary btn-sm" style="padding: 3px 8px; font-size: 11.5px; color: #B91C1C;">
+                                &#9632; Stop
+                            </button>
+                        </form>
+                        <form action="{{ url_for('restart_project_application_alias', project_id=project.id) }}" method="POST" style="display: inline;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                            <button type="submit" class="btn btn-secondary btn-sm" style="padding: 3px 8px; font-size: 11.5px;">
+                                &#8635; Restart
+                            </button>
+                        </form>
+                        <a href="{{ live_url }}" target="_blank" class="btn btn-primary btn-sm" style="padding: 3px 10px; font-size: 11.5px; font-weight: 600;">
+                            &#8599; Open Live Port {{ assigned_port }}
+                        </a>
+                    {% else %}
+                        <form action="{{ url_for('run_project_application_alias', project_id=project.id) }}" method="POST" style="display: inline;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                            <button type="submit" class="btn btn-primary btn-sm" style="padding: 3px 10px; font-size: 11.5px; font-weight: 600;">
+                                &#9658; Start Application
+                            </button>
+                        </form>
+                    {% endif %}
+                </div>
+
+                <!-- Generated Project Quick Page Links (Isolated Preview) -->
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    <span style="font-size: 11.5px; color: #64748B; font-weight: 600;">Project Pages:</span>
+                    <a href="{{ url_for('project_ui_preview', project_id=project.id, page='templates/index.html', auth=current_auth_mode) }}"
+                       class="btn btn-secondary btn-sm" style="padding: 3px 8px; font-size: 11px;">
+                        Landing
+                    </a>
+                    <a href="{{ url_for('project_ui_preview', project_id=project.id, page='templates/login.html', auth='guest') }}"
+                       class="btn btn-secondary btn-sm" style="padding: 3px 8px; font-size: 11px;">
+                        Login
+                    </a>
+                    <a href="{{ url_for('project_ui_preview', project_id=project.id, page='templates/signup.html', auth='guest') }}"
+                       class="btn btn-secondary btn-sm" style="padding: 3px 8px; font-size: 11px;">
+                        Signup
+                    </a>
+                    <a href="{{ url_for('project_ui_preview', project_id=project.id, page='templates/dashboard.html', auth='authenticated') }}"
+                       class="btn btn-secondary btn-sm" style="padding: 3px 8px; font-size: 11px;">
+                        Dashboard
+                    </a>
+                </div>
+            </div>
+
+            <!-- Preview Device Canvas / Stage -->
+            <div id="preview_stage_wrapper" style="background: #F1F5F9; border: 1px solid #E2E8F0; border-radius: 8px; padding: 24px; min-height: 640px; display: flex; justify-content: center; align-items: flex-start; overflow: auto; transition: all 0.3s ease;">
+                
+                <!-- Physical Device Shell -->
+                <div id="device_frame_container" style="background: #FFFFFF; border-radius: 8px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05); border: 1px solid #CBD5E1; overflow: hidden; display: flex; flex-direction: column; transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1); width: 100%; max-width: 1440px; height: 680px; position: relative;">
+                    
+                    <!-- Simulated Browser Bar -->
+                    <div id="device_header_bar" style="background: #F8FAFC; border-bottom: 1px solid #E2E8F0; padding: 6px 12px; display: flex; align-items: center; justify-content: space-between; font-size: 11px; color: #64748B;">
+                        <div style="display: flex; gap: 5px; align-items: center;">
+                            <span style="width: 9px; height: 9px; border-radius: 50%; background: #EF4444; display: inline-block;"></span>
+                            <span style="width: 9px; height: 9px; border-radius: 50%; background: #F59E0B; display: inline-block;"></span>
+                            <span style="width: 9px; height: 9px; border-radius: 50%; background: #10B981; display: inline-block;"></span>
+                        </div>
+                        <div style="background: #FFFFFF; border: 1px solid #E2E8F0; padding: 2px 16px; border-radius: 12px; font-family: monospace; font-size: 10.5px; color: #475569; width: 50%; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                            http://127.0.0.1:{{ assigned_port }}/{{ current_page | replace('templates/', '') | replace('.html', '') }}
+                        </div>
+                        <span id="device_dimension_pill" style="font-size: 10.5px; color: #94A3B8;">1440 &times; 900</span>
+                    </div>
+
+                    <!-- Loading Spinner Overlay -->
+                    <div id="iframe_loading_indicator" style="position: absolute; inset: 32px 0 0 0; background: rgba(255,255,255,0.85); display: none; align-items: center; justify-content: center; z-index: 10;">
+                        <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                            <div style="width: 28px; height: 28px; border: 3px solid #E2E8F0; border-top-color: #2563EB; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
+                            <span style="font-size: 12px; font-weight: 600; color: #475569;">Rendering Isolated Template...</span>
+                        </div>
+                    </div>
+
+                    <!-- Isolated Sandbox Iframe -->
+                    <iframe id="preview_iframe"
+                            src="{{ url_for('render_raw_preview_page', project_id=project.id, page=current_page, auth=current_auth_mode) }}"
+                            sandbox="allow-scripts allow-forms"
+                            onload="onIframeLoaded()"
+                            style="width: 100%; height: 100%; border: none; background: #FFFFFF; flex: 1;">
+                    </iframe>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- TAB 2: 15-CATEGORY UI/UX RECOMMENDATIONS & DIAGNOSTICS             -->
+    <!-- ================================================================= -->
+    <div id="tab_content_recommendations" style="display: {{ 'block' if active_tab == 'recommendations' else 'none' }};">
+        
+        <!-- Summary Stats Cards -->
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px;">
+            <div class="section-panel-card" style="padding: 16px; border-radius: 8px;">
+                <span style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: #64748B;">Total Audit Findings</span>
+                <h2 style="font-size: 26px; font-weight: 800; color: #0F172A; margin: 4px 0 0 0;">{{ recommendations|length }}</h2>
+                <span style="font-size: 12px; color: #94A3B8;">Across 15 Design Dimensions</span>
+            </div>
+
+            <div class="section-panel-card" style="padding: 16px; border-radius: 8px;">
+                <span style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: #B91C1C;">High Priority</span>
+                <h2 style="font-size: 26px; font-weight: 800; color: #B91C1C; margin: 4px 0 0 0;">
+                    {{ recommendations | selectattr("priority", "equalto", "High") | list | length }}
+                </h2>
+                <span style="font-size: 12px; color: #64748B;">Requires Immediate Action</span>
+            </div>
+
+            <div class="section-panel-card" style="padding: 16px; border-radius: 8px;">
+                <span style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: #D97706;">Medium Priority</span>
+                <h2 style="font-size: 26px; font-weight: 800; color: #D97706; margin: 4px 0 0 0;">
+                    {{ recommendations | selectattr("priority", "equalto", "Medium") | list | length }}
+                </h2>
+                <span style="font-size: 12px; color: #64748B;">Usability &amp; Structure Improvements</span>
+            </div>
+
+            <div class="section-panel-card" style="padding: 16px; border-radius: 8px;">
+                <span style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: #16A34A;">Applied Enhancements</span>
+                <h2 style="font-size: 26px; font-weight: 800; color: #16A34A; margin: 4px 0 0 0;">
+                    {{ recommendations | selectattr("status", "equalto", "applied") | list | length }}
+                </h2>
+                <span style="font-size: 12px; color: #64748B;">Backed Up &amp; Validated</span>
+            </div>
+        </div>
+
+        <!-- Filter Controls Bar -->
+        <div style="display: flex; justify-content: space-between; align-items: center; background: #FFFFFF; border: 1px solid #E2E8F0; padding: 10px 16px; border-radius: 8px; margin-bottom: 20px;">
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <span style="font-size: 12.5px; font-weight: 600; color: #475569;">Filter By Status:</span>
+                <button type="button" onclick="filterRecommendations('ALL')" class="btn btn-sm btn-secondary rec-filter-btn active" id="rf_all">All ({{ recommendations|length }})</button>
+                <button type="button" onclick="filterRecommendations('pending')" class="btn btn-sm btn-secondary rec-filter-btn" id="rf_pending">Pending</button>
+                <button type="button" onclick="filterRecommendations('applied')" class="btn btn-sm btn-secondary rec-filter-btn" id="rf_applied">Applied</button>
+                <button type="button" onclick="filterRecommendations('dismissed')" class="btn btn-sm btn-secondary rec-filter-btn" id="rf_dismissed">Dismissed</button>
+            </div>
+
+            <form action="{{ url_for('run_ui_recommendations_analysis', project_id=project.id) }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <button type="submit" class="btn btn-primary btn-sm">
+                    &#8635; Re-Analyze Project Codebase
+                </button>
+            </form>
+        </div>
+
+        <!-- Recommendations Cards List -->
+        <div id="recommendations_container" style="display: flex; flex-direction: column; gap: 16px;">
+            {% for r in recommendations %}
+                <div class="section-panel-card recommendation-card" data-status="{{ r.status }}" style="padding: 20px; border-radius: 10px; border: 1px solid #E2E8F0; background: #FFFFFF; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                        <div>
+                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                                <span style="background: #F1F5F9; color: #334155; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; text-transform: uppercase;">
+                                    {{ r.category }}
+                                </span>
+                                
+                                {% if r.priority == 'High' %}
+                                    <span style="background: #FEE2E2; color: #B91C1C; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700;">HIGH PRIORITY</span>
+                                {% elif r.priority == 'Medium' %}
+                                    <span style="background: #FEF3C7; color: #B45309; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700;">MEDIUM</span>
+                                {% else %}
+                                    <span style="background: #F1F5F9; color: #475569; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700;">LOW</span>
+                                {% endif %}
+
+                                {% if r.status == 'applied' %}
+                                    <span style="background: #DCFCE7; color: #166534; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700;">&#10003; APPLIED</span>
+                                {% elif r.status == 'dismissed' %}
+                                    <span style="background: #F3F4F6; color: #6B7280; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700;">DISMISSED</span>
+                                {% else %}
+                                    <span style="background: #EFF6FF; color: #1D4ED8; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700;">PENDING REVIEW</span>
+                                {% endif %}
+                            </div>
+                            
+                            <h3 style="font-size: 16px; font-weight: 700; color: #0F172A; margin: 0 0 4px 0;">
+                                {{ r.title }}
+                            </h3>
+                            <p style="font-size: 13.5px; color: #475569; margin: 0 0 10px 0; line-height: 1.5;">
+                                {{ r.explanation }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Concrete Evidence & Inspection Box -->
+                    <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 6px; padding: 12px; margin-bottom: 14px; font-size: 12.5px;">
+                        <div style="margin-bottom: 6px;">
+                            <strong style="color: #0F172A;">Concrete Code Evidence:</strong>
+                            <span style="color: #334155; font-family: monospace; display: block; margin-top: 3px; background: #FFFFFF; padding: 6px 10px; border-radius: 4px; border: 1px solid #E2E8F0;">
+                                {{ r.evidence }}
+                            </span>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 8px;">
+                            <div>
+                                <strong style="color: #0F172A;">Suggested Improvement:</strong>
+                                <span style="display: block; color: #475569; margin-top: 2px;">{{ r.suggested_improvement }}</span>
+                            </div>
+                            <div>
+                                <strong style="color: #0F172A;">Expected User Benefit:</strong>
+                                <span style="display: block; color: #166534; margin-top: 2px;">{{ r.expected_benefit }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card Actions -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #F1F5F9; padding-top: 12px;">
+                        <div style="font-size: 12px; color: #64748B;">
+                            Affected File: <code style="font-weight: 600; color: #1E293B;">{{ r.affected_file }}</code>
+                        </div>
+
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <button type="button" onclick="openDiffModal('{{ r.id }}', '{{ r.title|escape }}', '{{ r.affected_file|escape }}')"
+                                    class="btn btn-secondary btn-sm" style="font-size: 12px;">
+                                &#128269; View Proposed Diff
+                            </button>
+
+                            {% if r.status != 'applied' %}
+                                <form action="{{ url_for('apply_ui_recommendation_action', project_id=project.id, rec_id=r.id) }}" method="POST" style="display: inline;">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                    <button type="submit" class="btn btn-primary btn-sm" style="font-size: 12px;">
+                                        &#10003; Apply Recommendation
+                                    </button>
+                                </form>
+                            {% endif %}
+
+                            {% if r.status != 'dismissed' %}
+                                <form action="{{ url_for('dismiss_ui_recommendation_action', project_id=project.id, rec_id=r.id) }}" method="POST" style="display: inline;">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                    <button type="submit" class="btn btn-secondary btn-sm" style="font-size: 12px; color: #94A3B8;">
+                                        Dismiss
+                                    </button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="section-panel-card empty-state-card" style="padding: 40px; text-align: center;">
+                    <h3>All Clean! No UI/UX Issues Found</h3>
+                    <p>Templates and stylesheets conform to established design standards.</p>
+                </div>
+            {% endfor %}
+        </div>
+
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- TAB 3: UI REFERENCE REPLICATION & FIDELITY AUDIT                  -->
+    <!-- ================================================================= -->
+    <div id="tab_content_references" style="display: {{ 'block' if active_tab == 'references' else 'none' }};">
+        <!-- Top Row: Upload Form & Fidelity Status -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px;">
+            <!-- Upload Box -->
+            <div class="section-panel-card" style="padding: 20px; border-radius: 10px; border: 1px solid #E2E8F0; background: #FFFFFF; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                    <span style="font-size: 16px;">&#128444;</span>
+                    <h3 style="font-size: 16px; font-weight: 700; color: #0F172A; margin: 0;">Upload UI Design Reference</h3>
+                </div>
+                <p style="font-size: 12.5px; color: #64748B; margin: 0 0 16px 0; line-height: 1.5;">
+                    Upload an application screenshot, mockup, or wireframe. DevGuardian AI extracts color schemes, layout structures, and typography to replicate the design with high fidelity.
+                </p>
+
+                <form action="{{ url_for('upload_ui_reference_image', project_id=project.id) }}" method="POST" enctype="multipart/form-data">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    
+                    <div style="margin-bottom: 12px;">
+                        <label style="display: block; font-size: 12px; font-weight: 600; color: #334155; margin-bottom: 4px;">Target Screen / Page:</label>
+                        <select name="page_name" style="width: 100%; padding: 8px 10px; font-size: 12.5px; border: 1px solid #CBD5E1; border-radius: 6px; background: #FFFFFF;">
+                            <option value="dashboard" selected>Dashboard / Main Workflows (dashboard.html)</option>
+                            <option value="login">Authentication / Login (login.html)</option>
+                            <option value="signup">Registration / Sign Up (signup.html)</option>
+                            <option value="index">Landing Page (index.html)</option>
+                            <option value="live_camera">Live Camera / Detection (live_camera.html)</option>
+                            <option value="analytics">Analytics &amp; Metrics (analytics.html)</option>
+                            <option value="reports">Reports / Invoices (reports.html)</option>
+                            <option value="custom">Custom Screen</option>
+                        </select>
+                    </div>
+
+                    <div style="margin-bottom: 16px;">
+                        <label style="display: block; font-size: 12px; font-weight: 600; color: #334155; margin-bottom: 4px;">Screenshot / Image File:</label>
+                        <input type="file" name="reference_image" accept="image/png, image/jpeg, image/jpg, image/webp" required
+                               style="width: 100%; font-size: 12px; border: 1px solid #CBD5E1; border-radius: 6px; padding: 6px; background: #F8FAFC;">
+                        <span style="font-size: 11px; color: #94A3B8; margin-top: 2px; display: block;">Supports PNG, JPG, JPEG, and WebP up to 10MB.</span>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-sm" style="width: 100%; padding: 8px 14px; font-weight: 600;">
+                        &#128394; Upload &amp; Extract Design Tokens
+                    </button>
+                </form>
+            </div>
+
+            <!-- Fidelity Status Card -->
+            <div class="section-panel-card" style="padding: 20px; border-radius: 10px; border: 1px solid #E2E8F0; background: #FFFFFF; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                    <div>
+                        <span style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: #64748B;">Evidence-Based Visual Fidelity</span>
+                        <h3 style="font-size: 16px; font-weight: 700; color: #0F172A; margin: 2px 0 0 0;">Visual Validation Gate</h3>
+                    </div>
+                    {% if ref_comp and ref_comp.has_reference and ref_comp.fidelity_score is not none %}
+                        <div style="text-align: right;">
+                            <span style="font-size: 26px; font-weight: 800; color: {{ '#16A34A' if ref_comp.fidelity_score >= 80 else '#D97706' }};">
+                                {{ ref_comp.fidelity_score }}%
+                            </span>
+                            <span style="display: block; font-size: 11px; color: #64748B;">Fidelity Score</span>
+                        </div>
+                    {% else %}
+                        <span style="background: #F1F5F9; color: #64748B; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600;">
+                            Awaiting Reference
+                        </span>
+                    {% endif %}
+                </div>
+
+                {% if ref_comp and ref_comp.has_reference %}
+                    <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 6px; padding: 12px; margin-bottom: 12px; font-size: 12px;">
+                        <strong style="color: #0F172A; display: block; margin-bottom: 4px;">Matching Visual Tokens:</strong>
+                        <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                            {% for token in ref_comp.matching_tokens %}
+                                <span style="background: #DCFCE7; color: #166534; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">
+                                    &#10003; {{ token }}
+                                </span>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    {% if ref_comp.differences %}
+                        <div style="background: #FEF3C7; border: 1px solid #FCD34D; border-radius: 6px; padding: 10px 12px; font-size: 11.5px; color: #92400E;">
+                            <strong>Honest Limitations &amp; Visual Differences:</strong>
+                            <ul style="margin: 4px 0 0 0; padding-left: 16px;">
+                                {% for diff in ref_comp.differences %}
+                                    <li>{{ diff }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% else %}
+                        <div style="background: #DCFCE7; border: 1px solid #86EFAC; border-radius: 6px; padding: 10px 12px; font-size: 11.5px; color: #166534;">
+                            &#10003; No critical visual mismatches detected against reference rules.
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div style="padding: 30px 20px; text-align: center; color: #64748B;">
+                        <span style="font-size: 32px; display: block; margin-bottom: 8px;">&#128269;</span>
+                        <p style="font-size: 13px; margin: 0 0 6px 0; font-weight: 600; color: #334155;">No Reference Comparison Yet</p>
+                        <p style="font-size: 12px; margin: 0;">Upload a UI reference image on the left to evaluate layout, color palette, and typography replication.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Preserved References Gallery -->
+        <div class="section-panel-card" style="padding: 20px; border-radius: 10px; border: 1px solid #E2E8F0; background: #FFFFFF; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h3 style="font-size: 15px; font-weight: 700; color: #0F172A; margin: 0;">
+                    Preserved Design References for {{ project.name }} ({{ references|length }})
+                </h3>
+                <span style="font-size: 12px; color: #64748B;">Stored under project repository</span>
+            </div>
+
+            {% if references %}
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px;">
+                    {% for ref in references %}
+                        <div style="border: 1px solid #E2E8F0; border-radius: 8px; overflow: hidden; background: #F8FAFC;">
+                            <div style="height: 180px; background: #0F172A; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                                <img src="/projects/{{ project.id }}/references/{{ ref.id }}/image" alt="{{ ref.page_name }}"
+                                     style="width: 100%; height: 100%; object-fit: contain; background: #1E293B;">
+                            </div>
+                            <div style="padding: 14px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                    <span style="background: #2563EB; color: #FFFFFF; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; text-transform: uppercase;">
+                                        {{ ref.page_name }}
+                                    </span>
+                                    <span style="font-size: 11px; color: #94A3B8;">{{ ref.uploaded_at[:16] if ref.uploaded_at else '' }}</span>
+                                </div>
+                                
+                                <!-- Extracted Colors -->
+                                {% if ref.analysis and ref.analysis.color_palette %}
+                                    <div style="margin-bottom: 10px;">
+                                        <span style="font-size: 11px; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Extracted Palette:</span>
+                                        <div style="display: flex; gap: 6px; align-items: center;">
+                                            {% for cname, chex in ref.analysis.color_palette.items() %}
+                                                {% if loop.index <= 5 %}
+                                                    <span title="{{ cname }}: {{ chex }}" style="width: 22px; height: 22px; border-radius: 4px; background: {{ chex }}; border: 1px solid #CBD5E1; display: inline-block;"></span>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                {% endif %}
+
+                                <!-- Extracted Layout Tokens -->
+                                {% if ref.analysis and ref.analysis.layout_structure %}
+                                    <div style="font-size: 11.5px; color: #64748B; margin-bottom: 12px; display: flex; gap: 12px;">
+                                        <span>Header: <strong>{{ 'Yes' if ref.analysis.layout_structure.has_header else 'No' }}</strong></span>
+                                        <span>Sidebar: <strong>{{ 'Yes' if ref.analysis.layout_structure.has_sidebar else 'No' }}</strong></span>
+                                        <span>Layout: <strong>{{ ref.analysis.layout_structure.column_layout }}</strong></span>
+                                    </div>
+                                {% endif %}
+
+                                <a href="{{ url_for('project_ui_preview', project_id=project.id, page='templates/' ~ ref.page_name ~ '.html') }}"
+                                   class="btn btn-secondary btn-sm" style="width: 100%; text-align: center; display: block; font-size: 11.5px;">
+                                    &#128065; Preview Matching Template
+                                </a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div style="text-align: center; padding: 40px; color: #64748B;">
+                    <span style="font-size: 36px; display: block; margin-bottom: 8px;">&#128444;</span>
+                    <h4 style="font-size: 15px; font-weight: 600; color: #334155; margin: 0 0 4px 0;">No UI References Uploaded Yet</h4>
+                    <p style="font-size: 13px; margin: 0; max-width: 480px; margin-inline: auto;">
+                        When you upload mockups or screenshots, they will be stored securely with this project and used by the UI/UX Agent during template generation and visual validation.
+                    </p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- ================================================================= -->
+<!-- MODAL: PROPOSED CODE DIFF REVIEW                                 -->
+<!-- ================================================================= -->
+<div id="diff_modal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); z-index: 1000; align-items: center; justify-content: center; padding: 24px;">
+    <div style="background: #FFFFFF; border-radius: 12px; max-width: 680px; width: 100%; max-height: 85vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);">
+        <div style="padding: 16px 20px; border-bottom: 1px solid #E2E8F0; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h3 id="diff_modal_title" style="margin: 0 0 2px 0; font-size: 16px; font-weight: 700; color: #0F172A;">Proposed Diff</h3>
+                <span id="diff_modal_file" style="font-size: 12px; color: #64748B; font-family: monospace;"></span>
+            </div>
+            <button type="button" onclick="closeDiffModal()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #94A3B8;">&times;</button>
+        </div>
+
+        <div style="padding: 20px; overflow-y: auto; flex: 1;">
+            <p style="font-size: 13px; color: #475569; margin: 0 0 12px 0;">
+                Review the exact changes that will be applied to the template. Original files are automatically backed up prior to any write.
+            </p>
+            <pre id="diff_modal_body" style="background: #0F172A; color: #F8FAFC; padding: 14px; border-radius: 6px; font-size: 12.5px; font-family: monospace; overflow-x: auto; line-height: 1.6;"></pre>
+        </div>
+
+        <div style="padding: 14px 20px; border-top: 1px solid #E2E8F0; display: flex; justify-content: flex-end; gap: 8px; background: #F8FAFC;">
+            <button type="button" onclick="closeDiffModal()" class="btn btn-secondary btn-sm">Close</button>
+            <form id="diff_modal_apply_form" method="POST" style="display: inline;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <button type="submit" class="btn btn-primary btn-sm">Confirm &amp; Apply</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+.catalog-page-item:hover {
+    border-color: #93C5FD !important;
+    background: #F8FAFC !important;
+}
+.rec-filter-btn.active {
+    background: #2563EB !important;
+    color: #FFFFFF !important;
+    border-color: #2563EB !important;
+}
+</style>
+
+<script>
+var currentDevice = 'desktop';
+var currentZoom = 'fit';
+
+function switchMainTab(tab) {
+    var pTab = document.getElementById('tab_content_preview');
+    var rTab = document.getElementById('tab_content_recommendations');
+    var refTab = document.getElementById('tab_content_references');
+    var pBtn = document.getElementById('tab_btn_preview');
+    var rBtn = document.getElementById('tab_btn_recommendations');
+    var refBtn = document.getElementById('tab_btn_references');
+
+    if (pTab) pTab.style.display = (tab === 'preview') ? 'grid' : 'none';
+    if (rTab) rTab.style.display = (tab === 'recommendations') ? 'block' : 'none';
+    if (refTab) refTab.style.display = (tab === 'references') ? 'block' : 'none';
+
+    if (pBtn) {
+        pBtn.style.color = (tab === 'preview') ? '#2563EB' : '#64748B';
+        pBtn.style.borderBottomColor = (tab === 'preview') ? '#2563EB' : 'transparent';
+    }
+    if (rBtn) {
+        rBtn.style.color = (tab === 'recommendations') ? '#2563EB' : '#64748B';
+        rBtn.style.borderBottomColor = (tab === 'recommendations') ? '#2563EB' : 'transparent';
+    }
+    if (refBtn) {
+        refBtn.style.color = (tab === 'references') ? '#2563EB' : '#64748B';
+        refBtn.style.borderBottomColor = (tab === 'references') ? '#2563EB' : 'transparent';
+    }
+}
+
+function setDevice(device) {
+    currentDevice = device;
+    var container = document.getElementById('device_frame_container');
+    var dimPill = document.getElementById('device_dimension_pill');
+    var btnDesktop = document.getElementById('btn_device_desktop');
+    var btnTablet = document.getElementById('btn_device_tablet');
+    var btnMobile = document.getElementById('btn_device_mobile');
+
+    // Reset button styles
+    [btnDesktop, btnTablet, btnMobile].forEach(function(b) {
+        b.className = 'btn btn-sm btn-secondary';
+        b.style.background = '';
+        b.style.color = '';
+        b.style.borderColor = '';
+    });
+
+    if (device === 'desktop') {
+        btnDesktop.className = 'btn btn-sm btn-primary';
+        btnDesktop.style.background = '#2563EB';
+        btnDesktop.style.color = '#FFFFFF';
+        container.style.maxWidth = '1440px';
+        container.style.width = '100%';
+        container.style.height = '680px';
+        dimPill.innerText = '1440 × 900 (Desktop)';
+    } else if (device === 'tablet') {
+        btnTablet.className = 'btn btn-sm btn-primary';
+        btnTablet.style.background = '#2563EB';
+        btnTablet.style.color = '#FFFFFF';
+        container.style.maxWidth = '768px';
+        container.style.width = '768px';
+        container.style.height = '720px';
+        dimPill.innerText = '768 × 1024 (Tablet)';
+    } else if (device === 'mobile') {
+        btnMobile.className = 'btn btn-sm btn-primary';
+        btnMobile.style.background = '#2563EB';
+        btnMobile.style.color = '#FFFFFF';
+        container.style.maxWidth = '375px';
+        container.style.width = '375px';
+        container.style.height = '700px';
+        dimPill.innerText = '375 × 812 (Mobile)';
+    }
+}
+
+function setZoom(val) {
+    currentZoom = val;
+    var iframe = document.getElementById('preview_iframe');
+    if (val === 'fit') {
+        iframe.style.transform = 'scale(1)';
+        iframe.style.transformOrigin = 'top left';
+    } else {
+        iframe.style.transform = 'scale(' + val + ')';
+        iframe.style.transformOrigin = 'top left';
+    }
+}
+
+function reloadPreview() {
+    var iframe = document.getElementById('preview_iframe');
+    var loader = document.getElementById('iframe_loading_indicator');
+    if (loader) loader.style.display = 'flex';
+    if (iframe) {
+        iframe.src = iframe.src;
+    }
+}
+
+function onIframeLoaded() {
+    var loader = document.getElementById('iframe_loading_indicator');
+    if (loader) loader.style.display = 'none';
+    var statusBadge = document.getElementById('render_status_badge');
+    if (statusBadge) {
+        statusBadge.innerHTML = '<span style="width: 7px; height: 7px; border-radius: 50%; background: #16A34A; display: inline-block;"></span> Rendered Cleanly';
+        statusBadge.style.color = '#16A34A';
+    }
+}
+
+function toggleFullScreen() {
+    var stage = document.getElementById('preview_stage_wrapper');
+    if (!document.fullscreenElement) {
+        stage.requestFullscreen().catch(function(err) {
+            alert('Could not enter fullscreen: ' + err.message);
+        });
+    } else {
+        document.exitFullscreen();
+    }
+}
+
+function filterCatalog() {
+    var q = (document.getElementById('catalog_search_input').value || '').toLowerCase();
+    var cat = document.getElementById('catalog_category_filter').value;
+    var items = document.querySelectorAll('.catalog-page-item');
+    var groups = document.querySelectorAll('.catalog-group-section');
+
+    items.forEach(function(el) {
+        var name = el.getAttribute('data-name') || '';
+        var fn = el.getAttribute('data-filename') || '';
+        var elCat = el.getAttribute('data-category') || '';
+
+        var matchesQuery = !q || name.indexOf(q) !== -1 || fn.indexOf(q) !== -1;
+        var matchesCat = (cat === 'ALL') || (elCat === cat);
+
+        if (matchesQuery && matchesCat) {
+            el.style.display = 'block';
+        } else {
+            el.style.display = 'none';
+        }
+    });
+
+    // Hide empty group headers
+    groups.forEach(function(g) {
+        var visibleChildren = g.querySelectorAll('.catalog-page-item[style*="display: block"]');
+        if (visibleChildren.length === 0) {
+            g.style.display = 'none';
+        } else {
+            g.style.display = 'block';
+        }
+    });
+}
+
+function resetCatalogFilters() {
+    document.getElementById('catalog_search_input').value = '';
+    document.getElementById('catalog_category_filter').value = 'ALL';
+    filterCatalog();
+}
+
+function filterRecommendations(status) {
+    var cards = document.querySelectorAll('.recommendation-card');
+    var btns = document.querySelectorAll('.rec-filter-btn');
+    
+    btns.forEach(function(b) { b.classList.remove('active'); });
+    var activeBtn = document.getElementById('rf_' + status.toLowerCase());
+    if (activeBtn) activeBtn.classList.add('active');
+
+    cards.forEach(function(c) {
+        var cStatus = c.getAttribute('data-status') || '';
+        if (status === 'ALL' || cStatus === status) {
+            c.style.display = 'block';
+        } else {
+            c.style.display = 'none';
+        }
+    });
+}
+
+function openDiffModal(recId, title, affectedFile) {
+    var modal = document.getElementById('diff_modal');
+    var modalTitle = document.getElementById('diff_modal_title');
+    var modalFile = document.getElementById('diff_modal_file');
+    var modalBody = document.getElementById('diff_modal_body');
+    var form = document.getElementById('diff_modal_apply_form');
+
+    modalTitle.innerText = title;
+    modalFile.innerText = affectedFile;
+    modalBody.innerText = 'Loading diff...';
+    form.action = '/projects/{{ project.id }}/ui-preview/recommendations/' + recId + '/apply';
+
+    modal.style.display = 'flex';
+
+    fetch('/projects/{{ project.id }}/ui-preview/recommendations/' + recId + '/diff')
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            if (data.success && data.diff) {
+                modalBody.innerText = data.diff;
+            } else {
+                modalBody.innerText = 'No diff available.';
+            }
+        })
+        .catch(function(err) {
+            modalBody.innerText = 'Failed to fetch diff: ' + err;
+        });
+}
+
+function closeDiffModal() {
+    document.getElementById('diff_modal').style.display = 'none';
+}
+</script>
+{% endblock %}

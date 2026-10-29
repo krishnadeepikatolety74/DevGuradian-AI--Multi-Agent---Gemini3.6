@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Reports — DevGuardian AI{% endblock %}
+
+{% block content %}
+<div class="dashboard-topbar">
+    <div class="dashboard-title-area">
+        <h1>Project Reports</h1>
+        <p>Comprehensive executive delivery reports, audit results, and downloadable PDF summaries.</p>
+    </div>
+</div>
+
+<div class="dashboard-content-body">
+    {% if projects %}
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+            {% for p in projects %}
+                <div class="section-panel-card" style="display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; gap: 20px;">
+                    <div style="display: flex; align-items: center; gap: 16px;">
+                        <div class="project-icon-box" style="width: 44px; height: 44px;">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                        </div>
+                        <div>
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 2px;">
+                                <strong style="font-size: 16px; color: var(--text-primary);">{{ p.name }}</strong>
+                                {% if p.status == 'completed' %}
+                                    <span class="badge badge-success">Report Certified</span>
+                                {% else %}
+                                    <span class="badge badge-neutral">Pipeline In Progress</span>
+                                {% endif %}
+                            </div>
+                            <span style="font-size: 13px; color: var(--text-secondary);">
+                                Project ID: <code>{{ p.id }}</code> | Last Generated: {{ str(p.updated_at)[:10] }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <a href="{{ url_for('project_report_detail', project_id=p.id) }}" class="btn btn-secondary btn-sm">
+                            View Report
+                        </a>
+                        <a href="{{ url_for('download_pdf_report', project_id=p.id) }}" class="btn btn-primary btn-sm">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                            <span>Download PDF</span>
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="section-panel-card empty-state-card">
+            <div class="empty-state-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+            </div>
+            <h3>No reports available</h3>
+            <p>Reports are generated automatically upon conclusion of the autonomous development workflow.</p>
+            <a href="{{ url_for('new_project') }}" class="btn btn-primary" style="margin-top: 8px;">
+                Start a New Project &rarr;
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

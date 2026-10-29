@@ -1,0 +1,711 @@
+<!-- ===================================================================== -->
+<!-- CUTE & RELAXING PROJECT LAUNCH POPUP MODAL (DEVGUARDIAN AI)          -->
+<!-- Soft pastel aesthetic, animated robot mascot, and authentic startup  -->
+<!-- ===================================================================== -->
+
+<div id="devguardianLaunchModal" class="launch-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="launchModalTitle">
+    <div class="launch-modal-card">
+        <!-- Ambient Pastel Glows -->
+        <div class="launch-ambient-glow top-left"></div>
+        <div class="launch-ambient-glow top-right"></div>
+        <div class="launch-ambient-glow bottom-center"></div>
+
+        <!-- Top Close Button (allowed without terminating process) -->
+        <button type="button" class="launch-close-btn" onclick="DevGuardianLauncher.closeModal()" title="Close popup (launch will continue in background)" aria-label="Close popup">
+            &times;
+        </button>
+
+        <!-- Project Badge Pill -->
+        <div class="launch-project-badge">
+            <span style="font-size: 13px;">🌸</span>
+            <span id="launchModalProjectName">Current Project</span>
+        </div>
+
+        <!-- Cute Mascot & Atmosphere SVG Illustration -->
+        <div class="launch-mascot-wrapper">
+            <svg class="launch-mascot-svg" viewBox="0 0 150 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Background Cloud Puff -->
+                <path class="launch-cloud" d="M 22 104 C 14 104 10 96 16 88 C 20 82 30 80 36 84 C 44 76 58 76 64 84 C 72 78 88 78 94 84 C 104 80 118 82 122 90 C 130 96 126 104 116 104 Z" />
+
+                <!-- Floating Twinkling Stars & Sparkles -->
+                <g class="launch-sparkles-group">
+                    <!-- Sparkle 1 (Top Left) -->
+                    <polygon class="launch-sparkle sparkle-1" points="20,12 23,20 31,23 23,26 20,34 17,26 9,23 17,20" />
+                    <!-- Sparkle 2 (Top Right) -->
+                    <polygon class="launch-sparkle sparkle-2" points="132,16 134,22 140,24 134,26 132,32 130,26 124,24 130,22" />
+                    <!-- Sparkle 3 (Bottom Left) -->
+                    <polygon class="launch-sparkle sparkle-3" points="16,68 18,72 22,74 18,76 16,80 14,76 10,74 14,72" />
+                    <!-- Sparkle 4 (Bottom Right) -->
+                    <polygon class="launch-sparkle sparkle-4" points="138,72 139,75 142,76 139,77 138,80 137,77 134,76 137,75" />
+                </g>
+
+                <!-- ROBOT MASCOT -->
+                <g id="mascotRobotGroup">
+                    <!-- Antenna Stick -->
+                    <line x1="58" y1="26" x2="58" y2="13" stroke="#A78BFA" stroke-width="3" stroke-linecap="round" />
+                    <!-- Antenna Glowing Orb -->
+                    <circle class="mascot-antenna-orb" id="mascotAntennaOrb" cx="58" cy="11" r="5.5" fill="#F472B6" />
+                    <circle cx="56.5" cy="9.5" r="1.8" fill="#FFFFFF" opacity="0.8" />
+
+                    <!-- Robot Ears -->
+                    <rect x="25" y="40" width="4" height="12" rx="2" fill="#A78BFA" />
+                    <rect x="87" y="40" width="4" height="12" rx="2" fill="#A78BFA" />
+
+                    <!-- Robot Head -->
+                    <rect x="28" y="26" width="60" height="42" rx="16" fill="#EDE9FE" stroke="#C4B5FD" stroke-width="2" />
+                    
+                    <!-- Head Visor -->
+                    <rect x="34" y="32" width="48" height="28" rx="11" fill="#1E1B4B" />
+
+                    <!-- Digital Glowing Eyes (Loading State: Happy curved eyes) -->
+                    <g id="mascotEyesHappy">
+                        <path d="M 40 46 Q 46 39 52 46" stroke="#38BDF8" stroke-width="3" stroke-linecap="round" fill="none" />
+                        <path d="M 64 46 Q 70 39 76 46" stroke="#38BDF8" stroke-width="3" stroke-linecap="round" fill="none" />
+                    </g>
+                    <!-- Digital Eyes (Celebration State: Star eyes) -->
+                    <g id="mascotEyesCelebrate" style="display: none;">
+                        <polygon points="46,38 48,43 53,44 49,47 50,52 46,49 42,52 43,47 39,44 44,43" fill="#F472B6" />
+                        <polygon points="70,38 72,43 77,44 73,47 74,52 70,49 66,52 67,47 63,44 68,43" fill="#F472B6" />
+                    </g>
+                    <!-- Digital Eyes (Support/Failure State: Caring round eyes) -->
+                    <g id="mascotEyesCaring" style="display: none;">
+                        <circle cx="46" cy="46" r="4.5" fill="#A78BFA" />
+                        <circle cx="47.5" cy="44.5" r="1.5" fill="#FFFFFF" />
+                        <circle cx="70" cy="46" r="4.5" fill="#A78BFA" />
+                        <circle cx="71.5" cy="44.5" r="1.5" fill="#FFFFFF" />
+                    </g>
+
+                    <!-- Blush Cheeks -->
+                    <circle cx="39" cy="53" r="3.5" fill="#F472B6" opacity="0.65" />
+                    <circle cx="77" cy="53" r="3.5" fill="#F472B6" opacity="0.65" />
+
+                    <!-- Friendly Smile -->
+                    <path id="mascotMouth" d="M 55 53 Q 58 56 61 53" stroke="#A78BFA" stroke-width="2" stroke-linecap="round" fill="none" />
+
+                    <!-- Robot Body Chassis -->
+                    <path d="M 37 68 Q 37 66 42 66 L 74 66 Q 79 66 79 68 L 83 91 Q 83 95 78 95 L 38 95 Q 33 95 33 91 Z" fill="#DDD6FE" stroke="#C4B5FD" stroke-width="2" />
+                    
+                    <!-- Chest Monitor with soft glowing Heart LED -->
+                    <rect x="47" y="73" width="22" height="14" rx="4" fill="#1E1B4B" />
+                    <path id="mascotChestIcon" d="M 58 78 Q 55 75 53 78 Q 51 81 58 85 Q 65 81 63 78 Q 61 75 58 78 Z" fill="#EC4899" />
+
+                    <!-- Left Arm resting -->
+                    <path d="M 34 72 Q 27 80 32 88" stroke="#C4B5FD" stroke-width="3.5" stroke-linecap="round" fill="none" />
+                </g>
+
+                <!-- LAPTOP BESIDE ROBOT -->
+                <g id="mascotLaptopGroup">
+                    <!-- Screen Lid (Open at angle) -->
+                    <rect x="88" y="60" width="36" height="25" rx="4" fill="#C4B5FD" stroke="#8B5CF6" stroke-width="1.5" transform="rotate(-6 88 60)" />
+                    <!-- Screen Display -->
+                    <rect x="91" y="63" width="30" height="19" rx="2.5" fill="#1E1B4B" transform="rotate(-6 91 63)" />
+                    
+                    <!-- Code Lines (Typing animation) -->
+                    <line class="laptop-code-line" x1="94" y1="69" x2="110" y2="67" stroke="#38BDF8" stroke-width="1.8" stroke-linecap="round" />
+                    <line class="laptop-code-line" x1="94" y1="73" x2="116" y2="71" stroke="#F472B6" stroke-width="1.8" stroke-linecap="round" style="animation-delay: 0.3s;" />
+                    <line class="laptop-code-line" x1="94" y1="77" x2="106" y2="75" stroke="#34D399" stroke-width="1.8" stroke-linecap="round" style="animation-delay: 0.6s;" />
+
+                    <!-- Laptop Keyboard Base -->
+                    <polygon points="82,91 126,87 131,95 80,97" fill="#DDD6FE" stroke="#A78BFA" stroke-width="1.2" />
+                    <rect x="98" y="91" width="12" height="3" rx="1" fill="#C4B5FD" transform="rotate(-5 98 91)" />
+
+                    <!-- Right Arm typing on keyboard -->
+                    <path d="M 78 74 Q 88 78 93 88" stroke="#C4B5FD" stroke-width="3.5" stroke-linecap="round" fill="none" />
+                </g>
+            </svg>
+        </div>
+
+        <!-- Heading & Subtitle -->
+        <h2 class="launch-title" id="launchModalTitle">Getting Your Project Ready! ✨</h2>
+        <p class="launch-subtitle" id="launchModalSubtitle">Just a little moment… we're preparing your workspace.</p>
+
+        <!-- Progress Indicator -->
+        <div class="launch-progress-container" id="launchProgressContainer">
+            <div class="launch-progress-track">
+                <div class="launch-progress-bar" id="launchProgressBar"></div>
+            </div>
+        </div>
+
+        <!-- Animated Status Messages -->
+        <div class="launch-status-wrapper" id="launchStatusWrapper">
+            <div class="launch-status-title">
+                <span id="launchStatusMessage">Waking up your project…</span>
+                <span class="launch-dots" id="launchDots"><span>.</span><span>.</span><span>.</span></span>
+            </div>
+            <div class="launch-status-detail" id="launchStatusDetail">Validating workspace and runtime environment</div>
+        </div>
+
+        <!-- SUCCESS VIEW CARD -->
+        <div class="launch-success-card" id="launchSuccessCard">
+            <div class="launch-success-row">
+                <span style="color: var(--launch-text-muted); font-weight: 500;">Project:</span>
+                <strong id="launchSuccessProjectNameText" style="color: var(--launch-text-primary);">-</strong>
+            </div>
+            <div class="launch-success-row">
+                <span style="color: var(--launch-text-muted); font-weight: 500;">Runtime URL:</span>
+                <a id="launchPreviewUrlLink" href="#" target="_blank" class="launch-url-link">
+                    <span id="launchPreviewUrlText">http://127.0.0.1:5050</span>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                </a>
+            </div>
+            <div class="launch-success-row">
+                <span style="color: var(--launch-text-muted); font-weight: 500;">Server Port:</span>
+                <span class="badge badge-success" id="launchPortBadge" style="font-family: monospace; font-size: 11.5px; padding: 2px 8px;">Port 5050</span>
+            </div>
+            <div class="launch-success-row">
+                <span style="color: var(--launch-text-muted); font-weight: 500;">Status:</span>
+                <span style="color: #10B981; font-weight: 700; font-size: 12.5px; display: inline-flex; align-items: center; gap: 5px;">
+                    <span style="width: 7px; height: 7px; border-radius: 50%; background: #10B981; display: inline-block;"></span>
+                    Running &amp; Verified Healthy
+                </span>
+            </div>
+        </div>
+
+        <!-- FAILURE VIEW CARD -->
+        <div class="launch-failure-card" id="launchFailureCard">
+            <div class="launch-failure-message" id="launchFailureMessage">
+                An issue was encountered while starting your application subprocess.
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
+                <span style="font-size: 11px; color: #B91C1C; font-weight: 600;">Startup Error Details</span>
+                <button type="button" onclick="DevGuardianLauncher.toggleLogs()" style="background: none; border: none; font-size: 11.5px; color: #7C3AED; cursor: pointer; text-decoration: underline;">
+                    <span id="launchLogsToggleLabel">Show Logs</span>
+                </button>
+            </div>
+            <div class="launch-logs-box" id="launchLogsBox"></div>
+        </div>
+
+        <!-- Action Button Toolbar -->
+        <div class="launch-actions">
+            <!-- Loading State Actions -->
+            <button type="button" class="launch-btn-ghost" id="launchDismissBtn" onclick="DevGuardianLauncher.closeModal()">
+                Run in background
+            </button>
+
+            <!-- Success State Actions -->
+            <a href="#" target="_blank" class="launch-btn-primary" id="launchOpenPreviewBtn" style="display: none;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                Open Project Preview
+            </a>
+            <button type="button" class="launch-btn-secondary" id="launchViewLogsBtn" style="display: none;" onclick="DevGuardianLauncher.toggleLogs()">
+                View Logs
+            </button>
+            <button type="button" class="launch-btn-ghost" id="launchDoneBtn" style="display: none;" onclick="DevGuardianLauncher.closeModal()">
+                Done
+            </button>
+
+            <!-- Failure State Actions -->
+            <a href="/login" class="launch-btn-primary" id="launchLoginBtn" style="display: none;">
+                Sign In to Continue &rarr;
+            </a>
+            <button type="button" class="launch-btn-primary" id="launchRetryBtn" style="display: none;" onclick="DevGuardianLauncher.retryLaunch()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+                Retry Launch
+            </button>
+            <button type="button" class="launch-btn-secondary" id="launchIdeBtn" style="display: none;" onclick="DevGuardianLauncher.openInIde()">
+                Open in VS Code
+            </button>
+        </div>
+
+        <small class="launch-background-note" id="launchBackgroundNote">
+            Closing this popup will not stop your running server.
+        </small>
+    </div>
+</div>
+
+<script>
+/**
+ * DevGuardian AI — Project Launcher Controller
+ * Manages modal animations, real-time SSE progress, success/failure transitions,
+ * and seamless fallback to JSON API.
+ */
+window.DevGuardianLauncher = (function() {
+    let currentProjectId = null;
+    let currentProjectName = null;
+    let eventSource = null;
+    let activeLocalUrl = null;
+    let isLaunching = false;
+    let lastErrorLogs = "";
+
+    // DOM Elements Cache
+    function getElements() {
+        return {
+            modal: document.getElementById("devguardianLaunchModal"),
+            projectName: document.getElementById("launchModalProjectName"),
+            title: document.getElementById("launchModalTitle"),
+            subtitle: document.getElementById("launchModalSubtitle"),
+            progressBar: document.getElementById("launchProgressBar"),
+            statusMessage: document.getElementById("launchStatusMessage"),
+            statusDetail: document.getElementById("launchStatusDetail"),
+            statusWrapper: document.getElementById("launchStatusWrapper"),
+            progressContainer: document.getElementById("launchProgressContainer"),
+            dots: document.getElementById("launchDots"),
+            successCard: document.getElementById("launchSuccessCard"),
+            failureCard: document.getElementById("launchFailureCard"),
+            failureMessage: document.getElementById("launchFailureMessage"),
+            logsBox: document.getElementById("launchLogsBox"),
+            logsToggleLabel: document.getElementById("launchLogsToggleLabel"),
+            successProjectName: document.getElementById("launchSuccessProjectNameText"),
+            previewUrlLink: document.getElementById("launchPreviewUrlLink"),
+            previewUrlText: document.getElementById("launchPreviewUrlText"),
+            portBadge: document.getElementById("launchPortBadge"),
+            // Mascot parts
+            mascotOrb: document.getElementById("mascotAntennaOrb"),
+            eyesHappy: document.getElementById("mascotEyesHappy"),
+            eyesCelebrate: document.getElementById("mascotEyesCelebrate"),
+            eyesCaring: document.getElementById("mascotEyesCaring"),
+            chestIcon: document.getElementById("mascotChestIcon"),
+            // Buttons
+            btnDismiss: document.getElementById("launchDismissBtn"),
+            btnOpenPreview: document.getElementById("launchOpenPreviewBtn"),
+            btnViewLogs: document.getElementById("launchViewLogsBtn"),
+            btnDone: document.getElementById("launchDoneBtn"),
+            btnLogin: document.getElementById("launchLoginBtn"),
+            btnRetry: document.getElementById("launchRetryBtn"),
+            btnIde: document.getElementById("launchIdeBtn"),
+            backgroundNote: document.getElementById("launchBackgroundNote")
+        };
+    }
+
+    function setMascotState(state) {
+        const els = getElements();
+        if (!els.eyesHappy) return;
+
+        els.eyesHappy.style.display = "none";
+        els.eyesCelebrate.style.display = "none";
+        els.eyesCaring.style.display = "none";
+
+        if (state === "celebrate") {
+            els.eyesCelebrate.style.display = "block";
+            if (els.mascotOrb) els.mascotOrb.setAttribute("fill", "#10B981");
+            if (els.chestIcon) els.chestIcon.setAttribute("fill", "#10B981");
+        } else if (state === "caring") {
+            els.eyesCaring.style.display = "block";
+            if (els.mascotOrb) els.mascotOrb.setAttribute("fill", "#A78BFA");
+            if (els.chestIcon) els.chestIcon.setAttribute("fill", "#A78BFA");
+        } else {
+            // Default loading / happy
+            els.eyesHappy.style.display = "block";
+            if (els.mascotOrb) els.mascotOrb.setAttribute("fill", "#F472B6");
+            if (els.chestIcon) els.chestIcon.setAttribute("fill", "#EC4899");
+        }
+    }
+
+    function resetModal(projectName) {
+        const els = getElements();
+        currentProjectName = projectName || "Project";
+        if (els.projectName) els.projectName.textContent = currentProjectName;
+        if (els.title) els.title.textContent = "Getting Your Project Ready! ✨";
+        if (els.subtitle) els.subtitle.textContent = "Just a little moment… we're preparing your workspace.";
+
+        if (els.progressBar) {
+            els.progressBar.className = "launch-progress-bar";
+            els.progressBar.style.width = "15%";
+        }
+
+        if (els.statusMessage) els.statusMessage.textContent = "Waking up your project…";
+        if (els.statusDetail) els.statusDetail.textContent = "Validating workspace and runtime environment";
+        if (els.statusWrapper) els.statusWrapper.style.display = "flex";
+        if (els.progressContainer) els.progressContainer.style.display = "block";
+        if (els.dots) els.dots.style.display = "inline-block";
+
+        if (els.successCard) els.successCard.style.display = "none";
+        if (els.failureCard) els.failureCard.style.display = "none";
+        if (els.logsBox) els.logsBox.style.display = "none";
+
+        // Button visibility reset
+        if (els.btnDismiss) els.btnDismiss.style.display = "inline-block";
+        if (els.btnOpenPreview) els.btnOpenPreview.style.display = "none";
+        if (els.btnViewLogs) els.btnViewLogs.style.display = "none";
+        if (els.btnDone) els.btnDone.style.display = "none";
+        if (els.btnLogin) els.btnLogin.style.display = "none";
+        if (els.btnRetry) els.btnRetry.style.display = "none";
+        if (els.btnIde) els.btnIde.style.display = "none";
+        if (els.backgroundNote) els.backgroundNote.style.display = "block";
+
+        setMascotState("loading");
+    }
+
+    function openModal(projectId, projectName) {
+        currentProjectId = projectId;
+        currentProjectName = projectName;
+        resetModal(projectName);
+        const els = getElements();
+        if (els.modal) els.modal.classList.add("active");
+    }
+
+    function closeModal() {
+        if (eventSource) {
+            eventSource.close();
+            eventSource = null;
+        }
+        isLaunching = false;
+        const els = getElements();
+        if (els.modal) els.modal.classList.remove("active");
+    }
+
+    function updateStep(data) {
+        const els = getElements();
+        const percent = data.percent || 15;
+        if (els.progressBar) {
+            els.progressBar.style.width = `${percent}%`;
+        }
+        if (els.statusMessage) {
+            els.statusMessage.textContent = data.message || "Working on your project…";
+        }
+        if (els.statusDetail) {
+            els.statusDetail.textContent = data.detail || "";
+        }
+        if (data.project_name && els.projectName) {
+            els.projectName.textContent = data.project_name;
+        }
+    }
+
+    function showSuccess(data) {
+        isLaunching = false;
+        if (eventSource) {
+            eventSource.close();
+            eventSource = null;
+        }
+        const els = getElements();
+        setMascotState("celebrate");
+
+        activeLocalUrl = data.local_url || "http://127.0.0.1:5050";
+        lastErrorLogs = data.logs || "";
+
+        if (els.title) els.title.textContent = "Yay! Your Project Is Ready! 🎉";
+        if (els.subtitle) els.subtitle.textContent = "Everything is up and running. Your workspace is ready to explore.";
+        if (els.statusWrapper) els.statusWrapper.style.display = "none";
+        if (els.progressContainer) els.progressContainer.style.display = "none";
+
+        if (els.successCard) els.successCard.style.display = "block";
+        if (els.successProjectName) els.successProjectName.textContent = data.project_name || currentProjectName;
+        if (els.previewUrlText) els.previewUrlText.textContent = activeLocalUrl;
+        if (els.previewUrlLink) els.previewUrlLink.href = activeLocalUrl;
+        if (els.portBadge) els.portBadge.textContent = `Port ${data.port || 5050}`;
+
+        // Buttons
+        if (els.btnDismiss) els.btnDismiss.style.display = "none";
+        if (els.btnOpenPreview) {
+            els.btnOpenPreview.style.display = "inline-flex";
+            els.btnOpenPreview.href = activeLocalUrl;
+        }
+        if (els.btnViewLogs) els.btnViewLogs.style.display = "inline-flex";
+        if (els.btnDone) els.btnDone.style.display = "inline-flex";
+        if (els.backgroundNote) els.backgroundNote.style.display = "none";
+
+        // Dispatch custom event for workspace UI auto-refresh
+        window.dispatchEvent(new CustomEvent("devguardian:project-started", {
+            detail: { projectId: currentProjectId, localUrl: activeLocalUrl, port: data.port }
+        }));
+    }
+
+    function showFailure(data) {
+        isLaunching = false;
+        if (eventSource) {
+            eventSource.close();
+            eventSource = null;
+        }
+        const els = getElements();
+        setMascotState("caring");
+
+        lastErrorLogs = data.logs || data.last_error || data.error || "";
+
+        const isAuthError = Boolean(
+            data.is_auth_error ||
+            (data.error && (data.error.code === "UNAUTHORIZED" || data.error.code === "AUTHENTICATION_REQUIRED" || data.error.code === "SESSION_EXPIRED")) ||
+            (data.message && (data.message.includes("session has expired") || data.message.includes("signed in") || data.message.includes("sign in") || data.message.includes("log in")))
+        );
+
+        if (isAuthError) {
+            if (els.title) els.title.textContent = "Please Sign In to Continue 💜";
+            if (els.subtitle) els.subtitle.textContent = "Your session expired. Please sign in to launch your workspace.";
+            if (els.btnLogin) {
+                const nextTarget = currentProjectId ? `/projects/${currentProjectId}/workspace` : "/dashboard";
+                const loginHref = data.login_url || (data.error && data.error.login_url) || `/login?next=${encodeURIComponent(nextTarget)}`;
+                els.btnLogin.href = loginHref;
+                els.btnLogin.style.display = "inline-flex";
+            }
+            if (els.btnRetry) els.btnRetry.style.display = "none";
+            if (els.btnIde) els.btnIde.style.display = "none";
+        } else {
+            if (els.title) els.title.textContent = "Oops! Let's Fix This. 💜";
+            if (els.subtitle) els.subtitle.textContent = "We encountered a startup issue while booting your project.";
+            if (els.btnLogin) els.btnLogin.style.display = "none";
+            if (els.btnRetry) els.btnRetry.style.display = "inline-flex";
+            if (els.btnIde) els.btnIde.style.display = "inline-flex";
+        }
+
+        if (els.statusWrapper) els.statusWrapper.style.display = "none";
+        if (els.progressContainer) els.progressContainer.style.display = "none";
+
+        if (els.failureCard) els.failureCard.style.display = "block";
+        if (els.failureMessage) {
+            els.failureMessage.textContent = data.message || "Application process failed to start or verify HTTP reachability.";
+        }
+        if (els.logsBox) {
+            els.logsBox.textContent = lastErrorLogs || "No logs recorded.";
+            els.logsBox.style.display = "none";
+        }
+        if (els.logsToggleLabel) els.logsToggleLabel.textContent = "Show Logs";
+
+        // Common buttons
+        if (els.btnDismiss) els.btnDismiss.style.display = "none";
+        if (els.btnDone) els.btnDone.style.display = "inline-flex";
+        if (els.backgroundNote) els.backgroundNote.style.display = "none";
+    }
+
+    function toggleLogs() {
+        const els = getElements();
+        if (!els.logsBox) return;
+        if (els.logsBox.style.display === "none" || !els.logsBox.style.display) {
+            els.logsBox.style.display = "block";
+            els.logsBox.textContent = lastErrorLogs || "No log entries recorded.";
+            if (els.logsToggleLabel) els.logsToggleLabel.textContent = "Hide Logs";
+        } else {
+            els.logsBox.style.display = "none";
+            if (els.logsToggleLabel) els.logsToggleLabel.textContent = "Show Logs";
+        }
+    }
+
+    function openInIde() {
+        if (!currentProjectId) return;
+        fetch(`/projects/${currentProjectId}/ide/launch`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: "ide_key=vscode"
+        }).then(() => {
+            alert("Workspace opened in development environment.");
+        }).catch(e => console.warn(e));
+    }
+
+    function startLaunch(projectId, projectName) {
+        if (isLaunching) return;
+        isLaunching = true;
+        currentProjectId = projectId;
+        currentProjectName = projectName;
+
+        openModal(projectId, projectName);
+
+        // Disable any Run Project buttons across the page while launching
+        document.querySelectorAll(".btn-run-project, [data-run-project-btn]").forEach(btn => {
+            btn.classList.add("disabled");
+            btn.setAttribute("disabled", "true");
+        });
+
+        // Use Server-Sent Events for authentic real-time progress stream
+        try {
+            if (window.EventSource) {
+                eventSource = new EventSource(`/projects/${projectId}/run-project-stream`);
+                eventSource.onmessage = function(event) {
+                    try {
+                        const data = JSON.parse(event.data);
+                        if (data.stage === "ready") {
+                            showSuccess(data);
+                            enableRunButtons();
+                        } else if (data.stage === "failed") {
+                            showFailure(data);
+                            enableRunButtons();
+                        } else {
+                            updateStep(data);
+                        }
+                    } catch (err) {
+                        console.warn("SSE parse error:", err);
+                    }
+                };
+                eventSource.onerror = function() {
+                    if (eventSource) {
+                        eventSource.close();
+                        eventSource = null;
+                    }
+                    // Fall back to standard JSON POST only if launch is still actively pending
+                    if (isLaunching) {
+                        fallbackJsonLaunch(projectId);
+                    }
+                };
+            } else {
+                fallbackJsonLaunch(projectId);
+            }
+        } catch (e) {
+            fallbackJsonLaunch(projectId);
+        }
+    }
+
+    function fallbackJsonLaunch(projectId) {
+        if (!isLaunching) return;
+
+        const csrfToken = document.querySelector("input[name='csrf_token']")?.value 
+            || (document.querySelector("meta[name='csrf-token']")?.getAttribute("content")) || "";
+        const formData = new FormData();
+        if (csrfToken) formData.append("csrf_token", csrfToken);
+
+        fetch(`/projects/${projectId}/run-project`, {
+            method: "POST",
+            credentials: "same-origin",
+            headers: {
+                "Accept": "application/json",
+                "X-Requested-With": "XMLHttpRequest",
+                "X-CSRFToken": csrfToken
+            },
+            body: formData
+        })
+        .then(async res => {
+            const contentType = res.headers.get("content-type") || "";
+            const isJson = contentType.includes("application/json");
+
+            if (!isJson) {
+                // Non-JSON response (e.g. unexpected HTML error or login redirect)
+                let textBody = "";
+                try {
+                    textBody = await res.text();
+                } catch (e) {
+                    textBody = "";
+                }
+                console.error(`[ProjectLauncher] Expected JSON but received ${contentType} (HTTP ${res.status}) from /projects/${projectId}/run-project:`, textBody.substring(0, 300));
+
+                let isAuthError = res.status === 401 || textBody.includes("login");
+                let friendlyMsg = `Server returned unexpected HTML response (HTTP ${res.status}).`;
+                if (res.status === 401 || res.status === 302 || textBody.includes("login")) {
+                    friendlyMsg = "Your session has expired or you are not signed in. Please sign in again.";
+                    isAuthError = true;
+                } else if (res.status === 403) {
+                    friendlyMsg = "Access denied: session token expired or insufficient permissions.";
+                } else if (res.status === 404) {
+                    friendlyMsg = "The project startup endpoint could not be found (404).";
+                } else if (res.status >= 500) {
+                    friendlyMsg = `Server encountered an internal error while starting project (HTTP ${res.status}).`;
+                }
+
+                showFailure({
+                    status: "failed",
+                    message: friendlyMsg,
+                    is_auth_error: isAuthError,
+                    login_url: `/login?next=${encodeURIComponent(`/projects/${projectId}/workspace`)}`,
+                    error: {
+                        code: isAuthError ? "UNAUTHORIZED" : "UNEXPECTED_HTML_RESPONSE",
+                        message: friendlyMsg
+                    },
+                    logs: `HTTP Status: ${res.status} ${res.statusText}\nEndpoint: /projects/${projectId}/run-project\nContent-Type: ${contentType}`
+                });
+                enableRunButtons();
+                return;
+            }
+
+            let data;
+            try {
+                data = await res.json();
+            } catch (jsonErr) {
+                console.error("[ProjectLauncher] JSON parse error despite JSON content-type:", jsonErr);
+                showFailure({
+                    status: "failed",
+                    message: `Could not parse server response as JSON: ${jsonErr.message}`,
+                    error: { code: "JSON_PARSE_ERROR", message: jsonErr.message },
+                    logs: jsonErr.stack || jsonErr.message
+                });
+                enableRunButtons();
+                return;
+            }
+
+            if (res.ok && data.success) {
+                showSuccess(data);
+            } else {
+                const errMsg = (data.error && data.error.message) || data.message || "The application could not be started.";
+                const isAuth = res.status === 401 || (data.error && (data.error.code === "UNAUTHORIZED" || data.error.code === "AUTHENTICATION_REQUIRED" || data.error.code === "SESSION_EXPIRED"));
+                showFailure({
+                    status: data.status || "failed",
+                    message: errMsg,
+                    is_auth_error: isAuth,
+                    login_url: data.login_url || (data.error && data.error.login_url),
+                    error: data.error || { code: isAuth ? "UNAUTHORIZED" : "PROJECT_STARTUP_FAILED", message: errMsg },
+                    logs: data.logs || data.last_error || errMsg,
+                    port: data.port,
+                    local_url: data.local_url
+                });
+            }
+            enableRunButtons();
+        })
+        .catch(err => {
+            console.error("[ProjectLauncher] Network connection error:", err);
+            showFailure({
+                status: "failed",
+                message: `Connection error: ${err.message}`,
+                error: { code: "NETWORK_ERROR", message: err.message },
+                logs: err.stack || err.message
+            });
+            enableRunButtons();
+        });
+    }
+
+    function enableRunButtons() {
+        document.querySelectorAll(".btn-run-project, [data-run-project-btn]").forEach(btn => {
+            btn.classList.remove("disabled");
+            btn.removeAttribute("disabled");
+        });
+    }
+
+    function retryLaunch() {
+        if (currentProjectId) {
+            startLaunch(currentProjectId, currentProjectName);
+        }
+    }
+
+    // Keyboard support: Escape key closes modal if not currently launching
+    document.addEventListener("keydown", function(e) {
+        if (e.key === "Escape") {
+            const els = getElements();
+            if (els.modal && els.modal.classList.contains("active")) {
+                closeModal();
+            }
+        }
+    });
+
+    // Auto-bind click handler on all Run Project forms & buttons on page load
+    document.addEventListener("DOMContentLoaded", function() {
+        // Handle all forms submitting to run_project_app_action
+        document.querySelectorAll("form").forEach(form => {
+            const action = form.getAttribute("action") || "";
+            if (action.includes("run-project") || action.includes("run_project_app_action")) {
+                form.addEventListener("submit", function(e) {
+                    e.preventDefault();
+                    // Extract project_id from action URL /projects/<id>/run-project
+                    const match = action.match(/\/projects\/([^\/]+)\/run-project/);
+                    if (match && match[1]) {
+                        const pid = match[1];
+                        // Try to find project name from button or card
+                        const submitBtn = form.querySelector("button[type='submit']");
+                        const pname = (submitBtn && submitBtn.getAttribute("data-project-name")) 
+                            || document.querySelector(".dashboard-title-area h1")?.textContent?.trim()
+                            || "DevGuardian Project";
+                        startLaunch(pid, pname);
+                    } else {
+                        form.submit();
+                    }
+                });
+            }
+        });
+
+        // Handle buttons with class .btn-run-project
+        document.querySelectorAll(".btn-run-project").forEach(btn => {
+            btn.addEventListener("click", function(e) {
+                e.preventDefault();
+                const pid = btn.getAttribute("data-project-id");
+                const pname = btn.getAttribute("data-project-name") || "Project";
+                if (pid) {
+                    startLaunch(pid, pname);
+                }
+            });
+        });
+    });
+
+    return {
+        openModal: openModal,
+        closeModal: closeModal,
+        startLaunch: startLaunch,
+        retryLaunch: retryLaunch,
+        toggleLogs: toggleLogs,
+        openInIde: openInIde
+    };
+})();
+</script>

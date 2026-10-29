@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Profile — DevGuardian AI{% endblock %}
+
+{% block content %}
+<div class="dashboard-topbar">
+    <div class="dashboard-title-area">
+        <h1>User Profile</h1>
+        <p>Manage your account credentials and personal preferences.</p>
+    </div>
+</div>
+
+<div class="dashboard-content-body">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; max-width: 900px;">
+        <!-- Account Overview Card -->
+        <div class="section-panel-card">
+            <h2 style="font-size: 16px; margin-bottom: 20px;">Account Details</h2>
+            
+            <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px;">
+                <div class="user-avatar-circle" style="width: 56px; height: 56px; font-size: 20px;">
+                    {{ user.full_name[:1]|upper }}
+                </div>
+                <div>
+                    <h3 style="font-size: 17px; margin-bottom: 2px;">{{ user.full_name }}</h3>
+                    <span class="badge badge-neutral">{{ user.role }}</span>
+                </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 12px; font-size: 13.5px;">
+                <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
+                    <span style="color: var(--text-secondary);">Email</span>
+                    <span style="font-weight: 500;">{{ user.email }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
+                    <span style="color: var(--text-secondary);">Member Since</span>
+                    <span style="font-weight: 500;">{{ str(user.created_at)[:10] }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="color: var(--text-secondary);">Projects Created</span>
+                    <span style="font-weight: 600;">{{ total_projects }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Change Password Form -->
+        <div class="section-panel-card">
+            <h2 style="font-size: 16px; margin-bottom: 16px;">Security & Password</h2>
+            
+            <form action="{{ url_for('update_password') }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+                <div class="form-group">
+                    <label for="current_password">Current Password</label>
+                    <input type="password" id="current_password" name="current_password" class="form-control form-control-no-icon" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="new_password">New Password</label>
+                    <input type="password" id="new_password" name="new_password" class="form-control form-control-no-icon" placeholder="Minimum 6 characters" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirm_new_password">Confirm New Password</label>
+                    <input type="password" id="confirm_new_password" name="confirm_new_password" class="form-control form-control-no-icon" required>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 8px;">
+                    Update Password
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

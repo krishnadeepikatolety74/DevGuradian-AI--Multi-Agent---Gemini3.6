@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}{{ project.name }} — Overview — DevGuardian AI{% endblock %}
+
+{% block content %}
+<div class="dashboard-topbar">
+    <div class="dashboard-title-area">
+        <a href="{{ url_for('projects_list') }}" style="font-size: 13px; color: var(--text-secondary); display: inline-flex; align-items: center; gap: 6px; margin-bottom: 8px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            <span>Back to Projects</span>
+        </a>
+        <h1>{{ project.name }}</h1>
+        <p>Project ID: <code>{{ project.id }}</code></p>
+    </div>
+
+    <div style="display: flex; gap: 10px;">
+        <a href="{{ url_for('project_workspace', project_id=project.id) }}" class="btn btn-primary">
+            Open Workspace &rarr;
+        </a>
+    </div>
+</div>
+
+<div class="dashboard-content-body">
+    <div class="section-panel-card" style="margin-bottom: 24px;">
+        <h2 style="font-size: 16px; margin-bottom: 8px;">Project Scope & Prompt</h2>
+        <p style="font-size: 14px; line-height: 1.6; color: var(--text-primary);">
+            {{ project.description }}
+        </p>
+
+        <div style="display: flex; gap: 24px; margin-top: 16px; font-size: 13px; color: var(--text-secondary); border-top: 1px solid var(--border); padding-top: 16px;">
+            <div><strong>Type:</strong> {{ project.app_type }}</div>
+            <div><strong>Language:</strong> {{ project.language }}</div>
+            <div><strong>Stage:</strong> {{ project.current_stage|capitalize }}</div>
+            <div><strong>Status:</strong> {{ project.status|capitalize }}</div>
+        </div>
+    </div>
+
+    <!-- Agent Workspace Stages Grid -->
+    <h2 style="font-size: 18px; margin-bottom: 16px;">Agent Modules & Outputs</h2>
+    <div class="agents-grid">
+        <a href="{{ url_for('project_workspace', project_id=project.id) }}" class="agent-card">
+            <span class="agent-order-badge">1-2</span>
+            <div class="agent-card-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+            </div>
+            <h3>Requirements & Architecture</h3>
+            <p>View functional specifications, system topology, and database schemas.</p>
+            <div class="agent-card-footer">
+                <span class="badge badge-neutral">Stage 1 & 2</span>
+                <span style="font-weight: 600;">View &rarr;</span>
+            </div>
+        </a>
+
+        <a href="{{ url_for('project_code_output', project_id=project.id) }}" class="agent-card">
+            <span class="agent-order-badge">3</span>
+            <div class="agent-card-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+            </div>
+            <h3>Coding Workspace</h3>
+            <p>Inspect generated files, syntax validation status, and download ZIP.</p>
+            <div class="agent-card-footer">
+                <span class="badge badge-neutral">Stage 3</span>
+                <span style="font-weight: 600;">View &rarr;</span>
+            </div>
+        </a>
+
+        <a href="{{ url_for('project_testing_results', project_id=project.id) }}" class="agent-card">
+            <span class="agent-order-badge">4</span>
+            <div class="agent-card-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2"></path></svg>
+            </div>
+            <h3>Testing Results</h3>
+            <p>Isolated sandbox unittest execution metrics and output logs.</p>
+            <div class="agent-card-footer">
+                <span class="badge badge-neutral">Stage 4</span>
+                <span style="font-weight: 600;">View &rarr;</span>
+            </div>
+        </a>
+
+        <a href="{{ url_for('project_security_results', project_id=project.id) }}" class="agent-card">
+            <span class="agent-order-badge">5</span>
+            <div class="agent-card-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+            </div>
+            <h3>Security Audit</h3>
+            <p>Static AST vulnerability scan, SQL injection, and secret token checks.</p>
+            <div class="agent-card-footer">
+                <span class="badge badge-neutral">Stage 5</span>
+                <span style="font-weight: 600;">View &rarr;</span>
+            </div>
+        </a>
+
+        <a href="{{ url_for('project_code_review', project_id=project.id) }}" class="agent-card">
+            <span class="agent-order-badge">6</span>
+            <div class="agent-card-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="9 15 11 17 15 13"></polyline></svg>
+            </div>
+            <h3>Code Review</h3>
+            <p>Maintainability index, code standards evaluation, and recommendations.</p>
+            <div class="agent-card-footer">
+                <span class="badge badge-neutral">Stage 6</span>
+                <span style="font-weight: 600;">View &rarr;</span>
+            </div>
+        </a>
+
+        <a href="{{ url_for('project_deployment', project_id=project.id) }}" class="agent-card">
+            <span class="agent-order-badge">7</span>
+            <div class="agent-card-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>
+            </div>
+            <h3>Deployment Preparation</h3>
+            <p>Multi-stage Dockerfile, compose config, and environment checklists.</p>
+            <div class="agent-card-footer">
+                <span class="badge badge-neutral">Stage 7</span>
+                <span style="font-weight: 600;">View &rarr;</span>
+            </div>
+        </a>
+
+        <a href="{{ url_for('project_report_detail', project_id=project.id) }}" class="agent-card">
+            <span class="agent-order-badge">8</span>
+            <div class="agent-card-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+            </div>
+            <h3>Final Executive Report</h3>
+            <p>Consolidated delivery summary and downloadable ReportLab PDF.</p>
+            <div class="agent-card-footer">
+                <span class="badge badge-neutral">Stage 8</span>
+                <span style="font-weight: 600;">View &rarr;</span>
+            </div>
+        </a>
+    </div>
+</div>
+{% endblock %}

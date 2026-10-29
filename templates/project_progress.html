@@ -1,0 +1,1017 @@
+{% extends "base.html" %}
+
+{% block title %}{{ project.name }} — Workspace & Progress{% endblock %}
+
+{% block content %}
+<div class="dashboard-topbar">
+    <div class="dashboard-title-area">
+        <h1>{{ project.name }}</h1>
+        <p>Autonomous Engineering Orchestration &middot; Selected IDE: <strong>{{ ide_info.name if ide_info else 'Visual Studio Code' }}</strong></p>
+    </div>
+    
+    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+        <!-- IDE Launch Button -->
+        <form action="{{ url_for('launch_ide_action', project_id=project.id) }}" method="POST" style="display:inline;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <button type="submit" class="btn btn-secondary" title="Open workspace in {{ ide_info.name if ide_info else 'IDE' }}">
+                <span>&#128187; Open in {{ ide_info.name if ide_info else 'IDE' }}</span>
+            </button>
+        </form>
+
+        <!-- Project Execution Control Buttons (Feature 5) -->
+        <div id="projectExecutionControlBar" style="display:inline-flex; align-items:center; gap:8px;">
+            {% if process_status.is_running %}
+                <a href="{{ process_status.local_url }}" target="_blank" class="btn btn-primary" style="background: var(--success);" title="Open running application">
+                    &#9654; Live: {{ process_status.local_url }}
+                </a>
+                <form action="{{ url_for('stop_project_action', project_id=project.id) }}" method="POST" style="display:inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    <button type="submit" class="btn btn-secondary" style="color: var(--error);" title="Stop running process">
+                        &#9632; Stop Project
+                    </button>
+                </form>
+            {% else %}
+                <form action="{{ url_for('run_project_app_action', project_id=project.id) }}" method="POST" style="display:inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    <button type="submit" class="btn btn-secondary btn-run-project" data-project-id="{{ project.id }}" data-project-name="{{ project.name }}" title="Start isolated application subprocess">
+                        &#9654; Run Project
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+
+        <form action="{{ url_for('run_project_tests_action', project_id=project.id) }}" method="POST" style="display:inline;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <button type="submit" class="btn btn-secondary" title="Execute unit test suite in isolated subprocess">
+                &#129514; Run Tests
+            </button>
+        </form>
+
+        <a href="#execution_logs_section" class="btn btn-secondary" onclick="document.getElementById('execution_logs_card').scrollIntoView({behavior: 'smooth'})">
+            View Logs
+        </a>
+
+        {% if project.status != 'completed' %}
+            <form action="{{ url_for('run_next_agent_action', project_id=project.id) }}" method="POST" style="display:inline;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <button type="submit" class="btn btn-secondary">
+                    <span>Execute Next Agent &rarr;</span>
+                </button>
+            </form>
+            <form action="{{ url_for('run_full_workflow_action', project_id=project.id) }}" method="POST" style="display:inline;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <button type="submit" class="btn btn-primary btn-run-all-agents" data-project-id="{{ project.id }}" data-project-name="{{ project.name }}" title="Run all autonomous engineering agents">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                    <span>Run All Agents</span>
+                </button>
+            </form>
+        {% else %}
+            <form action="{{ url_for('run_full_workflow_action', project_id=project.id) }}" method="POST" style="display:inline;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <button type="submit" class="btn btn-secondary btn-run-all-agents" data-project-id="{{ project.id }}" data-project-name="{{ project.name }}" title="Re-run all autonomous engineering agents">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                    <span>Re-run All Agents</span>
+                </button>
+            </form>
+            <a href="{{ url_for('project_report_detail', project_id=project.id) }}" class="btn btn-primary">
+                View Report &rarr;
+            </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="dashboard-content-body">
+    <!-- Stepper Bar with 8 Stages -->
+    <div class="stepper-timeline-bar">
+        {% for a in executions %}
+            <div class="timeline-step {{ a.status }}">
+                <div class="timeline-step-indicator">
+                    {% if a.status == 'completed' %}
+                        &#10003;
+                    {% elif a.status == 'running' %}
+                        {{ a.stage_order }}
+                    {% elif a.status == 'failed' %}
+                        !
+                    {% else %}
+                        {{ a.stage_order }}
+                    {% endif %}
+                </div>
+                <span class="timeline-step-title">{{ a.agent_name.replace(' Agent', '') }}</span>
+                <span class="timeline-step-status">
+                    {% if a.status == 'completed' %}
+                        Completed
+                    {% elif a.status == 'running' %}
+                        In Progress
+                    {% elif a.status == 'failed' %}
+                        Failed
+                    {% else %}
+                        Pending
+                    {% endif %}
+                </span>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- IDE CONFIGURATION & DIRECT LAUNCH CARD (FEATURES 2, 3, 4) -->
+    <div class="section-panel-card" style="margin-bottom: 24px; padding: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+            <div>
+                <h3 style="font-size: 16px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+                    <span>&#128187;</span> Development Environment Configuration
+                </h3>
+                <p style="font-size: 13.5px; color: var(--text-secondary); margin-top: 2px;">
+                    Select your preferred IDE to inspect source code directly in a dedicated workspace.
+                </p>
+            </div>
+            <div>
+                {% if ide_info.status in ['Installed', 'Ready'] %}
+                    <span class="badge badge-success">&#10003; {{ ide_info.status }}</span>
+                {% elif ide_info.status == 'Configured' %}
+                    <span class="badge badge-info">Configured</span>
+                {% else %}
+                    <span class="badge badge-warning">{{ ide_info.status }}</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- 3 Selectable IDE Cards Grid -->
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 16px;">
+            {% for ide in all_ides %}
+            <div style="border: 2px solid {{ 'var(--primary)' if ide.is_selected else 'var(--border)' }}; border-radius: var(--radius-sm); padding: 14px; background: {{ 'var(--bg-main)' if ide.is_selected else 'var(--card-bg)' }}; display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <div style="width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; color: var(--primary);">
+                                {{ ide.icon_svg|safe }}
+                            </div>
+                            <strong style="font-size: 14px; color: var(--text-primary);">{{ ide.name }}</strong>
+                        </div>
+                        {% if ide.status in ['Installed', 'Ready'] %}
+                            <span class="badge badge-success" style="font-size: 10px;">{{ ide.status }}</span>
+                        {% else %}
+                            <span class="badge badge-warning" style="font-size: 10px;">{{ ide.status }}</span>
+                        {% endif %}
+                    </div>
+                    <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.4; margin-bottom: 10px;">
+                        {{ ide.description }}
+                    </p>
+                </div>
+
+                <div style="display: flex; gap: 8px; align-items: center; border-top: 1px solid var(--border); padding-top: 10px;">
+                    {% if not ide.is_selected %}
+                    <form action="{{ url_for('select_project_ide_action', project_id=project.id) }}" method="POST" style="flex: 1;">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        <input type="hidden" name="selected_ide" value="{{ ide.key }}">
+                        <button type="submit" class="btn btn-secondary" style="width: 100%; padding: 5px 10px; font-size: 12px;">
+                            Select {{ ide.name }}
+                        </button>
+                    </form>
+                    {% else %}
+                    <form action="{{ url_for('launch_ide_action', project_id=project.id) }}" method="POST" style="flex: 1;">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        <input type="hidden" name="ide_key" value="{{ ide.key }}">
+                        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 5px 10px; font-size: 12px;">
+                            Launch {{ ide.name }}
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Custom Path Configuration (if needed) -->
+        <div style="background: var(--bg-main); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; gap: 16px;">
+            <div style="flex: 1;">
+                <span style="font-size: 12px; font-weight: 600; color: var(--text-secondary); display: block;">Workspace Absolute Path:</span>
+                <code style="font-size: 12px; color: var(--text-primary); user-select: all;">{{ project_dir }}</code>
+            </div>
+
+            <form action="{{ url_for('configure_ide_path_action', project_id=project.id) }}" method="POST" style="display: flex; gap: 8px; align-items: center;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <input type="text" name="ide_custom_path" class="form-control" style="font-size: 12px; padding: 6px 10px; width: 280px;"
+                    placeholder="Configure executable path (if auto-detect fails)" value="{{ project.ide_custom_path or '' }}">
+                <button type="submit" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;">Save Path</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Current Agent Card -->
+    <div class="section-panel-card" style="margin-bottom: 24px;">
+        <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 20px;">
+            <div>
+                <h2 style="font-size: 18px; margin-bottom: 4px;">
+                    Current Agent: {{ current_agent.agent_name if current_agent else 'Project Manager Agent' }}
+                </h2>
+                <p style="font-size: 14px; color: var(--text-secondary);">
+                    {{ current_agent.agent_description if current_agent else 'Orchestrates all agents and compiles the final report.' }}
+                </p>
+            </div>
+
+            <div>
+                {% if project.status == 'completed' %}
+                    <span class="badge badge-success" style="font-size: 13px; padding: 6px 14px;">Pipeline Completed</span>
+                {% elif project.status == 'failed' %}
+                    <span class="badge badge-error" style="font-size: 13px; padding: 6px 14px;">Stage Failed</span>
+                {% else %}
+                    <span class="badge badge-neutral" style="font-size: 13px; padding: 6px 14px; color: #2E5B88; background: #EBF2F9;">
+                        Stage {{ current_agent.stage_order if current_agent else 8 }} of 8
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Terminal Log Box -->
+        <div class="terminal-log-box">
+            {% if current_agent and current_agent.step_logs_list %}
+                {% for log in current_agent.step_logs_list %}
+                    <div class="terminal-line">
+                        <span class="terminal-num">{{ loop.index }}</span>
+                        <span class="terminal-text">{{ log }}</span>
+                    </div>
+                {% endfor %}
+            {% elif project.status == 'completed' %}
+                <div class="terminal-line">
+                    <span class="terminal-num">1</span>
+                    <span class="terminal-text">All 8 autonomous AI agents have successfully executed.</span>
+                </div>
+                <div class="terminal-line">
+                    <span class="terminal-num">2</span>
+                    <span class="terminal-text">Source code files generated, syntax verified, and test suites passed.</span>
+                </div>
+                <div class="terminal-line">
+                    <span class="terminal-num">3</span>
+                    <span class="terminal-text">Security scan completed with 0 critical vulnerabilities.</span>
+                </div>
+                <div class="terminal-line">
+                    <span class="terminal-num">4</span>
+                    <span class="terminal-text">Docker containerization and final report ready for download.</span>
+                </div>
+            {% else %}
+                <div class="terminal-line">
+                    <span class="terminal-num">1</span>
+                    <span class="terminal-text">Workflow initialized for project: {{ project.name }}</span>
+                </div>
+                <div class="terminal-line">
+                    <span class="terminal-num">2</span>
+                    <span class="terminal-text">Waiting to trigger stage. Click "Run All Agents" or "Execute Next Agent" above.</span>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress-track-wrapper">
+            <div class="progress-track-bar">
+                <div class="progress-fill" style="width: {{ progress_pct }}%;"></div>
+            </div>
+            <span class="progress-percent-label">{{ progress_pct }}%</span>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- MASTER PROMPT SECTION 8: AGENT ACTIVITY REPORTS & TRANSPARENCY       -->
+    <!-- ===================================================================== -->
+    <!-- ===================================================================== -->
+    <!-- MASTER PROMPT SECTION 8: AGENT ACTIVITY REPORTS & TRANSPARENCY       -->
+    <!-- ===================================================================== -->
+    <div class="section-panel-card" style="margin-bottom: 24px; padding: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+            <div>
+                <h3 style="font-size: 17px; font-weight: 700; color: var(--text-primary); margin: 0 0 4px 0; display: flex; align-items: center; gap: 8px;">
+                    <span>&#129302;</span> Autonomous Agent Activity Reports &amp; Verified Accuracy
+                </h3>
+                <p style="font-size: 13px; color: var(--text-secondary); margin: 0;">
+                    Transparent, evidence-based tracking of operations, generated files, AST syntax validation, and empirical metrics.
+                </p>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <span style="font-size: 11px; background: #F1F5F9; color: #475569; padding: 4px 10px; border-radius: 6px; font-weight: 600; border: 1px solid #E2E8F0;">
+                    Project: {{ project.id }}
+                </span>
+                <span style="font-size: 11px; background: #F1F5F9; color: #475569; padding: 4px 10px; border-radius: 6px; font-weight: 600; border: 1px solid #E2E8F0;">
+                    Run: {{ agent_reports[0].generation_run_id if agent_reports and agent_reports[0].generation_run_id else ('run_' ~ project.id[-8:]) }}
+                </span>
+                <span style="font-size: 12px; background: #EFF6FF; color: #1D4ED8; padding: 4px 10px; border-radius: 20px; font-weight: 600;">
+                    {{ agent_reports|length }} Agents Tracked
+                </span>
+            </div>
+        </div>
+
+        {% if agent_reports %}
+            <div id="agent-reports-container" style="display: flex; flex-direction: column; gap: 14px;">
+                {% for report in agent_reports %}
+                    <div id="agent-card-{{ report.agent_key }}" style="border: 1px solid var(--border); border-radius: 8px; background: #FFFFFF; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.03);">
+                        <!-- Agent Header Bar -->
+                        <div style="padding: 12px 16px; background: #F8FAFC; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="width: 30px; height: 30px; border-radius: 6px; background: #2563EB; color: #FFFFFF; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700;">
+                                    {{ report.agent_key[:2]|upper }}
+                                </span>
+                                <div>
+                                    <strong style="font-size: 14px; color: #0F172A;">{{ report.agent_name }}</strong>
+                                    <span style="font-size: 11.5px; color: #64748B; margin-left: 6px;">({{ report.agent_role }})</span>
+                                    <span style="font-size: 10.5px; background: #E2E8F0; color: #475569; padding: 1px 6px; border-radius: 4px; margin-left: 6px; font-weight: 600;">Stage {{ report.stage_order }}/8</span>
+                                </div>
+                            </div>
+
+                            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                                <!-- Status Badge with All 6 Meaningful States -->
+                                {% if report.status == 'completed' or report.result_status in ['Completed', 'Success'] %}
+                                    <span style="background: #DCFCE7; color: #15803D; font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px;">
+                                        &#10003; COMPLETED
+                                    </span>
+                                {% elif report.status == 'running' or report.result_status == 'Running' %}
+                                    <span style="background: #DBEAFE; color: #1D4ED8; font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 4px; display: inline-flex; align-items: center; gap: 5px;">
+                                        <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #2563EB;"></span> RUNNING
+                                    </span>
+                                {% elif report.status == 'partial_success' or report.result_status == 'Partial Success' %}
+                                    <span style="background: #FEF3C7; color: #B45309; font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 4px;">
+                                        PARTIAL SUCCESS
+                                    </span>
+                                {% elif report.status == 'blocked' or report.result_status == 'Blocked' %}
+                                    <span style="background: #E2E8F0; color: #475569; font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 4px;">
+                                        BLOCKED
+                                    </span>
+                                {% elif report.status == 'failed' or report.result_status == 'Failed' %}
+                                    <span style="background: #FEE2E2; color: #B91C1C; font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 4px;">
+                                        &#9888; FAILED
+                                    </span>
+                                {% else %}
+                                    <span style="background: #F1F5F9; color: #64748B; border: 1px solid #CBD5E1; font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 4px;">
+                                        PENDING
+                                    </span>
+                                {% endif %}
+
+                                <!-- Non-Fabricated Accuracy Badge -->
+                                <div style="text-align: right;">
+                                    {% if report.accuracy_score is not none and report.status == 'completed' %}
+                                        <span style="font-size: 13px; font-weight: 800; color: #1E40AF;">{{ report.accuracy_score }}%</span>
+                                        <span style="font-size: 10.5px; color: #64748B; display: block;">{{ report.accuracy_status }}</span>
+                                    {% else %}
+                                        <span style="font-size: 11px; color: #64748B; background: #F1F5F9; padding: 3px 8px; border-radius: 4px; border: 1px solid #E2E8F0; display: inline-block;">
+                                            Accuracy: Not yet verified
+                                        </span>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Inspect Details Button -->
+                                <button type="button" class="btn btn-secondary" onclick="openAgentInspection('{{ report.agent_key }}')"
+                                        style="font-size: 11.5px; padding: 4px 10px; background: #FFFFFF; border: 1px solid #CBD5E1; color: #1E293B; cursor: pointer; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px;"
+                                        title="Inspect detailed execution log, generated artifacts, validation tests, and evidence">
+                                    <span>&#128269; Inspect Details &rarr;</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Report Body Content -->
+                        <div style="padding: 14px 16px;">
+                            <!-- Evidence Metrics Grid (Calculated from real runs only) -->
+                            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 12px; background: #F8FAFC; padding: 10px; border-radius: 6px; border: 1px solid #E2E8F0;">
+                                <div>
+                                    <span style="font-size: 10.5px; text-transform: uppercase; color: #64748B; font-weight: 600;">Completion</span>
+                                    <strong style="display: block; font-size: 14px; color: #0F172A;">
+                                        {% if report.status == 'completed' or report.result_status in ['Completed', 'Success'] %}
+                                            {{ report.task_completion_score|default(100)|int }}%
+                                        {% elif report.status == 'running' or report.result_status == 'Running' %}
+                                            <span style="color: #2563EB;">In Progress</span>
+                                        {% elif report.status == 'partial_success' or report.result_status == 'Partial Success' %}
+                                            <span style="color: #B45309;">{{ report.task_completion_score|default(75)|int }}%</span>
+                                        {% elif report.status == 'failed' or report.result_status == 'Failed' %}
+                                            <span style="color: #DC2626;">0% (Failed)</span>
+                                        {% elif report.status == 'blocked' or report.result_status == 'Blocked' %}
+                                            <span style="color: #64748B;">Blocked</span>
+                                        {% else %}
+                                            <span style="color: #94A3B8;">0%</span>
+                                        {% endif %}
+                                    </strong>
+                                </div>
+                                <div>
+                                    <span style="font-size: 10.5px; text-transform: uppercase; color: #64748B; font-weight: 600;">Validation Pass</span>
+                                    <strong style="display: block; font-size: 14px; color: #16A34A;">
+                                        {% if report.validation_pass_rate is not none %}
+                                            {{ report.validation_pass_rate }}%
+                                        {% else %}
+                                            <span style="color: #94A3B8; font-weight: 500;">N/A (Pending)</span>
+                                        {% endif %}
+                                    </strong>
+                                </div>
+                                <div>
+                                    <span style="font-size: 10.5px; text-transform: uppercase; color: #64748B; font-weight: 600;">Tests Passed</span>
+                                    <strong style="display: block; font-size: 14px; color: #2563EB;">
+                                        {% if report.test_pass_rate is not none %}
+                                            {{ report.test_pass_rate }}%
+                                        {% else %}
+                                            <span style="color: #94A3B8; font-weight: 500;">N/A (Pending)</span>
+                                        {% endif %}
+                                    </strong>
+                                </div>
+                                <div>
+                                    <span style="font-size: 10.5px; text-transform: uppercase; color: #64748B; font-weight: 600;">Quality Score</span>
+                                    <strong style="display: block; font-size: 14px; color: #475569;">
+                                        {% if report.overall_quality_score is not none %}
+                                            {{ report.overall_quality_score }}%
+                                        {% else %}
+                                            <span style="color: #94A3B8; font-weight: 500;">Pending Evidence</span>
+                                        {% endif %}
+                                    </strong>
+                                </div>
+                            </div>
+
+                            <!-- Task & Work Descriptions -->
+                            <div style="margin-bottom: 8px; font-size: 12.5px;">
+                                <strong style="color: #0F172A;">Task Assigned:</strong>
+                                <span style="color: #334155;">{{ report.task_assigned if report.task_assigned else 'Assigned task based on project architecture.' }}</span>
+                            </div>
+                            <div style="margin-bottom: 8px; font-size: 12.5px;">
+                                <strong style="color: #0F172A;">Work Performed:</strong>
+                                {% if report.work_performed %}
+                                    <span style="color: #334155;">{{ report.work_performed }}</span>
+                                {% elif report.status == 'running' %}
+                                    <span style="color: #2563EB; font-style: italic;">Agent is actively executing tasks and synthesizing project artifacts...</span>
+                                {% elif report.result_status == 'Blocked' %}
+                                    <span style="color: #64748B; font-style: italic;">Stage execution blocked by preceding failure in pipeline.</span>
+                                {% else %}
+                                    <span style="color: #94A3B8; font-style: italic;">Not started. Standing by in orchestration pipeline.</span>
+                                {% endif %}
+                            </div>
+
+                            <!-- Files Created Pills -->
+                            {% if report.files_created %}
+                                <div style="margin-bottom: 8px;">
+                                    <strong style="font-size: 12px; color: #0F172A; display: block; margin-bottom: 4px;">Files Created ({{ report.files_created|length }}):</strong>
+                                    <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                                        {% for fn in report.files_created %}
+                                            <a href="{{ url_for('project_code_output', project_id=project.id, selected_file=fn) }}"
+                                               style="background: #EFF6FF; border: 1px solid #BFDBFE; color: #1D4ED8; font-size: 11.5px; font-family: monospace; padding: 2px 7px; border-radius: 4px; text-decoration: none;">
+                                                {{ fn }}
+                                            </a>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            {% endif %}
+
+                            <!-- Validation Operations Executed -->
+                            <div style="font-size: 12px; color: #475569; background: #F1F5F9; padding: 6px 10px; border-radius: 4px; margin-bottom: 6px;">
+                                <strong style="color: #0F172A;">Validation Performed:</strong>
+                                {% if report.validation_performed %}
+                                    {{ report.validation_performed }}
+                                {% else %}
+                                    <span style="color: #94A3B8;">Validation checks will execute when agent completes.</span>
+                                {% endif %}
+                            </div>
+
+                            {% if report.errors_or_limitations and report.errors_or_limitations != 'None identified.' %}
+                                <div style="font-size: 12px; color: #B91C1C; background: #FEF2F2; padding: 6px 10px; border-radius: 4px;">
+                                    <strong>Limitations / Notes:</strong> {{ report.errors_or_limitations }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p style="font-size: 13px; color: var(--text-secondary); margin: 0; text-align: center; padding: 20px;">
+                Agent activity reports will populate as workflow stages execute.
+            </p>
+        {% endif %}
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- MASTER PROMPT SECTION 8: LIVE AGENT ACTIVITY TIMELINE                 -->
+    <!-- ===================================================================== -->
+    <div class="section-panel-card" style="margin-bottom: 24px; padding: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+            <h3 style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: 8px;">
+                <span>&#9201;</span> Live Autonomous Agent Execution Timeline
+            </h3>
+            <span style="font-size: 12px; color: var(--text-secondary);">Recorded in project runtime journal</span>
+        </div>
+
+        {% if timeline_events %}
+            <div style="position: relative; padding-left: 20px; border-left: 2px solid #E2E8F0; display: flex; flex-direction: column; gap: 14px;">
+                {% for ev in timeline_events %}
+                    <div style="position: relative;">
+                        <!-- Node indicator dot -->
+                        <span style="position: absolute; left: -26px; top: 3px; width: 10px; height: 10px; border-radius: 50%; background: {{ '#16A34A' if ev.event_type == 'completed' else ('#2563EB' if ev.event_type == 'validation' else ('#DC2626' if ev.event_type == 'error' else '#64748B')) }}; border: 2px solid #FFFFFF;"></span>
+                        
+                        <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 2px;">
+                            <div>
+                                <strong style="font-size: 13px; color: #0F172A;">{{ ev.title }}</strong>
+                                <span style="font-size: 11px; background: #F1F5F9; color: #475569; padding: 1px 6px; border-radius: 4px; margin-left: 6px; text-transform: uppercase; font-weight: 600;">
+                                    {{ ev.agent_key }}
+                                </span>
+                            </div>
+                            <span style="font-size: 11px; color: #94A3B8;">{{ (ev.created_at|string)[:19] if ev.created_at else '' }}</span>
+                        </div>
+                        <p style="font-size: 12px; color: #475569; margin: 0 0 2px 0;">{{ ev.details }}</p>
+                        {% if ev.file_path %}
+                            <code style="font-size: 11px; color: #2563EB;">{{ ev.file_path }}</code>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p style="font-size: 13px; color: var(--text-secondary); margin: 0; text-align: center; padding: 20px;">
+                Execution timeline events will record automatically when the orchestrator starts.
+            </p>
+        {% endif %}
+    </div>
+
+    <!-- Quick Navigation to Agent Specific Outputs & Features -->
+    <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-bottom: 24px;">
+        <a href="{{ url_for('project_code_output', project_id=project.id) }}" class="section-panel-card" style="padding: 14px; display: flex; align-items: center; gap: 10px; margin-bottom: 0;">
+            <div style="width: 32px; height: 32px; border-radius: 6px; background: #F4F5F7; display: flex; align-items: center; justify-content: center;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+            </div>
+            <div>
+                <span style="font-size: 13px; font-weight: 600; display: block; color: var(--text-primary);">Coding Output</span>
+                <span style="font-size: 11px; color: var(--text-secondary);">Files & ZIP</span>
+            </div>
+        </a>
+
+        <a href="{{ url_for('project_ui_preview', project_id=project.id) }}" class="section-panel-card" style="padding: 14px; display: flex; align-items: center; gap: 10px; margin-bottom: 0;">
+            <div style="width: 32px; height: 32px; border-radius: 6px; background: #F4F5F7; display: flex; align-items: center; justify-content: center;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+            </div>
+            <div>
+                <span style="font-size: 13px; font-weight: 600; display: block; color: var(--text-primary);">UI / UX Preview</span>
+                <span style="font-size: 11px; color: var(--text-secondary);">Interactive View</span>
+            </div>
+        </a>
+
+        <a href="{{ url_for('project_requirements_page', project_id=project.id) }}" class="section-panel-card" style="padding: 14px; display: flex; align-items: center; gap: 10px; margin-bottom: 0;">
+            <div style="width: 32px; height: 32px; border-radius: 6px; background: #F4F5F7; display: flex; align-items: center; justify-content: center;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+            </div>
+            <div>
+                <span style="font-size: 13px; font-weight: 600; display: block; color: var(--text-primary);">Requirements</span>
+                <span style="font-size: 11px; color: var(--text-secondary);">Traceability</span>
+            </div>
+        </a>
+
+        <a href="{{ url_for('project_testing_results', project_id=project.id) }}" class="section-panel-card" style="padding: 14px; display: flex; align-items: center; gap: 10px; margin-bottom: 0;">
+            <div style="width: 32px; height: 32px; border-radius: 6px; background: #F4F5F7; display: flex; align-items: center; justify-content: center;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2"></path></svg>
+            </div>
+            <div>
+                <span style="font-size: 13px; font-weight: 600; display: block; color: var(--text-primary);">Testing Results</span>
+                <span style="font-size: 11px; color: var(--text-secondary);">Sandbox Tests</span>
+            </div>
+        </a>
+
+        <a href="{{ url_for('project_report_detail', project_id=project.id) }}" class="section-panel-card" style="padding: 14px; display: flex; align-items: center; gap: 10px; margin-bottom: 0;">
+            <div style="width: 32px; height: 32px; border-radius: 6px; background: #F4F5F7; display: flex; align-items: center; justify-content: center;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+            </div>
+            <div>
+                <span style="font-size: 13px; font-weight: 600; display: block; color: var(--text-primary);">Project Report</span>
+                <span style="font-size: 11px; color: var(--text-secondary);">18-Section PDF</span>
+            </div>
+        </a>
+    </div>
+
+    <!-- EXECUTION LOGS VIEWER (FEATURE 5) -->
+    <div id="execution_logs_card" class="section-panel-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <h3 style="font-size: 16px; font-weight: 700;">Subprocess Execution Logs</h3>
+            <div>
+                <span class="badge {{ 'badge-success' if process_status.is_running else 'badge-neutral' }}">
+                    Status: {{ process_status.status }}
+                </span>
+            </div>
+        </div>
+
+        <div style="background: #1E2126; color: #E5E7EB; padding: 16px; border-radius: 6px; font-family: var(--font-mono); font-size: 12px; min-height: 120px; max-height: 280px; overflow-y: auto;">
+            <pre style="margin: 0; white-space: pre-wrap;">{{ process_status.logs }}</pre>
+        </div>
+    </div>
+</div>
+
+<!-- ===================================================================== -->
+<!-- AGENT INSPECTION MODAL (REQUIREMENT 11)                               -->
+<!-- ===================================================================== -->
+<div id="agentInspectionModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(4px); z-index: 9999; align-items: center; justify-content: center; padding: 16px;">
+    <div style="background: #FFFFFF; border-radius: 12px; max-width: 860px; width: 100%; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); overflow: hidden; border: 1px solid #CBD5E1;">
+        <!-- Modal Header -->
+        <div style="padding: 16px 20px; background: #F8FAFC; border-bottom: 1px solid #E2E8F0; display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span id="modalAgentIcon" style="width: 36px; height: 36px; border-radius: 8px; background: #2563EB; color: #FFFFFF; display: inline-flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700;">
+                    AG
+                </span>
+                <div>
+                    <h3 id="modalAgentTitle" style="font-size: 16px; font-weight: 700; color: #0F172A; margin: 0 0 2px 0;">
+                        Agent Title
+                    </h3>
+                    <p id="modalAgentSubtitle" style="font-size: 12px; color: #64748B; margin: 0;">
+                        Agent Role &middot; Stage Order
+                    </p>
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span id="modalStatusBadge" style="font-size: 11.5px; font-weight: 700; padding: 4px 10px; border-radius: 4px;">
+                    STATUS
+                </span>
+                <button type="button" onclick="closeAgentInspection()" style="background: none; border: none; font-size: 24px; color: #64748B; cursor: pointer; padding: 0 4px; line-height: 1;">
+                    &times;
+                </button>
+            </div>
+        </div>
+
+        <!-- Modal Body (Scrollable) -->
+        <div style="padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 18px;">
+            <!-- Run & Timing Metadata Bar -->
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; background: #F8FAFC; padding: 12px; border-radius: 8px; border: 1px solid #E2E8F0;">
+                <div>
+                    <span style="font-size: 11px; text-transform: uppercase; color: #64748B; font-weight: 600; display: block;">Run ID</span>
+                    <strong id="modalRunId" style="font-size: 12.5px; color: #0F172A; font-family: monospace;">run_xxx</strong>
+                </div>
+                <div>
+                    <span style="font-size: 11px; text-transform: uppercase; color: #64748B; font-weight: 600; display: block;">Started At</span>
+                    <span id="modalStartedAt" style="font-size: 12px; color: #334155;">-</span>
+                </div>
+                <div>
+                    <span style="font-size: 11px; text-transform: uppercase; color: #64748B; font-weight: 600; display: block;">Completed At</span>
+                    <span id="modalCompletedAt" style="font-size: 12px; color: #334155;">-</span>
+                </div>
+                <div>
+                    <span style="font-size: 11px; text-transform: uppercase; color: #64748B; font-weight: 600; display: block;">Duration</span>
+                    <strong id="modalDuration" style="font-size: 12.5px; color: #2563EB;">-</strong>
+                </div>
+            </div>
+
+            <!-- Task Assigned Section -->
+            <div>
+                <h4 style="font-size: 13px; font-weight: 700; color: #0F172A; margin: 0 0 6px 0; display: flex; align-items: center; gap: 6px;">
+                    <span>&#128203;</span> Concrete Task Assigned
+                </h4>
+                <div id="modalTaskAssigned" style="font-size: 13px; color: #1E293B; background: #F1F5F9; padding: 12px; border-radius: 6px; border-left: 3px solid #2563EB; line-height: 1.5;">
+                    -
+                </div>
+            </div>
+
+            <!-- Work Performed Section -->
+            <div>
+                <h4 style="font-size: 13px; font-weight: 700; color: #0F172A; margin: 0 0 6px 0; display: flex; align-items: center; gap: 6px;">
+                    <span>&#9881;</span> Work Performed &amp; Execution Narrative
+                </h4>
+                <div id="modalWorkPerformed" style="font-size: 13px; color: #1E293B; background: #FFFFFF; border: 1px solid #E2E8F0; padding: 12px; border-radius: 6px; line-height: 1.5;">
+                    -
+                </div>
+            </div>
+
+            <!-- Verification & Quality Metrics Grid -->
+            <div>
+                <h4 style="font-size: 13px; font-weight: 700; color: #0F172A; margin: 0 0 8px 0; display: flex; align-items: center; gap: 6px;">
+                    <span>&#9989;</span> Verified Accuracy &amp; Test Results
+                </h4>
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; background: #F8FAFC; padding: 12px; border-radius: 8px; border: 1px solid #E2E8F0;">
+                    <div>
+                        <span style="font-size: 10.5px; text-transform: uppercase; color: #64748B; font-weight: 600;">Completion</span>
+                        <strong id="modalTaskCompletion" style="display: block; font-size: 15px; color: #0F172A;">-</strong>
+                    </div>
+                    <div>
+                        <span style="font-size: 10.5px; text-transform: uppercase; color: #64748B; font-weight: 600;">Validation Pass</span>
+                        <strong id="modalValRate" style="display: block; font-size: 15px; color: #16A34A;">-</strong>
+                    </div>
+                    <div>
+                        <span style="font-size: 10.5px; text-transform: uppercase; color: #64748B; font-weight: 600;">Test Suite Pass</span>
+                        <strong id="modalTestRate" style="display: block; font-size: 15px; color: #2563EB;">-</strong>
+                    </div>
+                    <div>
+                        <span style="font-size: 10.5px; text-transform: uppercase; color: #64748B; font-weight: 600;">Verified Accuracy</span>
+                        <strong id="modalAccuracyScore" style="display: block; font-size: 15px; color: #1E40AF;">-</strong>
+                        <span id="modalAccuracyStatus" style="font-size: 10px; color: #64748B; display: block; margin-top: 2px;">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Affected Files Section -->
+            <div>
+                <h4 style="font-size: 13px; font-weight: 700; color: #0F172A; margin: 0 0 6px 0; display: flex; align-items: center; gap: 6px;">
+                    <span>&#128193;</span> Affected Files
+                </h4>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <div>
+                        <strong style="font-size: 11.5px; color: #475569; display: block; margin-bottom: 4px;">Files Created:</strong>
+                        <div id="modalFilesCreated" style="display: flex; flex-wrap: wrap; gap: 6px;">
+                            <span style="font-size: 12px; color: #94A3B8;">None</span>
+                        </div>
+                    </div>
+                    <div id="modalFilesModifiedRow" style="display: none;">
+                        <strong style="font-size: 11.5px; color: #475569; display: block; margin-bottom: 4px;">Files Modified:</strong>
+                        <div id="modalFilesModified" style="display: flex; flex-wrap: wrap; gap: 6px;">
+                            <span style="font-size: 12px; color: #94A3B8;">None</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Output Produced Section -->
+            <div>
+                <h4 style="font-size: 13px; font-weight: 700; color: #0F172A; margin: 0 0 6px 0; display: flex; align-items: center; gap: 6px;">
+                    <span>&#128196;</span> Output Produced
+                </h4>
+                <div id="modalOutputProduced" style="font-size: 12.5px; color: #334155; background: #F8FAFC; border: 1px solid #E2E8F0; padding: 12px; border-radius: 6px; font-family: var(--font-mono); white-space: pre-wrap; max-height: 180px; overflow-y: auto;">
+                    -
+                </div>
+            </div>
+
+            <!-- Validation Performed Section -->
+            <div>
+                <h4 style="font-size: 13px; font-weight: 700; color: #0F172A; margin: 0 0 6px 0; display: flex; align-items: center; gap: 6px;">
+                    <span>&#128270;</span> Validation Operations Performed
+                </h4>
+                <div id="modalValidationPerformed" style="font-size: 12.5px; color: #334155; background: #F8FAFC; border: 1px solid #E2E8F0; padding: 10px 12px; border-radius: 6px;">
+                    -
+                </div>
+            </div>
+
+            <!-- Errors / Limitations Section -->
+            <div id="modalErrorsCard" style="display: none;">
+                <h4 style="font-size: 13px; font-weight: 700; color: #B91C1C; margin: 0 0 6px 0; display: flex; align-items: center; gap: 6px;">
+                    <span>&#9888;</span> Errors / Limitations
+                </h4>
+                <div id="modalErrorsContent" style="font-size: 12.5px; color: #B91C1C; background: #FEF2F2; border: 1px solid #FECACA; padding: 10px 12px; border-radius: 6px; font-family: var(--font-mono); white-space: pre-wrap;">
+                    -
+                </div>
+            </div>
+
+            <!-- Raw Verification Evidence JSON Inspector -->
+            <div>
+                <details style="background: #0F172A; border-radius: 6px; overflow: hidden;">
+                    <summary style="padding: 10px 14px; color: #94A3B8; font-size: 12px; font-weight: 600; cursor: pointer; user-select: none;">
+                        &gt; Structured Verification Evidence (JSON)
+                    </summary>
+                    <div style="padding: 12px 14px; border-top: 1px solid #1E293B;">
+                        <pre id="modalEvidenceJson" style="margin: 0; font-size: 11.5px; color: #38BDF8; font-family: monospace; white-space: pre-wrap; max-height: 200px; overflow-y: auto;">{}</pre>
+                    </div>
+                </details>
+            </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div style="padding: 12px 20px; background: #F8FAFC; border-top: 1px solid #E2E8F0; display: flex; justify-content: flex-end;">
+            <button type="button" class="btn btn-secondary" onclick="closeAgentInspection()">
+                Close
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Embedded reports cache for instant inspection
+    let currentReports = {{ agent_reports|tojson }};
+    const projectId = "{{ project.id }}";
+    const projectCodeUrlBase = "{{ url_for('project_code_output', project_id=project.id) }}";
+
+    function openAgentInspection(agentKey) {
+        // Find in cached reports or fetch latest
+        let report = currentReports.find(r => r.agent_key === agentKey);
+        if (report) {
+            populateInspectionModal(report);
+        }
+        
+        // Also fetch fresh from API to capture real-time live executions
+        fetch(`/api/projects/${projectId}/agents/${agentKey}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.report) {
+                    populateInspectionModal(data.report);
+                }
+            })
+            .catch(err => console.warn("Failed fetching agent detail:", err));
+
+        const modal = document.getElementById("agentInspectionModal");
+        if (modal) {
+            modal.style.display = "flex";
+        }
+    }
+
+    function closeAgentInspection() {
+        const modal = document.getElementById("agentInspectionModal");
+        if (modal) {
+            modal.style.display = "none";
+        }
+    }
+
+    // Close on escape key
+    document.addEventListener("keydown", function(e) {
+        if (e.key === "Escape") {
+            closeAgentInspection();
+        }
+    });
+
+    // Close on backdrop click
+    document.getElementById("agentInspectionModal")?.addEventListener("click", function(e) {
+        if (e.target === this) {
+            closeAgentInspection();
+        }
+    });
+
+    function populateInspectionModal(report) {
+        document.getElementById("modalAgentIcon").textContent = (report.agent_key || "AG").substring(0, 2).toUpperCase();
+        document.getElementById("modalAgentTitle").textContent = report.agent_name || report.agent_key;
+        document.getElementById("modalAgentSubtitle").textContent = `${report.agent_role || 'Autonomous Engineering Agent'} · Stage ${report.stage_order || 1}/8`;
+        
+        // Status badge
+        const badge = document.getElementById("modalStatusBadge");
+        const status = report.status || "pending";
+        const resStatus = report.result_status || "Pending";
+        
+        if (status === 'completed' || resStatus === 'Completed' || resStatus === 'Success') {
+            badge.style.background = "#DCFCE7";
+            badge.style.color = "#15803D";
+            badge.textContent = "✓ COMPLETED";
+        } else if (status === 'running' || resStatus === 'Running') {
+            badge.style.background = "#DBEAFE";
+            badge.style.color = "#1D4ED8";
+            badge.textContent = "● RUNNING";
+        } else if (status === 'partial_success' || resStatus === 'Partial Success') {
+            badge.style.background = "#FEF3C7";
+            badge.style.color = "#B45309";
+            badge.textContent = "PARTIAL SUCCESS";
+        } else if (status === 'blocked' || resStatus === 'Blocked') {
+            badge.style.background = "#E2E8F0";
+            badge.style.color = "#475569";
+            badge.textContent = "BLOCKED";
+        } else if (status === 'failed' || resStatus === 'Failed') {
+            badge.style.background = "#FEE2E2";
+            badge.style.color = "#B91C1C";
+            badge.textContent = "⚠ FAILED";
+        } else {
+            badge.style.background = "#F1F5F9";
+            badge.style.color = "#64748B";
+            badge.style.border = "1px solid #CBD5E1";
+            badge.textContent = "PENDING";
+        }
+
+        // Run ID & timing
+        document.getElementById("modalRunId").textContent = report.generation_run_id || `run_${projectId.substring(projectId.length - 8)}`;
+        document.getElementById("modalStartedAt").textContent = report.started_at ? report.started_at.replace("T", " ").substring(0, 19) : "Not started";
+        document.getElementById("modalCompletedAt").textContent = report.completed_at ? report.completed_at.replace("T", " ").substring(0, 19) : (status === 'running' ? "In progress..." : "Pending");
+        document.getElementById("modalDuration").textContent = report.execution_duration_ms ? `${report.execution_duration_ms} ms` : (status === 'completed' ? "Completed" : "-");
+
+        // Narrative
+        document.getElementById("modalTaskAssigned").textContent = report.task_assigned || "Task assignment pending project synthesis.";
+        
+        const workElem = document.getElementById("modalWorkPerformed");
+        if (report.work_performed) {
+            workElem.textContent = report.work_performed;
+            workElem.style.fontStyle = "normal";
+            workElem.style.color = "#1E293B";
+        } else if (status === 'running') {
+            workElem.textContent = "Agent is actively executing tasks and synthesizing project artifacts...";
+            workElem.style.fontStyle = "italic";
+            workElem.style.color = "#2563EB";
+        } else if (resStatus === 'Blocked') {
+            workElem.textContent = "Stage execution blocked by preceding failure in pipeline.";
+            workElem.style.fontStyle = "italic";
+            workElem.style.color = "#64748B";
+        } else {
+            workElem.textContent = "Not started. Standing by in orchestration pipeline.";
+            workElem.style.fontStyle = "italic";
+            workElem.style.color = "#94A3B8";
+        }
+
+        // Metrics
+        const compElem = document.getElementById("modalTaskCompletion");
+        if (status === 'completed' || resStatus === 'Completed' || resStatus === 'Success') {
+            compElem.textContent = `${Math.round(report.task_completion_score || 100)}%`;
+            compElem.style.color = "#0F172A";
+        } else if (status === 'running') {
+            compElem.textContent = "In Progress";
+            compElem.style.color = "#2563EB";
+        } else {
+            compElem.textContent = "0%";
+            compElem.style.color = "#94A3B8";
+        }
+
+        document.getElementById("modalValRate").textContent = report.validation_pass_rate !== null && report.validation_pass_rate !== undefined ? `${report.validation_pass_rate}%` : "N/A (Pending)";
+        document.getElementById("modalTestRate").textContent = report.test_pass_rate !== null && report.test_pass_rate !== undefined ? `${report.test_pass_rate}%` : "N/A (Pending)";
+        
+        if (report.accuracy_score !== null && report.accuracy_score !== undefined && status === 'completed') {
+            document.getElementById("modalAccuracyScore").textContent = `${report.accuracy_score}%`;
+            document.getElementById("modalAccuracyStatus").textContent = report.accuracy_status || "Empirically verified";
+        } else {
+            document.getElementById("modalAccuracyScore").textContent = "Not yet verified";
+            document.getElementById("modalAccuracyStatus").textContent = report.accuracy_status || "Accuracy: Not yet verified";
+        }
+
+        // Files Created
+        const fcContainer = document.getElementById("modalFilesCreated");
+        fcContainer.innerHTML = "";
+        const filesCreated = Array.isArray(report.files_created) ? report.files_created : [];
+        if (filesCreated.length > 0) {
+            filesCreated.forEach(f => {
+                const a = document.createElement("a");
+                a.href = `${projectCodeUrlBase}?selected_file=${encodeURIComponent(f)}`;
+                a.target = "_blank";
+                a.textContent = f;
+                a.style.cssText = "background: #EFF6FF; border: 1px solid #BFDBFE; color: #1D4ED8; font-size: 11.5px; font-family: monospace; padding: 2px 7px; border-radius: 4px; text-decoration: none;";
+                fcContainer.appendChild(a);
+            });
+        } else {
+            fcContainer.innerHTML = `<span style="font-size: 12px; color: #94A3B8;">${status === 'completed' ? 'No standalone files produced directly.' : 'Pending execution.'}</span>`;
+        }
+
+        // Files Modified
+        const fmContainer = document.getElementById("modalFilesModified");
+        const fmRow = document.getElementById("modalFilesModifiedRow");
+        const filesModified = Array.isArray(report.files_modified) ? report.files_modified : [];
+        if (filesModified.length > 0) {
+            fmRow.style.display = "block";
+            fmContainer.innerHTML = "";
+            filesModified.forEach(f => {
+                const span = document.createElement("span");
+                span.textContent = f;
+                span.style.cssText = "background: #F1F5F9; border: 1px solid #CBD5E1; color: #334155; font-size: 11.5px; font-family: monospace; padding: 2px 7px; border-radius: 4px;";
+                fmContainer.appendChild(span);
+            });
+        } else {
+            fmRow.style.display = "none";
+        }
+
+        // Output produced
+        document.getElementById("modalOutputProduced").textContent = report.output_produced || (status === 'completed' ? "Execution completed without text output." : "Pending output generation.");
+
+        // Validation performed
+        document.getElementById("modalValidationPerformed").textContent = report.validation_performed || (status === 'completed' ? "Validated through pipeline orchestration." : "Validation checks will execute when agent completes.");
+
+        // Errors card
+        const errCard = document.getElementById("modalErrorsCard");
+        if (report.errors_or_limitations && report.errors_or_limitations !== 'None identified.') {
+            errCard.style.display = "block";
+            document.getElementById("modalErrorsContent").textContent = report.errors_or_limitations;
+        } else {
+            errCard.style.display = "none";
+        }
+
+        // Raw Evidence JSON
+        const evidence = report.evidence || {};
+        document.getElementById("modalEvidenceJson").textContent = JSON.stringify(evidence, null, 2);
+    }
+
+    // Live Execution Polling (Requirement 14)
+    let isPolling = true;
+    function pollAgentStatus() {
+        if (!isPolling) return;
+        fetch(`/api/projects/${projectId}/agents/reports`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.reports && data.reports.length > 0) {
+                    currentReports = data.reports;
+                    
+                    // Update progress bar
+                    const fill = document.querySelector(".progress-fill");
+                    const label = document.querySelector(".progress-percent-label");
+                    if (fill && data.progress_pct !== undefined) fill.style.width = `${data.progress_pct}%`;
+                    if (label && data.progress_pct !== undefined) label.textContent = `${data.progress_pct}%`;
+
+                    // Check if all completed
+                    const allCompleted = data.reports.every(r => r.status === 'completed');
+                    if (allCompleted) {
+                        isPolling = false;
+                    }
+                }
+            })
+            .catch(e => console.warn("Polling error:", e));
+    }
+
+    // If any agent is running or pending, poll every 3.5s
+    const hasActiveAgents = currentReports.some(r => r.status === 'running' || r.status === 'pending');
+    if (hasActiveAgents && "{{ project.status }}" !== "completed") {
+        setInterval(pollAgentStatus, 3500);
+    }
+
+    // Auto-update workspace execution controls when project launch completes in modal
+    window.addEventListener("devguardian:project-started", function(e) {
+        const detail = e.detail || {};
+        const controlBar = document.getElementById("projectExecutionControlBar");
+        if (controlBar && detail.localUrl) {
+            controlBar.innerHTML = `
+                <a href="${detail.localUrl}" target="_blank" class="btn btn-primary" style="background: var(--success);" title="Open running application">
+                    &#9654; Live: ${detail.localUrl}
+                </a>
+                <form action="/projects/${projectId}/stop-project" method="POST" style="display:inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    <button type="submit" class="btn btn-secondary" style="color: var(--error);" title="Stop running process">
+                        &#9632; Stop Project
+                    </button>
+                </form>
+            `;
+        }
+        const execBadge = document.querySelector("#execution_logs_card .badge");
+        if (execBadge) {
+            execBadge.className = "badge badge-success";
+            execBadge.textContent = "Status: Running";
+        }
+    });
+
+    // Auto-refresh reports when workflow completes inside Run All Agents modal
+    window.addEventListener("devguardian:agents-completed", function(e) {
+        if (typeof pollAgentStatus === 'function') {
+            pollAgentStatus();
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,338 @@
+{% extends "base.html" %}
+
+{% block title %}Create New Project — DevGuardian AI{% endblock %}
+
+{% block content %}
+<div class="dashboard-topbar">
+    <div class="dashboard-title-area">
+        <h1>Create New Project</h1>
+        <p>Define your software requirements, select your development environment, and configure UI design preferences.</p>
+    </div>
+</div>
+
+<div class="dashboard-content-body">
+    <!-- 4-Step Stepper Header -->
+    <div class="wizard-steps-container">
+        <div class="wizard-step-node active">
+            <div class="wizard-step-circle">1</div>
+            <span class="wizard-step-label">Project Details</span>
+        </div>
+        <div class="wizard-step-node">
+            <div class="wizard-step-circle">2</div>
+            <span class="wizard-step-label">UI / UX Design</span>
+        </div>
+        <div class="wizard-step-node">
+            <div class="wizard-step-circle">3</div>
+            <span class="wizard-step-label">IDE Selection</span>
+        </div>
+        <div class="wizard-step-node">
+            <div class="wizard-step-circle">4</div>
+            <span class="wizard-step-label">Execution</span>
+        </div>
+    </div>
+
+    <!-- Project Creation Form -->
+    <div class="section-panel-card" style="max-width: 860px; margin: 0 auto; width: 100%;">
+        <form action="{{ url_for('create_new_project') }}" method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+            <!-- SECTION 1: PROJECT SPECIFICATION -->
+            <div style="margin-bottom: 32px;">
+                <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 6px; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: var(--primary); color: #fff; font-size: 12px;">1</span>
+                    CORE PROJECT SPECIFICATIONS
+                </h3>
+                <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 18px;">
+                    Provide high-level project goals, target audience, and primary functionality.
+                </p>
+
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label for="name" class="form-label" style="font-weight: 600;">Project Name</label>
+                    <input type="text" id="name" name="name" class="form-control"
+                        placeholder="e.g. Enterprise Invoice & Billing Platform" required autofocus>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label for="description" class="form-label" style="font-weight: 600;">Project Scope & Description</label>
+                    <textarea id="description" name="description" class="form-control" rows="4"
+                        placeholder="Explain what software you want built, key features, business logic, user roles, and expected interactions."
+                        required style="line-height: 1.5; resize: vertical;"></textarea>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label for="app_type" class="form-label" style="font-weight: 600;">Application Type</label>
+                        <select id="app_type" name="app_type" class="form-control">
+                            <option value="Web App" selected>Web Application</option>
+                            <option value="REST API">RESTful API Service</option>
+                            <option value="CLI Tool">Command-Line CLI Tool</option>
+                            <option value="Data Pipeline">Data Processing Pipeline</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label for="language" class="form-label" style="font-weight: 600;">Technology Stack</label>
+                        <select id="language" name="language" class="form-control">
+                            <option value="Python Flask" selected>Python + Flask (Jinja2 Templates)</option>
+                            <option value="Python FastAPI">Python + FastAPI</option>
+                            <option value="Python Standard Library">Pure Python Standard Library</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="tech_preferences" class="form-label" style="font-weight: 600;">Technical Preferences & Constraints</label>
+                    <input type="text" id="tech_preferences" name="tech_preferences" class="form-control"
+                        placeholder="e.g. SQLite persistence, pytest test suite, RESTful endpoints">
+                </div>
+            </div>
+
+            <hr style="border: none; border-top: 1px solid var(--border); margin: 32px 0;">
+
+            <!-- SECTION 2: UI / UX DESIGN REQUIREMENTS (FEATURE 6) -->
+            <div style="margin-bottom: 32px;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+                    <div>
+                        <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 4px; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+                            <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: var(--primary); color: #fff; font-size: 12px;">2</span>
+                            UI / UX DESIGN REQUIREMENTS
+                        </h3>
+                        <p style="font-size: 13px; color: var(--text-secondary);">
+                            Configure visual styling, color palette tokens, responsive layouts, and required pages.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 1. UI Generation Mode (Priority 1: Three Generation Options) -->
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label class="form-label" style="font-weight: 600; font-size: 14px;">1. Project Generation Mode</label>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px;">
+                        <!-- Option A: Generate UI -->
+                        <label class="gen-mode-card" style="display: flex; flex-direction: column; gap: 8px; padding: 16px; border: 2px solid var(--border); border-radius: var(--radius-md, 8px); cursor: pointer; background: var(--card-bg); transition: all 0.2s ease;">
+                            <div style="display: flex; align-items: center; justify-content: space-between;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span style="font-size: 18px;">🎨</span>
+                                    <strong style="font-size: 14px; color: var(--text-primary);">Generate UI</strong>
+                                </div>
+                                <input type="radio" name="ui_generation" value="generate_ui" onchange="handleGenerationModeChange(this.value)">
+                            </div>
+                            <span style="font-size: 12px; color: var(--text-secondary); line-height: 1.45;">
+                                Frontend only. Generates Jinja2 templates, responsive CSS, navigation, forms, validation, and interactive UI prototype routing.
+                            </span>
+                            <span class="badge badge-secondary" style="align-self: flex-start; font-size: 10px; margin-top: auto;">Option A: UI Prototype</span>
+                        </label>
+
+                        <!-- Option B: Backend Only -->
+                        <label class="gen-mode-card" style="display: flex; flex-direction: column; gap: 8px; padding: 16px; border: 2px solid var(--border); border-radius: var(--radius-md, 8px); cursor: pointer; background: var(--card-bg); transition: all 0.2s ease;">
+                            <div style="display: flex; align-items: center; justify-content: space-between;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span style="font-size: 18px;">⚙️</span>
+                                    <strong style="font-size: 14px; color: var(--text-primary);">Backend Only</strong>
+                                </div>
+                                <input type="radio" name="ui_generation" value="backend_only" onchange="handleGenerationModeChange(this.value)">
+                            </div>
+                            <span style="font-size: 12px; color: var(--text-secondary); line-height: 1.45;">
+                                API & services only. Entry point, REST routes, business services, database models, tests, and API health check without UI templates.
+                            </span>
+                            <span class="badge badge-secondary" style="align-self: flex-start; font-size: 10px; margin-top: auto;">Option B: Headless API</span>
+                        </label>
+
+                        <!-- Option C: Both — Full-Stack Application (Default) -->
+                        <label class="gen-mode-card selected-gen-mode" style="display: flex; flex-direction: column; gap: 8px; padding: 16px; border: 2px solid var(--primary); border-radius: var(--radius-md, 8px); cursor: pointer; background: rgba(59, 130, 246, 0.04); transition: all 0.2s ease;">
+                            <div style="display: flex; align-items: center; justify-content: space-between;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span style="font-size: 18px;">🚀</span>
+                                    <strong style="font-size: 14px; color: var(--text-primary);">Both — Full-Stack</strong>
+                                </div>
+                                <input type="radio" name="ui_generation" value="both" checked onchange="handleGenerationModeChange(this.value)">
+                            </div>
+                            <span style="font-size: 12px; color: var(--text-secondary); line-height: 1.45;">
+                                Complete end-to-end system. Working frontend connected to backend routes, database persistence, tests, documentation, and live preview.
+                            </span>
+                            <span class="badge badge-primary" style="align-self: flex-start; font-size: 10px; margin-top: auto;">Option C: Complete App (Recommended)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <script>
+                function handleGenerationModeChange(mode) {
+                    const cards = document.querySelectorAll('.gen-mode-card');
+                    cards.forEach(c => {
+                        const r = c.querySelector('input[type="radio"]');
+                        if (r && r.checked) {
+                            c.style.borderColor = 'var(--primary)';
+                            c.style.background = 'rgba(59, 130, 246, 0.04)';
+                        } else {
+                            c.style.borderColor = 'var(--border)';
+                            c.style.background = 'var(--card-bg)';
+                        }
+                    });
+                    const uiOpts = document.getElementById('ui_options_container');
+                    if (uiOpts) {
+                        if (mode === 'backend_only') {
+                            uiOpts.style.opacity = '0.5';
+                        } else {
+                            uiOpts.style.opacity = '1';
+                        }
+                    }
+                }
+                </script>
+
+                <div id="ui_options_container">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+                        <!-- 2. Design Style -->
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label for="design_style" class="form-label" style="font-weight: 600;">2. Design Style</label>
+                            <select id="design_style" name="design_style" class="form-control">
+                                <option value="Modern SaaS" selected>Modern SaaS</option>
+                                <option value="Minimalist">Minimalist</option>
+                                <option value="Corporate">Corporate</option>
+                                <option value="Dashboard">Dashboard</option>
+                                <option value="E-commerce">E-commerce</option>
+                                <option value="Healthcare">Healthcare</option>
+                                <option value="Finance">Finance</option>
+                                <option value="Custom">Custom</option>
+                            </select>
+                        </div>
+
+                        <!-- 3. Color Palette -->
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label for="color_palette" class="form-label" style="font-weight: 600;">3. Color Palette</label>
+                            <select id="color_palette" name="color_palette" class="form-control">
+                                <option value="White and Grey" selected>White and Grey</option>
+                                <option value="Blue and White">Blue and White</option>
+                                <option value="Dark Mode">Dark Mode</option>
+                                <option value="Custom Colors">Custom Colors</option>
+                            </select>
+                        </div>
+
+                        <!-- 4. Layout Preference -->
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label for="layout_preference" class="form-label" style="font-weight: 600;">4. Layout Preference</label>
+                            <select id="layout_preference" name="layout_preference" class="form-control">
+                                <option value="Responsive Web Application" selected>Responsive Web Application</option>
+                                <option value="Admin Dashboard">Admin Dashboard</option>
+                                <option value="Multi-page Application">Multi-page Application</option>
+                                <option value="Landing Page">Landing Page</option>
+                                <option value="Custom">Custom</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- 5. UI Reference -->
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label class="form-label" style="font-weight: 600;">5. UI Reference & Instructions</label>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                            <div>
+                                <label for="ui_reference_image" style="font-size: 12px; color: var(--text-secondary); display: block; margin-bottom: 4px;">Optional Image Reference (Mockup / Wireframe)</label>
+                                <input type="file" id="ui_reference_image" name="ui_reference_image" class="form-control" accept="image/*" style="font-size: 13px;">
+                            </div>
+                            <div>
+                                <label for="design_instructions" style="font-size: 12px; color: var(--text-secondary); display: block; margin-bottom: 4px;">Design Notes & Aesthetic Rules</label>
+                                <input type="text" id="design_instructions" name="design_instructions" class="form-control" placeholder="e.g. Clean cards, generous padding, subtle drop shadows">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 6. Required Pages -->
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label class="form-label" style="font-weight: 600; margin-bottom: 8px;">6. Required Pages (Select all required)</label>
+                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 12px;">
+                            <label style="display: flex; align-items: center; gap: 8px; font-size: 13.5px; padding: 8px 12px; background: var(--bg-main); border-radius: var(--radius-sm); border: 1px solid var(--border); cursor: pointer;">
+                                <input type="checkbox" name="required_pages" value="Landing Page" checked> Landing Page
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; font-size: 13.5px; padding: 8px 12px; background: var(--bg-main); border-radius: var(--radius-sm); border: 1px solid var(--border); cursor: pointer;">
+                                <input type="checkbox" name="required_pages" value="Sign In" checked> Sign In
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; font-size: 13.5px; padding: 8px 12px; background: var(--bg-main); border-radius: var(--radius-sm); border: 1px solid var(--border); cursor: pointer;">
+                                <input type="checkbox" name="required_pages" value="Sign Up" checked> Sign Up
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; font-size: 13.5px; padding: 8px 12px; background: var(--bg-main); border-radius: var(--radius-sm); border: 1px solid var(--border); cursor: pointer;">
+                                <input type="checkbox" name="required_pages" value="Dashboard" checked> Dashboard
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; font-size: 13.5px; padding: 8px 12px; background: var(--bg-main); border-radius: var(--radius-sm); border: 1px solid var(--border); cursor: pointer;">
+                                <input type="checkbox" name="required_pages" value="Project Pages" checked> Project Pages
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; font-size: 13.5px; padding: 8px 12px; background: var(--bg-main); border-radius: var(--radius-sm); border: 1px solid var(--border); cursor: pointer;">
+                                <input type="checkbox" name="required_pages" value="Reports" checked> Reports
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; font-size: 13.5px; padding: 8px 12px; background: var(--bg-main); border-radius: var(--radius-sm); border: 1px solid var(--border); cursor: pointer;">
+                                <input type="checkbox" name="required_pages" value="Settings" checked> Settings
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; font-size: 13.5px; padding: 8px 12px; background: var(--bg-main); border-radius: var(--radius-sm); border: 1px solid var(--border); cursor: pointer;">
+                                <input type="checkbox" name="required_pages" value="Custom Pages" id="chk_custom_pages"> Custom Pages
+                            </label>
+                        </div>
+                        <input type="text" id="custom_pages" name="custom_pages" class="form-control"
+                            placeholder="Specify comma-separated custom page names (e.g. Analytics, Billing, Team, Documentation)"
+                            style="margin-top: 6px;">
+                    </div>
+                </div>
+            </div>
+
+            <hr style="border: none; border-top: 1px solid var(--border); margin: 32px 0;">
+
+            <!-- SECTION 3: IDE SELECTION (FEATURE 2 & 3) -->
+            <div style="margin-bottom: 32px;">
+                <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 4px; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: var(--primary); color: #fff; font-size: 12px;">3</span>
+                    DEVELOPMENT ENVIRONMENT SELECTION
+                </h3>
+                <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 18px;">
+                    Choose the target IDE to inspect and develop the generated software workspace.
+                </p>
+
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 20px;">
+                    {% for ide in ide_cards %}
+                    <label style="border: 2px solid {{ '#24272D' if ide.is_selected else 'var(--border)' }}; border-radius: var(--radius-md); padding: 18px; display: flex; flex-direction: column; justify-content: space-between; cursor: pointer; background: var(--card-bg); transition: all 0.2s;" class="ide-select-card">
+                        <div>
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <div style="width: 36px; height: 36px; border-radius: 6px; background: var(--bg-main); display: flex; align-items: center; justify-content: center; color: var(--primary);">
+                                        {{ ide.icon_svg|safe }}
+                                    </div>
+                                    <h4 style="font-size: 15px; font-weight: 700; color: var(--text-primary);">{{ ide.name }}</h4>
+                                </div>
+                                <input type="radio" name="selected_ide" value="{{ ide.key }}" {{ 'checked' if ide.is_selected else '' }} required>
+                            </div>
+
+                            <p style="font-size: 12.5px; color: var(--text-secondary); line-height: 1.45; margin-bottom: 14px;">
+                                {{ ide.description }}
+                            </p>
+                        </div>
+
+                        <div>
+                            <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--border); padding-top: 10px;">
+                                <span style="font-size: 12px; color: var(--text-secondary);">Hardware Status:</span>
+                                {% if ide.status in ['Installed', 'Ready'] %}
+                                    <span class="badge badge-success" style="font-size: 11px;">&#10003; {{ ide.status }}</span>
+                                {% elif ide.status == 'Configured' %}
+                                    <span class="badge badge-info" style="font-size: 11px;">Configured</span>
+                                {% else %}
+                                    <span class="badge badge-warning" style="font-size: 11px;">Not Detected</span>
+                                {% endif %}
+                            </div>
+
+                            {% if ide.status == 'Not Detected' %}
+                            <div style="margin-top: 8px;">
+                                <input type="text" name="custom_path_{{ ide.key }}" class="form-control" style="font-size: 11.5px; padding: 6px 8px;"
+                                    placeholder="Custom path to executable...">
+                            </div>
+                            {% endif %}
+                        </div>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div style="display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid var(--border); padding-top: 24px;">
+                <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary" style="padding: 12px 28px; font-size: 14px;">
+                    <span>Initialize Autonomous Project &rarr;</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

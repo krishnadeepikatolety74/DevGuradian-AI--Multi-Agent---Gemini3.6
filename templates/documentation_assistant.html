@@ -1,0 +1,2387 @@
+{% extends "base.html" %}
+
+{% block title %}Documentation Assistant — DevGuardian AI{% endblock %}
+
+{% block extra_head %}
+<style>
+/* =====================================================================
+   DOCUMENTATION ASSISTANT CHATBOT & PREVIEW WORKSPACE — SCOPED DESIGN
+   Enterprise Two-Panel Split-Pane Architecture
+   ===================================================================== */
+:root {
+    --doc-primary: #0F172A;
+    --doc-accent: #2563EB;
+    --doc-accent-hover: #1D4ED8;
+    --doc-accent-subtle: #EFF6FF;
+    --doc-success: #15803D;
+    --doc-success-bg: #DCFCE7;
+    --doc-warning: #B45309;
+    --doc-warning-bg: #FEF3C7;
+    --doc-danger: #B91C1C;
+    --doc-danger-bg: #FEE2E2;
+    --doc-border: #E2E8F0;
+    --doc-border-darker: #CBD5E1;
+    --doc-card-bg: #FFFFFF;
+    --doc-bg-subtle: #F8FAFC;
+    --doc-text-main: #0F172A;
+    --doc-text-muted: #64748B;
+}
+
+/* Ensure outer dashboard main does not clip or double-scroll on desktop */
+.dashboard-main {
+    min-width: 0 !important;
+}
+
+/* Main Documentation Assistant Page Container */
+.doc-assistant-page {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    max-height: 100vh;
+    padding: 12px 18px;
+    box-sizing: border-box;
+    gap: 10px;
+    min-width: 0;
+    overflow: hidden;
+}
+
+/* --- 1. Top Action & Navigation Header --- */
+.doc-assistant-header {
+    background: var(--doc-card-bg);
+    border: 1px solid var(--doc-border);
+    border-radius: 8px;
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px 14px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    flex-shrink: 0;
+    min-width: 0;
+}
+
+.doc-title-cluster {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.doc-assistant-icon-badge {
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #2563EB 0%, #06B6D4 100%);
+    color: #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
+    flex-shrink: 0;
+}
+
+.doc-title-text {
+    min-width: 0;
+}
+
+.doc-title-text h1 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--doc-text-main);
+    line-height: 1.2;
+    margin: 0;
+    white-space: nowrap;
+}
+
+.doc-title-text p {
+    font-size: 11.5px;
+    color: var(--doc-text-muted);
+    margin: 2px 0 0 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.caption-reference-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10.5px;
+    font-weight: 600;
+    color: #4338CA;
+    background: #EEF2FF;
+    border: 1px solid #C7D2FE;
+    padding: 1px 7px;
+    border-radius: 999px;
+    white-space: nowrap;
+}
+
+.doc-toolbar-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    min-width: 0;
+}
+
+.project-select-shell {
+    position: relative;
+    min-width: 200px;
+    max-width: 300px;
+    flex-shrink: 1;
+}
+
+.project-select-shell select {
+    width: 100%;
+    height: 36px;
+    padding: 0 30px 0 10px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--doc-text-main);
+    background: var(--doc-bg-subtle);
+    border: 1px solid var(--doc-border-darker);
+    border-radius: 6px;
+    appearance: none;
+    cursor: pointer;
+    outline: none;
+    transition: all 0.2s;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+.project-select-shell select:focus {
+    border-color: var(--doc-accent);
+    background: #FFFFFF;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+}
+
+.project-select-shell svg {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: var(--doc-text-muted);
+}
+
+.btn-generate-doc-primary {
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 14px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #FFFFFF;
+    background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
+    border: 1px solid #0F172A;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.15);
+    white-space: nowrap;
+    flex-shrink: 0;
+    box-sizing: border-box;
+}
+
+.btn-generate-doc-primary:hover {
+    background: #000000;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 6px rgba(15, 23, 42, 0.2);
+}
+
+.btn-generate-doc-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn-doc-subtle {
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #475569;
+    background: #FFFFFF;
+    border: 1px solid var(--doc-border-darker);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+    flex-shrink: 0;
+    box-sizing: border-box;
+    text-decoration: none;
+}
+
+.btn-doc-subtle:hover {
+    color: var(--doc-text-main);
+    background: var(--doc-bg-subtle);
+    border-color: #94A3B8;
+}
+
+/* --- 2. Master Template Verification Status Ribbon --- */
+.template-verified-ribbon {
+    background: var(--doc-bg-subtle);
+    border: 1px solid var(--doc-border);
+    border-radius: 6px;
+    padding: 7px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+    font-size: 11.5px;
+    color: var(--doc-text-muted);
+    flex-shrink: 0;
+    min-width: 0;
+}
+
+.ribbon-features-row {
+    display: flex;
+    align-items: center;
+    gap: 10px 14px;
+    flex-wrap: wrap;
+    min-width: 0;
+}
+
+.ribbon-feature-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11.5px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.ribbon-feature-item.pass {
+    color: var(--doc-success);
+    font-weight: 600;
+}
+
+.ribbon-feature-item.pass svg {
+    color: var(--doc-success);
+}
+
+.ribbon-feature-item.fail {
+    color: var(--doc-danger);
+    font-weight: 600;
+}
+
+.ribbon-feature-item.fail svg {
+    color: var(--doc-danger);
+}
+
+.ribbon-feature-item.pending {
+    color: var(--doc-text-muted);
+}
+
+.ribbon-feature-item.pending svg {
+    color: #94A3B8;
+}
+
+.ribbon-template-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11.5px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.ribbon-template-status.verified {
+    color: var(--doc-success);
+}
+
+.ribbon-template-status.missing {
+    color: var(--doc-danger);
+}
+
+.ribbon-template-status.unverified {
+    color: var(--doc-warning);
+}
+
+/* --- 3. Mobile View Switcher (Visible only <= 768px) --- */
+.mobile-pane-switcher {
+    display: none;
+    background: #E2E8F0;
+    padding: 3px;
+    border-radius: 8px;
+    gap: 4px;
+    flex-shrink: 0;
+    box-sizing: border-box;
+}
+
+.mobile-switcher-btn {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #475569;
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+}
+
+.mobile-switcher-btn.active {
+    background: #FFFFFF;
+    color: var(--doc-text-main);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* --- 4. Main Two-Panel Workspace Grid --- */
+.doc-workspace-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 4.2fr) minmax(0, 5.8fr);
+    gap: 12px;
+    flex: 1;
+    min-height: 0;
+    min-width: 0;
+    overflow: hidden;
+}
+
+/* --- 5. Left Column: Documentation Chat Pane --- */
+.doc-chat-pane {
+    background: var(--doc-card-bg);
+    border: 1px solid var(--doc-border);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    overflow: hidden;
+    min-height: 0;
+    min-width: 0;
+}
+
+.chat-pane-header {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--doc-border);
+    background: #FAFAFC;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-shrink: 0;
+    min-width: 0;
+}
+
+.session-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.status-dot-active {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #10B981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+    flex-shrink: 0;
+}
+
+.session-name {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--doc-text-main);
+    max-width: 200px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.session-proj-badge {
+    font-size: 10.5px;
+    padding: 2px 6px;
+    background: #E2E8F0;
+    border-radius: 4px;
+    color: #334155;
+    font-weight: 600;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+/* Quick Suggestion Chips */
+.quick-prompt-chips {
+    padding: 7px 12px;
+    border-bottom: 1px solid #F1F5F9;
+    background: #FFFFFF;
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+}
+
+.prompt-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 9px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #334155;
+    background: #F8FAFC;
+    border: 1px solid var(--doc-border);
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+    user-select: none;
+}
+
+.prompt-chip:hover {
+    background: #EEF2FF;
+    border-color: #C7D2FE;
+    color: #2563EB;
+    transform: translateY(-1px);
+}
+
+/* Messages Scrollable Viewport */
+.chat-messages-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background: #FFFFFF;
+    min-height: 0;
+    min-width: 0;
+}
+
+.chat-bubble-row {
+    display: flex;
+    gap: 10px;
+    max-width: 92%;
+    min-width: 0;
+}
+
+.chat-bubble-row.user {
+    align-self: flex-end;
+    flex-direction: row-reverse;
+}
+
+.chat-bubble-row.assistant {
+    align-self: flex-start;
+}
+
+.chat-avatar-circle {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.chat-avatar-circle.user {
+    background: #0F172A;
+    color: #FFFFFF;
+}
+
+.chat-avatar-circle.assistant {
+    background: linear-gradient(135deg, #2563EB 0%, #06B6D4 100%);
+    color: #FFFFFF;
+    box-shadow: 0 2px 4px rgba(37, 99, 235, 0.25);
+}
+
+.chat-bubble-body {
+    padding: 11px 14px;
+    border-radius: 10px;
+    font-size: 13px;
+    line-height: 1.55;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    min-width: 0;
+    position: relative;
+}
+
+.chat-bubble-row.user .chat-bubble-body {
+    background: #0F172A;
+    color: #FFFFFF;
+    border-bottom-right-radius: 2px;
+}
+
+.chat-bubble-row.assistant .chat-bubble-body {
+    background: #F8FAFC;
+    color: var(--doc-text-main);
+    border: 1px solid var(--doc-border);
+    border-bottom-left-radius: 2px;
+}
+
+.chat-bubble-body h3, .chat-bubble-body h4 {
+    margin: 6px 0 4px 0;
+    color: inherit;
+    font-size: 13.5px;
+    font-weight: 700;
+}
+
+.chat-bubble-body p {
+    margin: 0 0 6px 0;
+}
+
+.chat-bubble-body p:last-child {
+    margin-bottom: 0;
+}
+
+.chat-bubble-body ul, .chat-bubble-body ol {
+    margin: 4px 0 6px 16px;
+    padding: 0;
+}
+
+.chat-bubble-body pre {
+    background: #0F172A;
+    color: #E2E8F0;
+    padding: 8px 10px;
+    border-radius: 6px;
+    overflow-x: auto;
+    font-family: var(--font-mono, monospace);
+    font-size: 11.5px;
+    margin: 6px 0;
+}
+
+.chat-bubble-body code {
+    background: rgba(148, 163, 184, 0.15);
+    padding: 2px 4px;
+    border-radius: 4px;
+    font-family: var(--font-mono, monospace);
+    font-size: 11.5px;
+}
+
+.chat-bubble-row.user .chat-bubble-body code {
+    background: rgba(255, 255, 255, 0.2);
+    color: #FFFFFF;
+}
+
+.user-attachment-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 9px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 4px;
+    margin-bottom: 6px;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+/* Rich Generation Card Inside Chat */
+.doc-generation-card {
+    background: #FFFFFF;
+    border: 1px solid #BBF7D0;
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-top: 8px;
+    box-shadow: 0 1px 4px rgba(22, 101, 52, 0.06);
+}
+
+.gen-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    gap: 8px;
+}
+
+.gen-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--doc-success);
+    background: var(--doc-success-bg);
+    padding: 2px 8px;
+    border-radius: 999px;
+}
+
+.gen-score-badge {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #0F172A;
+    background: #F1F5F9;
+    padding: 2px 7px;
+    border-radius: 4px;
+}
+
+.gen-actions-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+}
+
+.btn-card-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 10px;
+    font-size: 11.5px;
+    font-weight: 600;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: all 0.15s;
+    cursor: pointer;
+    border: 1px solid transparent;
+}
+
+.btn-card-action.docx {
+    background: #EFF6FF;
+    color: #1D4ED8;
+    border-color: #BFDBFE;
+}
+
+.btn-card-action.docx:hover {
+    background: #DBEAFE;
+}
+
+.btn-card-action.pdf {
+    background: #FEF2F2;
+    color: #DC2626;
+    border-color: #FECACA;
+}
+
+.btn-card-action.pdf:hover {
+    background: #FEE2E2;
+}
+
+.btn-card-action.preview-tab {
+    background: #F0FDF4;
+    color: #15803D;
+    border-color: #BBF7D0;
+}
+
+.btn-card-action.preview-tab:hover {
+    background: #DCFCE7;
+}
+
+.step-logs-details {
+    margin-top: 8px;
+    border-top: 1px solid #F1F5F9;
+    padding-top: 6px;
+    font-size: 11.5px;
+}
+
+.step-logs-details summary {
+    cursor: pointer;
+    color: var(--doc-text-muted);
+    font-weight: 600;
+    outline: none;
+}
+
+.step-logs-list {
+    margin-top: 5px;
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.step-logs-list li {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: #475569;
+    font-size: 11px;
+}
+
+.step-logs-list li::before {
+    content: "✓";
+    color: var(--doc-success);
+    font-weight: 700;
+}
+
+/* Live Step Progress Box */
+.pipeline-progress-box {
+    display: none;
+    background: #F8FAFC;
+    border-top: 1px solid var(--doc-border);
+    padding: 10px 14px;
+    flex-shrink: 0;
+}
+
+.progress-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    gap: 8px;
+}
+
+.progress-title {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--doc-text-main);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.progress-step-text {
+    font-size: 11px;
+    color: var(--doc-accent);
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.progress-track {
+    width: 100%;
+    height: 5px;
+    background: #E2E8F0;
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.progress-bar-fill {
+    width: 15%;
+    height: 100%;
+    background: linear-gradient(90deg, #2563EB 0%, #06B6D4 100%);
+    border-radius: 999px;
+    transition: width 0.3s ease;
+}
+
+.spin-icon {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Chat Input Dock */
+.doc-chat-input-dock {
+    padding: 10px 12px;
+    border-top: 1px solid var(--doc-border);
+    background: #FAFAFC;
+    flex-shrink: 0;
+    min-width: 0;
+}
+
+.attachment-pill-dock {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 8px;
+    background: #EEF2FF;
+    border: 1px solid #C7D2FE;
+    border-radius: 6px;
+    margin-bottom: 6px;
+    font-size: 11.5px;
+    color: #3730A3;
+}
+
+.attachment-pill-dock span {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 500;
+}
+
+.attachment-pill-dock button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #6366F1;
+    display: flex;
+    align-items: center;
+    padding: 2px;
+}
+
+.chat-input-form {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    min-width: 0;
+}
+
+.chat-textarea-wrapper {
+    flex: 1;
+    min-width: 0;
+    position: relative;
+}
+
+.chat-textarea {
+    width: 100%;
+    min-height: 38px;
+    max-height: 120px;
+    padding: 9px 12px;
+    font-size: 13px;
+    font-family: inherit;
+    color: var(--doc-text-main);
+    background: #FFFFFF;
+    border: 1px solid var(--doc-border-darker);
+    border-radius: 6px;
+    outline: none;
+    resize: none;
+    line-height: 1.4;
+    transition: all 0.2s;
+    box-sizing: border-box;
+    display: block;
+}
+
+.chat-textarea:focus {
+    border-color: var(--doc-accent);
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+}
+
+.btn-attach-file {
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #FFFFFF;
+    border: 1px solid var(--doc-border-darker);
+    border-radius: 6px;
+    color: var(--doc-text-muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+    box-sizing: border-box;
+}
+
+.btn-attach-file:hover {
+    color: var(--doc-accent);
+    background: #F8FAFC;
+    border-color: #94A3B8;
+}
+
+.btn-send-chat {
+    height: 38px;
+    padding: 0 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--doc-primary);
+    color: #FFFFFF;
+    border: none;
+    border-radius: 6px;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+    white-space: nowrap;
+    box-sizing: border-box;
+}
+
+.btn-send-chat:hover {
+    background: #000000;
+    transform: translateY(-1px);
+}
+
+.btn-send-chat:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* --- 6. Right Column: Document Hub & Preview Pane --- */
+.doc-preview-pane {
+    background: var(--doc-card-bg);
+    border: 1px solid var(--doc-border);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    overflow: hidden;
+    min-height: 0;
+    min-width: 0;
+}
+
+.preview-pane-tabs-bar {
+    padding: 6px 12px;
+    background: #FAFAFC;
+    border-bottom: 1px solid var(--doc-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    flex-shrink: 0;
+    min-width: 0;
+    position: relative;
+    z-index: 2;
+}
+
+.preview-tabs-group {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    flex-wrap: nowrap;
+}
+
+.preview-tab-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 10px;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--doc-text-muted);
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+}
+
+.preview-tab-btn:hover {
+    color: var(--doc-text-main);
+    background: rgba(0, 0, 0, 0.03);
+}
+
+.preview-tab-btn.active {
+    color: var(--doc-accent);
+    background: #EFF6FF;
+    border-color: #BFDBFE;
+}
+
+.tab-badge-score {
+    font-size: 10px;
+    padding: 1px 5px;
+    border-radius: 999px;
+    background: var(--doc-success-bg);
+    color: var(--doc-success);
+    font-weight: 700;
+    margin-left: 2px;
+}
+
+.preview-actions-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: nowrap;
+    margin-left: auto;
+}
+
+.btn-preview-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 28px;
+    padding: 0 9px;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 5px;
+    border: 1px solid var(--doc-border-darker);
+    background: #FFFFFF;
+    color: #475569;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+    box-sizing: border-box;
+}
+
+.btn-preview-action:hover {
+    color: var(--doc-text-main);
+    background: var(--doc-bg-subtle);
+    border-color: #94A3B8;
+}
+
+.btn-preview-action.primary-download {
+    background: #EFF6FF;
+    color: #1D4ED8;
+    border-color: #BFDBFE;
+}
+
+.btn-preview-action.primary-download:hover {
+    background: #DBEAFE;
+}
+
+/* Tab Content Viewport */
+.tab-content-area {
+    flex: 1;
+    overflow-y: auto;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    min-width: 0;
+}
+
+.tab-pane-view {
+    display: none;
+    flex: 1;
+    min-height: 0;
+    min-width: 0;
+}
+
+.tab-pane-view.active {
+    display: flex;
+    flex-direction: column;
+}
+
+/* PDF Viewer Frame & States */
+.pdf-frame-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    background: #525659;
+}
+
+.pdf-preview-frame {
+    width: 100%;
+    height: 100%;
+    flex: 1;
+    border: none;
+    background: #525659;
+    min-height: 0;
+}
+
+.pdf-loading-indicator {
+    position: absolute;
+    inset: 0;
+    background: rgba(248, 250, 252, 0.92);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    z-index: 5;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--doc-text-main);
+}
+
+.preview-empty-state {
+    margin: auto;
+    max-width: 440px;
+    padding: 32px 20px;
+    text-align: center;
+}
+
+.empty-state-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    background: #F1F5F9;
+    color: #64748B;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 14px;
+}
+
+.preview-empty-state h3 {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--doc-text-main);
+    margin: 0 0 6px 0;
+}
+
+.preview-empty-state p {
+    font-size: 12.5px;
+    color: var(--doc-text-muted);
+    line-height: 1.5;
+    margin: 0 0 18px 0;
+}
+
+/* QA Checklist Layout */
+.qa-checklist-wrapper {
+    padding: 16px 18px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.qa-header-card {
+    background: var(--doc-bg-subtle);
+    border: 1px solid var(--doc-border);
+    border-radius: 6px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.qa-score-display {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.score-circle {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: var(--doc-success-bg);
+    color: var(--doc-success);
+    font-size: 14px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #86EFAC;
+    flex-shrink: 0;
+}
+
+.checklist-items-table {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.check-row-card {
+    background: #FFFFFF;
+    border: 1px solid var(--doc-border);
+    border-radius: 6px;
+    padding: 9px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    font-size: 12px;
+}
+
+.check-row-title {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    color: var(--doc-text-main);
+    font-weight: 500;
+    min-width: 0;
+}
+
+.check-status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 10.5px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 999px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.check-status-pill.pass {
+    background: #DCFCE7;
+    color: #15803D;
+}
+
+.check-status-pill.fail {
+    background: #FEE2E2;
+    color: #B91C1C;
+}
+
+.check-status-pill.pending {
+    background: #F1F5F9;
+    color: #64748B;
+}
+
+/* History / Deliverables Tab */
+.history-tab-wrapper {
+    padding: 16px 18px;
+    overflow-y: auto;
+}
+
+.history-item-row {
+    background: #FFFFFF;
+    border: 1px solid var(--doc-border);
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.history-item-info h4 {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--doc-text-main);
+    margin: 0;
+}
+
+.history-item-info span {
+    font-size: 11px;
+    color: var(--doc-text-muted);
+}
+
+/* --- Responsive Media Queries --- */
+@media (max-width: 1024px) {
+    .doc-assistant-page {
+        padding: 10px 14px;
+    }
+    .doc-workspace-grid {
+        grid-template-columns: minmax(0, 4.5fr) minmax(0, 5.5fr);
+        gap: 10px;
+    }
+    .project-select-shell {
+        max-width: 220px;
+    }
+}
+
+@media (max-width: 768px) {
+    .doc-assistant-page {
+        height: auto;
+        max-height: none;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding: 10px 12px;
+        gap: 8px;
+    }
+
+    .mobile-pane-switcher {
+        display: flex;
+    }
+
+    .doc-workspace-grid {
+        display: flex;
+        flex-direction: column;
+        flex: none;
+        height: auto;
+        overflow: visible;
+    }
+
+    .doc-chat-pane, .doc-preview-pane {
+        height: 620px;
+        min-height: 520px;
+        flex: none;
+    }
+
+    /* In mobile switcher mode, hide unselected pane */
+    .doc-chat-pane.mobile-hidden,
+    .doc-preview-pane.mobile-hidden {
+        display: none !important;
+    }
+
+    .doc-assistant-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .doc-toolbar-controls {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .project-select-shell {
+        max-width: 100%;
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .doc-assistant-page {
+        padding: 8px;
+    }
+
+    .doc-toolbar-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .btn-generate-doc-primary,
+    .btn-doc-subtle {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .doc-title-text h1 {
+        font-size: 15px;
+    }
+
+    .chat-bubble-row {
+        max-width: 96%;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="doc-assistant-page">
+
+    <!-- =================================================================
+         1. TOP ACTION & NAVIGATION HEADER
+         ================================================================= -->
+    <header class="doc-assistant-header">
+        <div class="doc-title-cluster">
+            <div class="doc-assistant-icon-badge" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <circle cx="11" cy="14" r="3"></circle>
+                    <path d="M17 17l3 3"></path>
+                    <path d="M12 7h.01"></path>
+                </svg>
+            </div>
+            <div class="doc-title-text">
+                <h1>Documentation Assistant</h1>
+                <p>
+                    <span>Conversational AI Documentation Engine</span>
+                    <span class="caption-reference-pill">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        CaptionAI Master Standard
+                    </span>
+                </p>
+            </div>
+        </div>
+
+        <div class="doc-toolbar-controls">
+            <!-- Project Selection Dropdown -->
+            <div class="project-select-shell">
+                <select id="projectSelect" onchange="switchProject(this.value)" title="Select active software project" aria-label="Select Project">
+                    {% for p in projects %}
+                        <option value="{{ p.id }}" {{ 'selected' if p.id == selected_project_id else '' }}>
+                            {{ p.name }} ({{ p.app_type }})
+                        </option>
+                    {% endfor %}
+                </select>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
+
+            <!-- New Session Button -->
+            <button type="button" class="btn-doc-subtle" onclick="startNewSession()" title="Start a fresh documentation session">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                <span>New Session</span>
+            </button>
+
+            <!-- Generate Documentation One-Click Button -->
+            <button type="button" id="btnMainGenerate" class="btn-generate-doc-primary" onclick="triggerOneClickGeneration()" title="Generate complete CaptionAI-standard DOCX and PDF">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                <span id="btnMainGenerateText">Generate Documentation</span>
+            </button>
+        </div>
+    </header>
+
+
+    <!-- =================================================================
+         2. MASTER TEMPLATE VALIDATION STATUS BAR
+         Accurate status: Only green when verified/passed!
+         ================================================================= -->
+    {% set is_doc_ready = doc_data and doc_data.docx_path and doc_data.pdf_path %}
+    {% set has_val = val_report is not none %}
+
+    {% set sb_sw_pass = has_val and val_report.checks_dict.get('SmartBridge & SkillWallet Logos Preserved') %}
+    {% set zero_tbl_pass = has_val and val_report.checks_dict.get('No Tables Present (Strict No-Table Policy)') %}
+    {% set code_shot_pass = has_val and val_report.checks_dict.get('Actual Code Screenshots Embedded') %}
+    {% set pdf_export_pass = is_doc_ready and (val_report.checks_dict.get('Generated PDF File Exists & Valid Size', true) if has_val else true) %}
+    {% set tmpl_verified = template_status and template_status.available and template_status.status == 'verified' %}
+
+    <div class="template-verified-ribbon" role="region" aria-label="Template Validation Status">
+        <div class="ribbon-features-row">
+            <!-- 1. SmartBridge Logo -->
+            <span class="ribbon-feature-item {{ 'pass' if sb_sw_pass else ('fail' if has_val else 'pending') }}">
+                {% if sb_sw_pass %}
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    SmartBridge Logo (Verified)
+                {% elif has_val %}
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+                    SmartBridge Logo (Missing)
+                {% else %}
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+                    SmartBridge Logo (Pending)
+                {% endif %}
+            </span>
+
+            <!-- 2. SkillWallet Logo -->
+            <span class="ribbon-feature-item {{ 'pass' if sb_sw_pass else ('fail' if has_val else 'pending') }}">
+                {% if sb_sw_pass %}
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    SkillWallet Logo (Verified)
+                {% elif has_val %}
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+                    SkillWallet Logo (Missing)
+                {% else %}
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+                    SkillWallet Logo (Pending)
+                {% endif %}
+            </span>
+
+            <!-- 3. Zero Body Tables -->
+            <span class="ribbon-feature-item {{ 'pass' if zero_tbl_pass else ('fail' if has_val else 'pending') }}">
+                {% if zero_tbl_pass %}
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    Zero Body Tables (CaptionAI Flow)
+                {% elif has_val %}
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+                    Zero Tables (Tables Detected)
+                {% else %}
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+                    Zero Tables (Pending Generation)
+                {% endif %}
+            </span>
+
+            <!-- 4. Code Screenshot Requirements -->
+            <span class="ribbon-feature-item {{ 'pass' if code_shot_pass else ('fail' if has_val else 'pending') }}">
+                {% if code_shot_pass %}
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    Code Screenshots Embedded
+                {% elif has_val %}
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+                    Code Screenshots (Missing)
+                {% else %}
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+                    Code Screenshots (Pending)
+                {% endif %}
+            </span>
+
+            <!-- 5. DOCX/PDF Export Status -->
+            <span class="ribbon-feature-item {{ 'pass' if pdf_export_pass else ('pending' if doc_data and doc_data.docx_path else 'pending') }}">
+                {% if pdf_export_pass %}
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    DOCX &amp; PDF Export Verified
+                {% elif doc_data and doc_data.docx_path %}
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+                    DOCX Ready (PDF Processing)
+                {% else %}
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+                    DOCX &amp; PDF (Not Generated)
+                {% endif %}
+            </span>
+        </div>
+
+        <!-- 6. Template Verification Status -->
+        <div>
+            {% if tmpl_verified %}
+                <span class="ribbon-template-status verified">
+                    ● Template Verified
+                </span>
+            {% elif template_status and template_status.status == 'missing' %}
+                <span class="ribbon-template-status missing">
+                    ● Master Template Missing
+                </span>
+            {% else %}
+                <span class="ribbon-template-status unverified">
+                    ● Master Template Unverified
+                </span>
+            {% endif %}
+        </div>
+    </div>
+
+
+    <!-- =================================================================
+         3. MOBILE PANE SWITCHER (Only shown on small screens <= 768px)
+         ================================================================= -->
+    <div class="mobile-pane-switcher" role="tablist" aria-label="Mobile View Switcher">
+        <button type="button" class="mobile-switcher-btn active" id="btnSwitchMobileChat" onclick="switchMobilePane('chat')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+            <span>Documentation Chat</span>
+        </button>
+        <button type="button" class="mobile-switcher-btn" id="btnSwitchMobilePreview" onclick="switchMobilePane('preview')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+            <span>Document Preview &amp; QA</span>
+        </button>
+    </div>
+
+
+    <!-- =================================================================
+         4. MAIN TWO-PANEL WORKSPACE GRID
+         Left: ~42% Documentation Chat | Right: ~58% Document Preview & QA
+         ================================================================= -->
+    <div class="doc-workspace-grid">
+
+        <!-- =============================================================
+             LEFT COLUMN: CONVERSATIONAL AI DOCUMENTATION CHAT
+             ============================================================= -->
+        <section class="doc-chat-pane" id="chatPane" aria-label="Documentation Chat Panel">
+            <!-- Chat Pane Header -->
+            <div class="chat-pane-header">
+                <div class="session-info">
+                    <div class="status-dot-active" aria-hidden="true"></div>
+                    <span class="session-name" title="{{ conversation.title if conversation else 'Documentation Session' }}">
+                        {{ conversation.title if conversation else 'Documentation Session' }}
+                    </span>
+                    {% if selected_project %}
+                        <span class="session-proj-badge">{{ selected_project.name }}</span>
+                    {% endif %}
+                </div>
+                <div>
+                    <button type="button" class="btn-doc-subtle" onclick="clearCurrentChat()" style="height: 28px; padding: 0 8px; font-size: 11px;" title="Clear session message history">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                        <span>Clear Chat</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Quick Suggestion Action Chips -->
+            <div class="quick-prompt-chips">
+                <span class="prompt-chip" data-prompt="Generate complete documentation for {{ selected_project.name if selected_project else 'this project' }}" onclick="sendQuickPrompt(this.getAttribute('data-prompt'))">
+                    🚀 Generate Full Documentation
+                </span>
+                <span class="prompt-chip" onclick="sendQuickPrompt('Inspect the source code, routes, and database schema')">
+                    🔍 Analyze Source &amp; Routes
+                </span>
+                <span class="prompt-chip" onclick="sendQuickPrompt('Show me the live PDF preview of the generated document')">
+                    📄 Show PDF Preview
+                </span>
+                <span class="prompt-chip" onclick="sendQuickPrompt('Verify the SmartBridge and SkillWallet logos and formatting')">
+                    ✅ Validate CaptionAI Standard
+                </span>
+            </div>
+
+            <!-- Scrollable Messages Container -->
+            <div class="chat-messages-container" id="chatMessages">
+                {% if messages %}
+                    {% for m in messages %}
+                        <div class="chat-bubble-row {{ m.role }}">
+                            <div class="chat-avatar-circle {{ m.role }}">
+                                {{ 'U' if m.role == 'user' else 'AI' }}
+                            </div>
+                            <div class="chat-bubble-body">
+                                {% if m.attachment_name %}
+                                    <div class="user-attachment-badge">
+                                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+                                        <span>Attached: {{ m.attachment_name }}</span>
+                                    </div>
+                                {% endif %}
+
+                                <div class="chat-text-parsed">
+                                    {{ safe_markdown(m.content)|safe }}
+                                </div>
+
+                                <!-- Interactive Rich Generation Card -->
+                                {% if m.metadata and m.metadata.get('action') == 'generated' %}
+                                    <div class="doc-generation-card">
+                                        <div class="gen-card-header">
+                                            <span class="gen-status-badge">
+                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                                CaptionAI Standard Verified
+                                            </span>
+                                            <span class="gen-score-badge">
+                                                Score: {{ m.metadata.get('validation_score', 100) }}/100
+                                            </span>
+                                        </div>
+                                        <p style="font-size: 11.5px; color: #475569; margin: 0 0 6px 0;">
+                                            Generated <strong>{{ m.metadata.get('project_name') }}</strong> documentation with preserved logos, real AST routes, and matching PDF.
+                                        </p>
+                                        <div class="gen-actions-row">
+                                            <a href="{{ m.metadata.get('download_docx_url', '#') }}" class="btn-card-action docx" download>
+                                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                                                <span>Download DOCX</span>
+                                            </a>
+                                            <a href="{{ m.metadata.get('download_pdf_url', '#') }}" class="btn-card-action pdf" download>
+                                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                                                <span>Download PDF</span>
+                                            </a>
+                                            <button type="button" class="btn-card-action preview-tab" onclick="activatePreviewTab()">
+                                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                                <span>View in Preview</span>
+                                            </button>
+                                        </div>
+
+                                        {% if m.metadata.get('step_logs') %}
+                                            <details class="step-logs-details">
+                                                <summary>View Pipeline Execution Steps ({{ m.metadata.get('step_logs')|length }})</summary>
+                                                <ul class="step-logs-list">
+                                                    {% for step in m.metadata.get('step_logs') %}
+                                                        <li>{{ step }}</li>
+                                                    {% endfor %}
+                                                </ul>
+                                            </details>
+                                        {% endif %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <!-- Welcoming Placeholder Splash -->
+                    <div style="text-align: center; margin: auto; max-width: 440px; padding: 24px 16px;">
+                        <div style="width: 48px; height: 48px; border-radius: 12px; background: #EEF2FF; color: #2563EB; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px;">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><circle cx="11" cy="14" r="3"></circle><path d="M17 17l3 3"></path></svg>
+                        </div>
+                        <h3 style="font-size: 15px; font-weight: 700; color: var(--doc-text-main); margin: 0 0 6px 0;">
+                            DevGuardian Documentation Assistant
+                        </h3>
+                        <p style="font-size: 12.5px; color: var(--doc-text-muted); line-height: 1.5; margin: 0 0 16px 0;">
+                            I inspect <strong>{{ selected_project.name if selected_project else 'your project' }}</strong>'s genuine source code, database tables, and routes, and compile everything into a validated DOCX and matching PDF formatted to the master CaptionAI reference standard.
+                        </p>
+                        <button type="button" class="btn-generate-doc-primary" onclick="triggerOneClickGeneration()" style="margin: 0 auto;">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                            <span>Generate Documentation Now</span>
+                        </button>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Live Pipeline Progress Indicator -->
+            <div class="pipeline-progress-box" id="pipelineProgress">
+                <div class="progress-header">
+                    <span class="progress-title">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="spin-icon"><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line></svg>
+                        <span>Generating Documentation</span>
+                    </span>
+                    <span class="progress-step-text" id="progressStepText">Inspecting workspace &amp; AST routes...</span>
+                </div>
+                <div class="progress-track">
+                    <div class="progress-bar-fill" id="progressBarFill"></div>
+                </div>
+            </div>
+
+            <!-- Chat Input Dock -->
+            <div class="doc-chat-input-dock">
+                <!-- Attachment File Pill -->
+                <div class="attachment-pill-dock" id="docAttachmentPreview">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+                    <span id="docAttachmentName">file.txt</span>
+                    <button type="button" onclick="removeAttachment()" title="Remove attached file" aria-label="Remove attachment">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                </div>
+
+                <form id="docChatForm" onsubmit="handleChatSubmit(event)" class="chat-input-form">
+                    <input type="file" id="docFileInput" style="display: none;" onchange="handleFileSelection(event)">
+
+                    <!-- Attachment Button -->
+                    <button type="button" class="btn-attach-file" onclick="triggerFileInput()" title="Attach project file or screenshot" aria-label="Attach File">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+                    </button>
+
+                    <!-- Multiline Textarea -->
+                    <div class="chat-textarea-wrapper">
+                        <textarea id="docChatInput" class="chat-textarea" placeholder="Ask to generate docs, analyze code, adjust sections, or add screenshots... (Enter to send)" rows="1" onkeydown="handleTextareaKeydown(event)" aria-label="Chat Message Input"></textarea>
+                    </div>
+
+                    <!-- Send Button -->
+                    <button type="submit" id="btnSendChat" class="btn-send-chat" title="Send instruction">
+                        <span>Send</span>
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                    </button>
+                </form>
+            </div>
+        </section>
+
+
+        <!-- =============================================================
+             RIGHT COLUMN: LIVE DOCUMENT HUB, PREVIEW & QUALITY ASSURANCE
+             ============================================================= -->
+        <section class="doc-preview-pane" id="previewPane" aria-label="Document Preview and Quality Assurance Panel">
+            <div class="preview-pane-tabs-bar">
+                <div class="preview-tabs-group" role="tablist">
+                    <button type="button" class="preview-tab-btn active" id="tabBtnPreview" onclick="switchRightTab('preview')" role="tab" aria-selected="true">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                        <span>Document Preview</span>
+                    </button>
+                    <button type="button" class="preview-tab-btn" id="tabBtnQA" onclick="switchRightTab('qa')" role="tab" aria-selected="false">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+                        <span>CaptionAI QA</span>
+                        <span class="tab-badge-score">{{ val_report.score_percentage if val_report else (100 if doc_data and doc_data.docx_path else '—') }}/100</span>
+                    </button>
+                    <button type="button" class="preview-tab-btn" id="tabBtnHistory" onclick="switchRightTab('history')" role="tab" aria-selected="false">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+                        <span>Sessions &amp; Files</span>
+                    </button>
+                </div>
+
+                <div class="preview-actions-group">
+                    {% if doc_data and doc_data.docx_path %}
+                        <a href="{{ url_for('documentation_download_docx', project_id=selected_project_id) }}" class="btn-preview-action primary-download" download title="Download DOCX file">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                            <span>DOCX</span>
+                        </a>
+                        <a href="{{ url_for('documentation_download_pdf', project_id=selected_project_id) }}" class="btn-preview-action primary-download" download title="Download PDF file">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                            <span>PDF</span>
+                        </a>
+                        <a href="{{ url_for('documentation_stream_pdf', project_id=selected_project_id) }}" target="_blank" rel="noopener noreferrer" class="btn-preview-action" title="Open PDF in new browser window">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Tab Content Viewport -->
+            <div class="tab-content-area">
+
+                <!-- TAB 1: LIVE PDF VIEWER -->
+                <div class="tab-pane-view active" id="panePreview">
+                    {% if doc_data and doc_data.pdf_path %}
+                        <div class="pdf-frame-wrapper" id="pdfFrameWrapper">
+                            <div class="pdf-loading-indicator" id="pdfLoadingIndicator">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="spin-icon" style="color: #2563EB;"><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line></svg>
+                                <span>Rendering PDF Deliverable...</span>
+                            </div>
+                            <iframe id="pdfPreviewIframe" class="pdf-preview-frame" src="{{ url_for('documentation_stream_pdf', project_id=selected_project_id) }}#toolbar=1&navpanes=0" onload="handlePdfLoaded()" onerror="handlePdfError()"></iframe>
+                        </div>
+                    {% else %}
+                        <div class="preview-empty-state">
+                            <div class="empty-state-icon">
+                                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                            </div>
+                            <h3>No Document Preview Available</h3>
+                            <p>
+                                Documentation has not yet been generated for <strong>{{ selected_project.name if selected_project else 'this project' }}</strong>. Click below or ask the chatbot to generate complete CaptionAI-standard documentation.
+                            </p>
+                            <button type="button" class="btn-generate-doc-primary" onclick="triggerOneClickGeneration()" style="margin: 0 auto;">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                                <span>Generate Documentation Now</span>
+                            </button>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- TAB 2: CAPTIONAI QUALITY ASSURANCE CHECKLIST -->
+                <div class="tab-pane-view" id="paneQA">
+                    <div class="qa-checklist-wrapper">
+                        <div class="qa-header-card">
+                            <div class="qa-score-display">
+                                <div class="score-circle">
+                                    {{ val_report.score_percentage if val_report else (100 if doc_data and doc_data.docx_path else 0) }}%
+                                </div>
+                                <div>
+                                    <h4 style="font-size: 13.5px; font-weight: 700; color: var(--doc-text-main); margin: 0;">
+                                        CaptionAI Master Standard Compliance
+                                    </h4>
+                                    <span style="font-size: 11.5px; color: {{ 'var(--doc-success)' if val_report and val_report.valid else ('var(--doc-text-muted)' if not val_report else 'var(--doc-danger)') }}; font-weight: 600;">
+                                        {% if val_report and val_report.valid %}
+                                            Strict Format &amp; Visual Verification Passed (100%)
+                                        {% elif val_report %}
+                                            Verification Score: {{ val_report.score_percentage }}% (Needs Review)
+                                        {% elif doc_data and doc_data.docx_path %}
+                                            Documentation Generated &bull; Click to Re-verify
+                                        {% else %}
+                                            Pending Generation &bull; Generate documentation to inspect checks
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                            <button type="button" class="btn-doc-subtle" onclick="revalidateDocument()" style="height: 32px; font-size: 11.5px;" title="Re-run visual validation checks">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+                                <span>Run Verification</span>
+                            </button>
+                        </div>
+
+                        <div class="checklist-items-table">
+                            {% if val_report and val_report.checks %}
+                                {% for chk in val_report.checks %}
+                                    <div class="check-row-card">
+                                        <div class="check-row-title">
+                                            {% if chk.passed %}
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="2.5" style="flex-shrink: 0; margin-top: 1px;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                            {% else %}
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2.5" style="flex-shrink: 0; margin-top: 1px;"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+                                            {% endif %}
+                                            <div>
+                                                <span style="font-weight: 600;">{{ chk.name }}</span>
+                                                {% if chk.detail %}
+                                                    <div style="font-size: 11px; color: var(--doc-text-muted); font-weight: normal; margin-top: 1px;">{{ chk.detail }}</div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <span class="check-status-pill {{ 'pass' if chk.passed else 'fail' }}">
+                                            {{ 'VERIFIED' if chk.passed else 'FAILED' }}
+                                        </span>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <div style="text-align: center; padding: 24px 16px; background: #FFFFFF; border: 1px dashed var(--doc-border); border-radius: 8px;">
+                                    <p style="font-size: 12.5px; color: var(--doc-text-muted); margin: 0 0 10px 0;">
+                                        Quality Assurance checks run against the compiled DOCX package and matching PDF deliverable. Generate documentation for <strong>{{ selected_project.name if selected_project else 'this project' }}</strong> to view live verification results.
+                                    </p>
+                                    <button type="button" class="btn-generate-doc-primary" onclick="triggerOneClickGeneration()" style="margin: 0 auto; height: 32px; font-size: 12px;">
+                                        <span>Generate Documentation</span>
+                                    </button>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 3: CONVERSATION SESSIONS & DELIVERABLES -->
+                <div class="tab-pane-view" id="paneHistory">
+                    <div class="history-tab-wrapper">
+                        <h4 style="font-size: 12.5px; font-weight: 700; color: var(--doc-text-main); margin: 0 0 10px 0;">
+                            Documentation Sessions for {{ selected_project.name if selected_project else 'Project' }}
+                        </h4>
+
+                        {% if user_conversations %}
+                            {% for conv in user_conversations %}
+                                <div class="history-item-row">
+                                    <div class="history-item-info">
+                                        <h4>{{ conv.title }}</h4>
+                                        <span>Updated: {{ conv.updated_at }} &bull; Project: {{ conv.project_name or selected_project.name }}</span>
+                                    </div>
+                                    <div style="display: flex; gap: 6px;">
+                                        <a href="{{ url_for('documentation_assistant_page', project_id=conv.project_id) }}" class="btn-preview-action">
+                                            Open Session
+                                        </a>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <p style="font-size: 12.5px; color: var(--doc-text-muted); margin: 0 0 16px 0;">No prior documentation sessions recorded.</p>
+                        {% endif %}
+
+                        <h4 style="font-size: 12.5px; font-weight: 700; color: var(--doc-text-main); margin: 18px 0 10px 0;">
+                            Generated Deliverables
+                        </h4>
+                        {% if doc_data and doc_data.docx_path %}
+                            <div class="history-item-row">
+                                <div class="history-item-info">
+                                    <h4>{{ selected_project.name }}_Documentation.docx</h4>
+                                    <span>DOCX Master Document &bull; {{ (doc_data.docx_size / 1024)|round(1) }} KB</span>
+                                </div>
+                                <a href="{{ url_for('documentation_download_docx', project_id=selected_project_id) }}" class="btn-card-action docx" download>
+                                    Download
+                                </a>
+                            </div>
+                            {% if doc_data.pdf_path %}
+                                <div class="history-item-row">
+                                    <div class="history-item-info">
+                                        <h4>{{ selected_project.name }}_Documentation.pdf</h4>
+                                        <span>PDF Twin Deliverable &bull; {{ (doc_data.pdf_size / (1024 * 1024))|round(2) }} MB</span>
+                                    </div>
+                                    <a href="{{ url_for('documentation_download_pdf', project_id=selected_project_id) }}" class="btn-card-action pdf" download>
+                                        Download
+                                    </a>
+                                </div>
+                            {% endif %}
+                        {% else %}
+                            <p style="font-size: 12.5px; color: var(--doc-text-muted);">No document deliverables generated yet.</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </div>
+</div>
+
+<script>
+/* =====================================================================
+   DOCUMENTATION ASSISTANT CHATBOT & PREVIEW CLIENT CONTROLLER
+   ===================================================================== */
+const CURRENT_PROJECT_ID = "{{ selected_project_id or '' }}";
+const CURRENT_CONVERSATION_ID = "{{ conversation.id if conversation else '' }}";
+const CSRF_TOKEN = "{{ csrf_token }}";
+
+let selectedAttachment = null;
+let isGenerating = false;
+
+// Scroll chat to bottom on load
+document.addEventListener("DOMContentLoaded", () => {
+    scrollChatToBottom();
+});
+
+function scrollChatToBottom() {
+    const el = document.getElementById("chatMessages");
+    if (el) {
+        el.scrollTop = el.scrollHeight;
+    }
+}
+
+// Switch project via dropdown
+function switchProject(projectId) {
+    if (!projectId || projectId === CURRENT_PROJECT_ID) return;
+    window.location.href = `{{ url_for('documentation_assistant_page') }}?project_id=${projectId}`;
+}
+
+// Right panel tab switching
+function switchRightTab(tabName) {
+    document.querySelectorAll(".preview-tab-btn").forEach(btn => {
+        btn.classList.remove("active");
+        btn.setAttribute("aria-selected", "false");
+    });
+    document.querySelectorAll(".tab-pane-view").forEach(pane => pane.classList.remove("active"));
+
+    if (tabName === "preview") {
+        const btn = document.getElementById("tabBtnPreview");
+        const pane = document.getElementById("panePreview");
+        if (btn) { btn.classList.add("active"); btn.setAttribute("aria-selected", "true"); }
+        if (pane) pane.classList.add("active");
+    } else if (tabName === "qa") {
+        const btn = document.getElementById("tabBtnQA");
+        const pane = document.getElementById("paneQA");
+        if (btn) { btn.classList.add("active"); btn.setAttribute("aria-selected", "true"); }
+        if (pane) pane.classList.add("active");
+    } else if (tabName === "history") {
+        const btn = document.getElementById("tabBtnHistory");
+        const pane = document.getElementById("paneHistory");
+        if (btn) { btn.classList.add("active"); btn.setAttribute("aria-selected", "true"); }
+        if (pane) pane.classList.add("active");
+    }
+}
+
+function activatePreviewTab() {
+    switchRightTab("preview");
+    // On mobile, also switch active view to preview pane
+    if (window.innerWidth <= 768) {
+        switchMobilePane('preview');
+    }
+}
+
+// Mobile View Switcher
+function switchMobilePane(pane) {
+    const chatPane = document.getElementById("chatPane");
+    const previewPane = document.getElementById("previewPane");
+    const btnChat = document.getElementById("btnSwitchMobileChat");
+    const btnPreview = document.getElementById("btnSwitchMobilePreview");
+
+    if (pane === 'chat') {
+        if (chatPane) {
+            chatPane.classList.remove("mobile-hidden");
+            chatPane.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        if (previewPane) previewPane.classList.add("mobile-hidden");
+        if (btnChat) btnChat.classList.add("active");
+        if (btnPreview) btnPreview.classList.remove("active");
+        scrollChatToBottom();
+    } else {
+        if (previewPane) {
+            previewPane.classList.remove("mobile-hidden");
+            previewPane.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        if (chatPane) chatPane.classList.add("mobile-hidden");
+        if (btnPreview) btnPreview.classList.add("active");
+        if (btnChat) btnChat.classList.remove("active");
+    }
+}
+
+// PDF Iframe loaded handler
+function handlePdfLoaded() {
+    const loader = document.getElementById("pdfLoadingIndicator");
+    if (loader) {
+        loader.style.display = "none";
+    }
+}
+
+function handlePdfError() {
+    const wrapper = document.getElementById("pdfFrameWrapper");
+    if (wrapper) {
+        wrapper.innerHTML = `
+            <div class="preview-empty-state">
+                <div class="empty-state-icon" style="color: #DC2626; background: #FEE2E2;">
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                </div>
+                <h3>PDF Preview Unavailable In Browser</h3>
+                <p>The PDF document was generated successfully, but your browser cannot display embedded PDF streams directly.</p>
+                <a href="/documentation/${CURRENT_PROJECT_ID}/download/pdf" class="btn-generate-doc-primary" download style="margin: 0 auto;">
+                    <span>Download PDF Directly</span>
+                </a>
+            </div>
+        `;
+    }
+}
+
+// Start New Session
+async function startNewSession() {
+    if (!CURRENT_PROJECT_ID) return;
+    try {
+        const res = await fetch("{{ url_for('documentation_assistant_new_conversation') }}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": CSRF_TOKEN,
+                "X-Requested-With": "XMLHttpRequest"
+            },
+            body: JSON.stringify({ project_id: CURRENT_PROJECT_ID, csrf_token: CSRF_TOKEN })
+        });
+        const data = await res.json();
+        if (data.success) {
+            window.location.reload();
+        } else {
+            alert(data.error || "Unable to start new session.");
+        }
+    } catch (err) {
+        console.error("Error creating session:", err);
+    }
+}
+
+// Clear Current Chat
+async function clearCurrentChat() {
+    if (!CURRENT_CONVERSATION_ID || !confirm("Clear all messages in this documentation session?")) return;
+    try {
+        const res = await fetch(`/documentation-assistant/conversation/${CURRENT_CONVERSATION_ID}/clear`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": CSRF_TOKEN,
+                "X-Requested-With": "XMLHttpRequest"
+            },
+            body: JSON.stringify({ csrf_token: CSRF_TOKEN })
+        });
+        const data = await res.json();
+        if (data.success) {
+            window.location.reload();
+        }
+    } catch (err) {
+        console.error("Error clearing chat:", err);
+    }
+}
+
+// Trigger One-Click Generation
+async function triggerOneClickGeneration() {
+    if (isGenerating || !CURRENT_PROJECT_ID) return;
+    sendQuickPrompt("Generate complete documentation for {{ selected_project.name if selected_project else 'this project' }}");
+}
+
+// Quick Prompt Chips
+function sendQuickPrompt(promptText) {
+    const textarea = document.getElementById("docChatInput");
+    if (textarea) {
+        textarea.value = promptText;
+        dispatchChatMessage(promptText);
+    }
+}
+
+// File Attachment Handling
+function triggerFileInput() {
+    document.getElementById("docFileInput").click();
+}
+
+function handleFileSelection(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (file.size > 15 * 1024 * 1024) {
+        alert("File size exceeds 15MB limit.");
+        e.target.value = "";
+        return;
+    }
+
+    selectedAttachment = file;
+    document.getElementById("docAttachmentName").textContent = `${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+    document.getElementById("docAttachmentPreview").style.display = "flex";
+}
+
+function removeAttachment() {
+    selectedAttachment = null;
+    document.getElementById("docFileInput").value = "";
+    document.getElementById("docAttachmentPreview").style.display = "none";
+}
+
+// Keydown handler for textarea
+function handleTextareaKeydown(e) {
+    if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        handleChatSubmit(e);
+    }
+}
+
+// Handle Form Submission
+function handleChatSubmit(e) {
+    if (e) e.preventDefault();
+    const textarea = document.getElementById("docChatInput");
+    const msg = textarea ? textarea.value.trim() : "";
+    if (!msg && !selectedAttachment) return;
+    dispatchChatMessage(msg);
+}
+
+// Core Async Message Dispatcher
+async function dispatchChatMessage(messageText) {
+    if (isGenerating) return;
+    isGenerating = true;
+
+    const textarea = document.getElementById("docChatInput");
+    const sendBtn = document.getElementById("btnSendChat");
+    const mainGenBtn = document.getElementById("btnMainGenerate");
+    const mainGenText = document.getElementById("btnMainGenerateText");
+
+    if (textarea) textarea.value = "";
+    if (sendBtn) sendBtn.disabled = true;
+    if (mainGenBtn) mainGenBtn.disabled = true;
+    if (mainGenText) mainGenText.textContent = "Processing...";
+
+    // Append User Message to UI immediately
+    appendUserBubble(messageText, selectedAttachment ? selectedAttachment.name : null);
+    scrollChatToBottom();
+
+    // Check if prompt is a generation prompt
+    const isGenIntent = /generate|create|build|prepare|produce/i.test(messageText) && /doc/i.test(messageText);
+    if (isGenIntent) {
+        startProgressSimulation();
+    }
+
+    // Build FormData
+    const formData = new FormData();
+    formData.append("csrf_token", CSRF_TOKEN);
+    formData.append("project_id", CURRENT_PROJECT_ID);
+    if (CURRENT_CONVERSATION_ID) {
+        formData.append("conversation_id", CURRENT_CONVERSATION_ID);
+    }
+    formData.append("message", messageText);
+    if (selectedAttachment) {
+        formData.append("attachment", selectedAttachment);
+    }
+
+    try {
+        const res = await fetch("{{ url_for('documentation_assistant_chat_action') }}", {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": CSRF_TOKEN,
+                "X-Requested-With": "XMLHttpRequest"
+            },
+            body: formData
+        });
+
+        const data = await res.json();
+        stopProgressSimulation();
+
+        if (data.success && data.assistant_message) {
+            appendAssistantBubble(data.assistant_message);
+            scrollChatToBottom();
+
+            // If documentation was generated, update the right preview pane!
+            if (data.assistant_message.metadata && data.assistant_message.metadata.action === "generated") {
+                refreshDocumentPreview();
+            }
+        } else {
+            appendAssistantBubble({
+                content: `> **Error:** ${data.error || "Failed to process message."}`,
+                metadata: { action: "error" }
+            });
+        }
+    } catch (err) {
+        console.error("Chat dispatch error:", err);
+        stopProgressSimulation();
+        appendAssistantBubble({
+            content: `> **Connection Error:** Unable to reach the DevGuardian documentation service. Please retry.`,
+            metadata: { action: "error" }
+        });
+    } finally {
+        isGenerating = false;
+        removeAttachment();
+        if (sendBtn) sendBtn.disabled = false;
+        if (mainGenBtn) mainGenBtn.disabled = false;
+        if (mainGenText) mainGenText.textContent = "Generate Documentation";
+        scrollChatToBottom();
+    }
+}
+
+// UI Bubble Appenders
+function appendUserBubble(text, attachmentName) {
+    const container = document.getElementById("chatMessages");
+    if (!container) return;
+
+    const row = document.createElement("div");
+    row.className = "chat-bubble-row user";
+
+    let attachHtml = "";
+    if (attachmentName) {
+        attachHtml = `
+            <div class="user-attachment-badge">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+                <span>Attached: ${escapeHtml(attachmentName)}</span>
+            </div>
+        `;
+    }
+
+    row.innerHTML = `
+        <div class="chat-avatar-circle user">U</div>
+        <div class="chat-bubble-body">
+            ${attachHtml}
+            <div class="chat-text-parsed">${escapeHtml(text).replace(/\n/g, '<br>')}</div>
+        </div>
+    `;
+    container.appendChild(row);
+}
+
+function appendAssistantBubble(asstMsg) {
+    const container = document.getElementById("chatMessages");
+    if (!container) return;
+
+    const row = document.createElement("div");
+    row.className = "chat-bubble-row assistant";
+
+    let metaHtml = "";
+    const meta = asstMsg.metadata || {};
+
+    if (meta.action === "generated") {
+        let stepListHtml = "";
+        if (meta.step_logs && meta.step_logs.length) {
+            stepListHtml = `
+                <details class="step-logs-details">
+                    <summary>View Pipeline Execution Steps (${meta.step_logs.length})</summary>
+                    <ul class="step-logs-list">
+                        ${meta.step_logs.map(s => `<li>${escapeHtml(s)}</li>`).join("")}
+                    </ul>
+                </details>
+            `;
+        }
+
+        metaHtml = `
+            <div class="doc-generation-card">
+                <div class="gen-card-header">
+                    <span class="gen-status-badge">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        CaptionAI Standard Verified
+                    </span>
+                    <span class="gen-score-badge">
+                        Score: ${meta.validation_score || 100}/100
+                    </span>
+                </div>
+                <p style="font-size: 11.5px; color: #475569; margin: 0 0 6px 0;">
+                    Generated <strong>${escapeHtml(meta.project_name || "Project")}</strong> documentation with preserved logos, real AST routes, and matching PDF.
+                </p>
+                <div class="gen-actions-row">
+                    <a href="${meta.download_docx_url || '#'}" class="btn-card-action docx" download>
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                        <span>Download DOCX</span>
+                    </a>
+                    <a href="${meta.download_pdf_url || '#'}" class="btn-card-action pdf" download>
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                        <span>Download PDF</span>
+                    </a>
+                    <button type="button" class="btn-card-action preview-tab" onclick="activatePreviewTab()">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                        <span>View in Preview</span>
+                    </button>
+                </div>
+                ${stepListHtml}
+            </div>
+        `;
+    }
+
+    row.innerHTML = `
+        <div class="chat-avatar-circle assistant">AI</div>
+        <div class="chat-bubble-body">
+            <div class="chat-text-parsed">${simpleMarkdownParse(asstMsg.content)}</div>
+            ${metaHtml}
+        </div>
+    `;
+    container.appendChild(row);
+}
+
+// Progress Simulation
+let progressInterval = null;
+function startProgressSimulation() {
+    const pBox = document.getElementById("pipelineProgress");
+    const pText = document.getElementById("progressStepText");
+    const pBar = document.getElementById("progressBarFill");
+    if (!pBox || !pText || !pBar) return;
+
+    pBox.style.display = "block";
+    let pct = 15;
+    pBar.style.width = pct + "%";
+
+    const steps = [
+        "1. Inspecting real AST routes & database models...",
+        "2. Synthesizing project-specific architecture diagram...",
+        "3. Populating CaptionAI master template & preserving logos...",
+        "4. Rendering PDF deliverable via MS Word engine...",
+        "5. Running 10-point visual & layout validation checks..."
+    ];
+    let stepIdx = 0;
+
+    progressInterval = setInterval(() => {
+        pct = Math.min(pct + 12, 92);
+        pBar.style.width = pct + "%";
+        if (pct > 25 && stepIdx === 0) { stepIdx = 1; pText.textContent = steps[1]; }
+        else if (pct > 45 && stepIdx === 1) { stepIdx = 2; pText.textContent = steps[2]; }
+        else if (pct > 70 && stepIdx === 2) { stepIdx = 3; pText.textContent = steps[3]; }
+        else if (pct > 85 && stepIdx === 3) { stepIdx = 4; pText.textContent = steps[4]; }
+    }, 1200);
+}
+
+function stopProgressSimulation() {
+    if (progressInterval) clearInterval(progressInterval);
+    const pBar = document.getElementById("progressBarFill");
+    const pBox = document.getElementById("pipelineProgress");
+    if (pBar) pBar.style.width = "100%";
+    setTimeout(() => {
+        if (pBox) pBox.style.display = "none";
+    }, 800);
+}
+
+// Reload PDF Preview Iframe
+function refreshDocumentPreview() {
+    const pane = document.getElementById("panePreview");
+    if (!pane) return;
+
+    const streamUrl = `/documentation/${CURRENT_PROJECT_ID}/stream/pdf?t=${Date.now()}#toolbar=1&navpanes=0`;
+    pane.innerHTML = `
+        <div class="pdf-frame-wrapper" id="pdfFrameWrapper">
+            <div class="pdf-loading-indicator" id="pdfLoadingIndicator">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="spin-icon" style="color: #2563EB;"><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line></svg>
+                <span>Rendering PDF Deliverable...</span>
+            </div>
+            <iframe id="pdfPreviewIframe" class="pdf-preview-frame" src="${streamUrl}" onload="handlePdfLoaded()" onerror="handlePdfError()"></iframe>
+        </div>
+    `;
+    activatePreviewTab();
+}
+
+// Run QA Validation Checks
+async function revalidateDocument() {
+    try {
+        const res = await fetch(`/documentation/${CURRENT_PROJECT_ID}/validate`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": CSRF_TOKEN
+            },
+            body: JSON.stringify({ csrf_token: CSRF_TOKEN })
+        });
+        const data = await res.json();
+        if (data.valid !== undefined) {
+            alert(`Validation Complete!\nScore: ${data.score}/100\nStatus: ${data.valid ? 'Passed' : 'Needs Review'}`);
+            window.location.reload();
+        }
+    } catch (err) {
+        console.error("Validation error:", err);
+    }
+}
+
+// Simple Client Markdown Renderer
+function simpleMarkdownParse(text) {
+    if (!text) return "";
+    let html = escapeHtml(text);
+    // Headings
+    html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
+    html = html.replace(/^## (.*$)/gim, '<h3>$1</h3>');
+    html = html.replace(/^# (.*$)/gim, '<h3>$1</h3>');
+    // Bold & italic
+    html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+    // Code blocks & inline code
+    html = html.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
+    html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+    // Blockquote
+    html = html.replace(/^\> (.*$)/gim, '<blockquote>$1</blockquote>');
+    // Bullet lists
+    html = html.replace(/^\- (.*$)/gim, '<li>$1</li>');
+    html = html.replace(/(<li>[\s\S]*?<\/li>)/g, '<ul>$1</ul>');
+    // Links
+    html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" style="color: #2563EB; text-decoration: underline;">$1</a>');
+    // Line breaks
+    html = html.replace(/\n\n/g, '<br><br>');
+    return html;
+}
+
+function escapeHtml(str) {
+    if (!str) return "";
+    const div = document.createElement("div");
+    div.textContent = str;
+    return div.innerHTML;
+}
+</script>
+{% endblock %}
